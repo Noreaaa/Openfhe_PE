@@ -1,0 +1,5 @@
+/home/bill/myproj/openfhe_pe/build/CMakeFiles/rebuild_cache.dir
+/home/bill/myproj/openfhe_pe/build/CMakeFiles/cnn.dir
+/home/bill/myproj/openfhe_pe/build/CMakeFiles/edit_cache.dir
+/home/bill/myproj/openfhe_pe/build/CMakeFiles/test.dir
+/home/bill/myproj/openfhe_pe/build/CMakeFiles/encryption.dir

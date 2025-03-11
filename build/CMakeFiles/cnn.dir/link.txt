@@ -1,0 +1,2 @@
+/usr/bin/ar qc libcnn.a CMakeFiles/cnn.dir/src/cnn/conv2d.cpp.o CMakeFiles/cnn.dir/src/cnn/layer.cpp.o CMakeFiles/cnn.dir/src/cnn/model.cpp.o
+/usr/bin/ranlib libcnn.a

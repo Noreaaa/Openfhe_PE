@@ -1,0 +1,3 @@
+[ 40%] Built target cnn
+[ 60%] Built target encryption
+[ 70%] Building CXX object CMakeFiles/test.dir/src/main.cpp.o
