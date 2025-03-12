@@ -200,34 +200,8 @@ void Conv2d_P::forward(vector<Ciphertext<DCRTPoly>>& x_cts,
     cout << "f_h: " << filter_h << endl;
     cout << "f_w: " << filter_w << endl;
     #endif
+
     // create filter vector to multiply with x_cts
-
-    // first we do the unencrypted convolution
-
-    for (int fn = 0; fn < filter_n; fn++){
-        for (int oh = 0; oh < output_h; oh++){
-            for (int ow = 0; ow < output_w; ow++){
-                double sum = 0;
-                // check if the output value will involve encrypted values
-                if (!isEncrypted(oh, ow, filter_h, filter_w)){
-                    for (int fh = 0; fh < filter_h; fh++){
-                        for (int fw = 0; fw < filter_w; fw++){
-                            for (int c = 0; c < CURRENT_CHANNEL; c++){
-                                sum += x_pts[c][oh*stride_ + fh][ow*stride_ + fw] * 
-                                filters_[fn][fh][fw];
-                            }
-                        }
-                    }
-                }
-                else{
-                    // to do 
-                }
-
-                y_pts[fn][oh][ow] = sum;
-            }
-        }
-    }
-
     for (int n = 0; n < filter_n; n++){
         for (int h = 0; h < filter_h; h++){
             std::vector<double> filter_row_vec;
@@ -256,6 +230,63 @@ void Conv2d_P::forward(vector<Ciphertext<DCRTPoly>>& x_cts,
     }
     cout << endl;
     #endif
+
+    // first we do the unencrypted convolution
+
+    for (int fn = 0; fn < filter_n; fn++){
+        for (int oh = 0; oh < output_h; oh++){
+            for (int ow = 0; ow < output_w; ow++){
+                double sum = 0;
+                // check if the output value will involve encrypted values
+                if (!isEncrypted(oh, ow, filter_h, filter_w)){
+                    for (int fh = 0; fh < filter_h; fh++){
+                        for (int fw = 0; fw < filter_w; fw++){
+                            for (int c = 0; c < CURRENT_CHANNEL; c++){
+                                sum += x_pts[c][oh*stride_ + fh][ow*stride_ + fw] * 
+                                filters_[fn][fh][fw];
+                            }
+                        }
+                    }
+                }
+                y_pts[fn][oh][ow] = sum;
+            }
+        }
+    }
+
+    // then we do re-encryption and addition
+    // regarding encrypted rows
+    int re_encrypt_start = 0;
+    int re_encrypt_end = 0;
+    for(int w = 0; w < output_w; w+=stride_){
+        if (intervalsOverlap(w, w + filter_w, ENCRYPTED_WIDTH_START, ENCRYPTED_WIDTH_END)){
+            re_encrypt_start = w;
+            break;
+        }
+    }
+    for(int w = re_encrypted_start; w < output_w; w+=stride_){
+        if (!intervalsOverlap(w, w + filter_w, ENCRYPTED_WIDTH_START, ENCRYPTED_WIDTH_END)){
+            re_encrypt_end = w;
+            break;
+        }
+    }
+
+    for(int h = ENCRYPTED_HEIGHT_START; h < ENCRYPTED_HEIGHT_END; h++){
+        std::vector<double> to_add;
+        for(int c = 0; c < CURRENT_CHANNEL; c++){
+            for(int w = 0; w < CURRENT_WIDTH; w++){
+                if (isInRange(w, re_encrypt_start, re_encrypt_end)){
+                    to_add.push_back(x_pts[c][h][w]);
+                }
+                else{
+                    to_add.push_back(0);
+                }
+            }
+        }
+        auto to_add_plain = CRYPTOCONTEXT->MakeCKKSPackedPlaintext(to_add);
+        x_cts[h - ENCRYPTED_HEIGHT_START] = CRYPTOCONTEXT->EvalAdd(x_cts[h - ENCRYPTED_HEIGHT_START], to_add_plain);
+    }
+
+    
 
 
 }
