@@ -17,6 +17,8 @@ openfhe.h
 /home/bill/myproj/openfhe_pe/src/utils/types.hpp
 ../utils/globals.hpp
 /home/bill/myproj/openfhe_pe/src/utils/globals.hpp
+../utils/helper.hpp
+/home/bill/myproj/openfhe_pe/src/utils/helper.hpp
 
 /home/bill/myproj/openfhe_pe/src/utils/globals.hpp
 set
@@ -25,6 +27,12 @@ vector
 -
 openfhe.h
 /home/bill/myproj/openfhe_pe/src/utils/openfhe.h
+
+/home/bill/myproj/openfhe_pe/src/utils/helper.hpp
+openfhe.h
+/home/bill/myproj/openfhe_pe/src/utils/openfhe.h
+types.hpp
+/home/bill/myproj/openfhe_pe/src/utils/types.hpp
 
 /home/bill/myproj/openfhe_pe/src/utils/types.hpp
 globals.h

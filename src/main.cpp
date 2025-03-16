@@ -2,10 +2,11 @@
 #include "cmdline.h"
 #include "openfhe.h"
 #include "utils/types.hpp"
-#include "utils/helper.hpp"
 #include "encryption/encryption.hpp"
 #include "cnn/model.hpp"
 #include "cnn/conv2d.hpp"
+#include <chrono>
+
 
 #include <iostream>
 #include <vector>
@@ -110,7 +111,7 @@ int main(int argc, char *argv[]) {
     int bottom = parser.get<int>("bottom");
     int left = parser.get<int>("left");
     int right = parser.get<int>("right");
-    int ringDim = 1 << 12;
+    int ringDim = 1 << 9;
     SetParam(ringDim);
     std::vector<uint32_t> levelBudget = {3, 3};
     std::vector<uint32_t> bsgsDim = {0, 0};
@@ -162,8 +163,8 @@ int main(int argc, char *argv[]) {
     }
 
     // create the test filter
-    int filter_height = 3;
-    int filter_width = 3;
+    int filter_height = 2;
+    int filter_width = 2;
     int filter_num = 32;
     types::double3d filter_3d(filter_num, types::double2d(filter_height,
     std::vector<double>(filter_width, 0)));
@@ -176,21 +177,24 @@ int main(int argc, char *argv[]) {
         }
     }
 
+    std::cout << "filter 3d:" << std::endl;
+    print_3d(filter_3d);
+
     // initialize the bias
     std::vector<double> bias(filter_num, 0);
 
     // Test step 2: doing partial encryption 
 
     // to do: calculate channel size to be used in single ciphertext
-    int enc_height;
-    int enc_width;
+    //int enc_height;
+    //int enc_width;
     // top bottom left right 
-    std::tuple<int, int, int, int> EncRegion = CalculateRegionHCNN(10, 20, 10, 20);
+    //std::tuple<int, int, int, int> EncRegion = CalculateRegionHCNN(10, 20, 10, 20);
     int channel_size = 3;
     int height_start, height_end, width_start, width_end;
 
-    enc_height = std::get<1>(EncRegion) - std::get<0>(EncRegion);
-    enc_width = std::get<3>(EncRegion) - std::get<2>(EncRegion);
+    //enc_height = std::get<1>(EncRegion) - std::get<0>(EncRegion);
+    //enc_width = std::get<3>(EncRegion) - std::get<2>(EncRegion);
 
     Ciphertext<DCRTPoly> x_ctxt;
     std::cout << "image 3d:" << std::endl;
@@ -203,7 +207,7 @@ int main(int argc, char *argv[]) {
     height_end = 3;
     width_start = 2;
     width_end = 3;
-    int max_channel = 128;
+    int max_channel = 3;
 
     ENCRYPTED_HEIGHT_START = height_start;
     ENCRYPTED_HEIGHT_END = height_end;
@@ -220,6 +224,8 @@ int main(int argc, char *argv[]) {
         3, max_channel, height_start, height_end, width_start, width_end, x_ctxt_vec);
     */
 
+    GoldenConv2d(image_3d, filter_3d, 1, 0);
+
 
     Encrypt_MCSR_P(image_3d, numSlots, depth, 5, cryptoContext, height_start, height_end, width_start, width_end, keyPair, x_ctxt_vec);
     std::cout << "finished encryption" << std::endl;
@@ -228,16 +234,18 @@ int main(int argc, char *argv[]) {
     // create the model
     Network model;
     //model.add_layer(std::make_shared<Conv2d>(CONV_2D, "conv1", filter_3d, bias, 1, 0, numSlots));
-
+    model.add_layer(std::make_shared<Conv2d_P>(CONV_2D, "conv1", filter_3d, bias, 1, 0, numSlots));
     std::cout << "start prediction" << std::endl;
     CURRENT_HEIGHT = test_height;
     CURRENT_WIDTH = test_width;
     CURRENT_CHANNEL = 3;
     CRYPTOCONTEXT = cryptoContext;
     KEYPAIR = keyPair;
-    //model.predict(x_ctxt_vec);
 
-    //GoldenConv2d(image_3d, filter_3d, 1, 0);
+    auto start = std::chrono::high_resolution_clock::now();
+    model.predict_P(x_ctxt_vec, image_3d);
+    auto end = std::chrono::high_resolution_clock::now();
+    std::cout << "prediction time: " << std::chrono::duration_cast<std::chrono::seconds>(end - start).count() << "s" << std::endl;
     return 0;
     
 

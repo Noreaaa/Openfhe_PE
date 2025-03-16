@@ -119,7 +119,7 @@ KeyPair<lbcrypto::DCRTPoly> Keypair, std::vector<Ciphertext<DCRTPoly>> &x_ctxt){
  * @brief Encrypt the input image
  * MCSC: multiple channel single row partially encrypted
  */
-void Encrypt_MCSR_P(types::double3d image3d, uint32_t numSlots, int depth,
+void Encrypt_MCSR_P(types::double3d& image3d, uint32_t numSlots, int depth,
     int max_channel,  CryptoContext<DCRTPoly> cryptocontext, 
     int enc_height_start, int enc_height_end, int enc_width_start, int enc_width_end,
     KeyPair<lbcrypto::DCRTPoly> Keypair, std::vector<Ciphertext<DCRTPoly>> &x_ctxt){
@@ -140,6 +140,7 @@ void Encrypt_MCSR_P(types::double3d image3d, uint32_t numSlots, int depth,
                         if(isInRange(i, enc_height_start, enc_height_end) && 
                             isInRange(j, enc_width_start, enc_width_end)){
                             x_vec.push_back(image3d[c][i][j]);
+                            image3d[c][i][j] = 0;
                         }
                         else{
                             x_vec.push_back(0);

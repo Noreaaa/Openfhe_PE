@@ -67,8 +67,8 @@
             );
             ~Conv2dBN();
 
-            void forward(double3d& x_pts, vector<Ciphertext<DCRTPoly>>& x_cts,
-            double3d& y_pts, vector<Ciphertext<DCRTPoly>>& y_cts) override;
+            void forward(vector<Ciphertext<DCRTPoly>>& x_cts,
+                vector<Ciphertext<DCRTPoly>>& y_cts, double3d& x_pts, double3d& y_pts) override;
 
         private:
             types::double3d filters_;
@@ -80,3 +80,7 @@
 
 
     void GoldenConv2d(double3d& input, double3d& filters, int stride, int padding);
+
+    bool isEncrypted_h(int val, int filter_size);
+
+    bool isEncrypted(int oh, int ow, int fh, int fw);

@@ -5,6 +5,7 @@ CMakeFiles/encryption.dir/src/encryption/encryption.cpp.o
  /home/bill/myproj/openfhe_pe/src/encryption/encryption.cpp
  /home/bill/myproj/openfhe_pe/src/encryption/encryption.hpp
  /home/bill/myproj/openfhe_pe/src/utils/globals.hpp
+ /home/bill/myproj/openfhe_pe/src/utils/helper.hpp
  /home/bill/myproj/openfhe_pe/src/utils/types.hpp
  /usr/local/include/openfhe/binfhe/binfhe-base-params.h
  /usr/local/include/openfhe/binfhe/binfhe-base-scheme.h

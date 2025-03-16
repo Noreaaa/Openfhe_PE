@@ -21,4 +21,4 @@ class SumPooling : public Layer {
             int stride_;
             int padding_;
             uint32_t batch_size_;
-}
+};

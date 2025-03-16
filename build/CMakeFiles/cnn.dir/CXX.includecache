@@ -20,10 +20,6 @@ cstdlib
 layer.hpp
 /home/bill/myproj/openfhe_pe/src/cnn/layer.hpp
 
-/home/bill/myproj/openfhe_pe/src/cnn/layer.cpp
-layer.hpp
-/home/bill/myproj/openfhe_pe/src/cnn/layer.hpp
-
 /home/bill/myproj/openfhe_pe/src/cnn/layer.hpp
 memory
 -
@@ -35,14 +31,6 @@ openfhe.h
 /home/bill/myproj/openfhe_pe/src/utils/types.hpp
 ../utils/helper.hpp
 /home/bill/myproj/openfhe_pe/src/utils/helper.hpp
-
-/home/bill/myproj/openfhe_pe/src/cnn/model.cpp
-model.hpp
-/home/bill/myproj/openfhe_pe/src/cnn/model.hpp
-
-/home/bill/myproj/openfhe_pe/src/cnn/model.hpp
-layer.hpp
-/home/bill/myproj/openfhe_pe/src/cnn/layer.hpp
 
 /home/bill/myproj/openfhe_pe/src/utils/globals.hpp
 set

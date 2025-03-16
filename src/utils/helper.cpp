@@ -239,3 +239,6 @@ void rotateVectorInplace(std::vector<double>& vec, int steps) {
 bool isInRange(int value, int min_val, int max_val) {
     return (value >= min_val && value <= max_val);
 }
+
+
+bool intervalsOverlap(int a, int b, int c, int d) {return !(b <= c || d < a);}

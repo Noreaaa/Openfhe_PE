@@ -13,6 +13,7 @@ using std::vector;
 using std::cout;
 using std::endl;
 
+
     #define IS_IN_RANGE(x, min_val, max_val) ((x) >= (min_val) && (x) <= (max_val))
 	#define POSITIVE(x) ((x) < 0 ? 0 : (x))
 
@@ -193,6 +194,8 @@ void Conv2d_P::forward(vector<Ciphertext<DCRTPoly>>& x_cts,
     std::vector<std::vector<std::vector<double>>> f_rows;
     f_rows.resize(filter_n);
     y_cts.clear();
+
+
     #ifdef DEBUG
     cout << "output_h: " << output_h << endl;
     cout << "output_w: " << output_w << endl;
@@ -232,13 +235,19 @@ void Conv2d_P::forward(vector<Ciphertext<DCRTPoly>>& x_cts,
     #endif
 
     // first we do the unencrypted convolution
-
+    y_pts.resize(filter_n);
+    for (int i = 0; i < filter_n; i++){
+        y_pts[i].resize(output_h);
+        for (int j = 0; j < output_h; j++){
+            y_pts[i][j].resize(output_w);
+        }
+    }
     for (int fn = 0; fn < filter_n; fn++){
         for (int oh = 0; oh < output_h; oh++){
             for (int ow = 0; ow < output_w; ow++){
                 double sum = 0;
                 // check if the output value will involve encrypted values
-                if (!isEncrypted(oh, ow, filter_h, filter_w)){
+                if (!isEncrypted(oh * stride_, ow * stride_, filter_h, filter_w)){
                     for (int fh = 0; fh < filter_h; fh++){
                         for (int fw = 0; fw < filter_w; fw++){
                             for (int c = 0; c < CURRENT_CHANNEL; c++){
@@ -247,11 +256,15 @@ void Conv2d_P::forward(vector<Ciphertext<DCRTPoly>>& x_cts,
                             }
                         }
                     }
+                    y_pts[fn][oh][ow] = sum;
                 }
-                y_pts[fn][oh][ow] = sum;
             }
         }
     }
+    #ifdef DEBUG
+    cout << "value check for unencrypted parts" << endl;
+    print_3d(y_pts);
+    #endif
 
     // then we do re-encryption and addition
     // regarding encrypted rows
@@ -263,14 +276,16 @@ void Conv2d_P::forward(vector<Ciphertext<DCRTPoly>>& x_cts,
             break;
         }
     }
-    for(int w = re_encrypted_start; w < output_w; w+=stride_){
+    for(int w = re_encrypt_start; w < output_w; w+=stride_){
         if (!intervalsOverlap(w, w + filter_w, ENCRYPTED_WIDTH_START, ENCRYPTED_WIDTH_END)){
             re_encrypt_end = w;
             break;
         }
     }
+    std::cout << "re_encrypt_start: " << re_encrypt_start << std::endl;
+    std::cout << "re_encrypt_end: " << re_encrypt_end << std::endl;
 
-    for(int h = ENCRYPTED_HEIGHT_START; h < ENCRYPTED_HEIGHT_END; h++){
+    for(int h = ENCRYPTED_HEIGHT_START; h <= ENCRYPTED_HEIGHT_END; h++){
         std::vector<double> to_add;
         for(int c = 0; c < CURRENT_CHANNEL; c++){
             for(int w = 0; w < CURRENT_WIDTH; w++){
@@ -286,9 +301,105 @@ void Conv2d_P::forward(vector<Ciphertext<DCRTPoly>>& x_cts,
         x_cts[h - ENCRYPTED_HEIGHT_START] = CRYPTOCONTEXT->EvalAdd(x_cts[h - ENCRYPTED_HEIGHT_START], to_add_plain);
     }
 
+    //#define ADD_CTS_CHECK
+    #ifdef ADD_CTS_CHECK
+    std::cout << "check added cts:" << std::endl;
+    for (int i = 0; i < static_cast<int>(x_cts.size()); i++){
+        Plaintext plain;
+        CRYPTOCONTEXT->Decrypt(KEYPAIR.secretKey, x_cts[i], &plain);
+        std::cout << plain << std::endl;
+    }
+    return;
+    #endif
+
+    for (int oh = 0; oh < output_h; oh++) {
+        if (!isEncrypted_h(oh * stride_, filter_h)) {
+            continue;
+        }
     
+        std::vector<Ciphertext<DCRTPoly>> y_vec_ct;
+    
+        #ifdef _OPENMP
+        #pragma omp parallel
+        #endif
+        {
+            // 每个线程维护自己的临时 vector
+            std::vector<Ciphertext<DCRTPoly>> local_y_vec_ct;
+    
+            #ifdef _OPENMP
+            #pragma omp for collapse(2)
+            #endif
+            for (int fn = 0; fn < filter_n; fn++) {
+                for (int ow = 0; ow < output_w; ow++) {
+                    if (!isEncrypted(oh * stride_, ow * stride_, filter_h, filter_w)) {
+                        continue;
+                    }
+    
+                    std::vector<double> temp_vec = {0};
+                    auto temp_plain = CRYPTOCONTEXT->MakeCKKSPackedPlaintext(temp_vec);
+                    auto temp_res = CRYPTOCONTEXT->Encrypt(KEYPAIR.secretKey, temp_plain);
+                    double sum = 0;
+    
+                    std::vector<double> mask(filter_n * output_w, 0);
+                    mask[fn * output_w + ow] = 1;
+                    auto mask_plain = CRYPTOCONTEXT->MakeCKKSPackedPlaintext(mask);
+    
+                    for (int fh = 0; fh < filter_h; fh++) {
+                        if (!isInRange(oh * stride_ + fh, ENCRYPTED_HEIGHT_START, ENCRYPTED_HEIGHT_END)) {
+                            for (int fw = 0; fw < filter_w; fw++) {
+                                for (int c = 0; c < CURRENT_CHANNEL; c++) {
+                                    sum += x_pts[c][oh * stride_ + fh][ow * stride_ + fw] * filters_[fn][fh][fw];
+                                }
+                            }
+                        } else {
+                            std::vector<double> filter_vec = rotateVector(f_rows[fn][fh], ow * stride_);
+                            auto filter_row_plain = CRYPTOCONTEXT->MakeCKKSPackedPlaintext(filter_vec);
+                            auto temp_res_per_row = CRYPTOCONTEXT->EvalMult(x_cts[oh + fh - ENCRYPTED_HEIGHT_START], filter_row_plain);
+    
+                            temp_res = CRYPTOCONTEXT->EvalAdd(temp_res, temp_res_per_row);
+                        }
+                    }
+    
+                    temp_res = CRYPTOCONTEXT->EvalSum(temp_res, batch_size_);
+                    std::vector<double> sum_vec(filter_n * output_w, 0);
+                    sum_vec[fn * output_w + ow] = sum;
+                    auto sum_plain = CRYPTOCONTEXT->MakeCKKSPackedPlaintext(sum_vec);
+    
+                    temp_res = CRYPTOCONTEXT->EvalAdd(temp_res, sum_plain);
+                    temp_res = CRYPTOCONTEXT->EvalMult(temp_res, mask_plain);
+    
+                    // 线程私有变量，不会造成竞争
+                    local_y_vec_ct.push_back(temp_res);
+                }
+            }
+    
+            // 合并线程结果到 y_vec_ct
+            #ifdef _OPENMP
+            #pragma omp critical
+            #endif
+            y_vec_ct.insert(y_vec_ct.end(), local_y_vec_ct.begin(), local_y_vec_ct.end());
+        }
+    
+        y_cts.push_back(CRYPTOCONTEXT->EvalAddMany(y_vec_ct));
+    }
 
+    #define Y_CTS_CHECK
+    #ifdef Y_CTS_CHECK
+    cout << "value check for encrypted parts" << endl;
+    for(int i = 0; i < static_cast<int>(y_cts.size()); i++){
+        Plaintext res;
+        CRYPTOCONTEXT->Decrypt(KEYPAIR.secretKey, y_cts[i], &res);
+        cout << "y_cts[" << i << "]: " << res << endl;
+    }
+    #endif
+    
+}
 
+bool isEncrypted_h(int val, int filter_size){
+    int end_val = val + filter_size;
+
+    bool overlap = (val <= ENCRYPTED_HEIGHT_END && end_val > ENCRYPTED_HEIGHT_START);
+    return overlap;
 }
 
 // check if the output value will involve encrypted values
@@ -297,8 +408,8 @@ bool isEncrypted(int oh, int ow, int fh, int fw) {
     int end_w = ow + fw;
 
     // 判断区域是否与加密区域有交集
-    bool height_overlap = (oh < ENCRYPTED_HEIGHT_END && end_h > ENCRYPTED_HEIGHT_START);
-    bool width_overlap = (ow < ENCRYPTED_WIDTH_END && end_w > ENCRYPTED_WIDTH_START);
+    bool height_overlap = (oh <= ENCRYPTED_HEIGHT_END && end_h > ENCRYPTED_HEIGHT_START);
+    bool width_overlap = (ow <= ENCRYPTED_WIDTH_END && end_w > ENCRYPTED_WIDTH_START);
 
     return height_overlap && width_overlap;
 }

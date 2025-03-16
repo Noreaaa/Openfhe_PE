@@ -1,7 +1,6 @@
 
 #include "pool.hpp"
 #include <utility>
-#include <cassert>
 #include <cstdlib>
 
 using std::vector;
@@ -41,12 +40,12 @@ vector<Ciphertext<DCRTPoly>>& y_cts) {
     #endif
 
 
-    int input_h = CURRENT_HEIGHT;
-    int input_w = CURRENT_WIDTH;
-    int input_c = CURRENT_CHANNEL;
-    int output_h = (input_h + 2 * padding_ - kernel_size_) / stride_ + 1;
-    int output_w = (input_w + 2 * padding_ - kernel_size_) / stride_ + 1;
-    int output_c = input_c;
+    //int input_h = CURRENT_HEIGHT;
+    //int input_w = CURRENT_WIDTH;
+    //int input_c = CURRENT_CHANNEL;
+    //int output_h = (input_h + 2 * padding_ - kernel_size_) / stride_ + 1;
+    //int output_w = (input_w + 2 * padding_ - kernel_size_) / stride_ + 1;
+    //int output_c = input_c;
     y_cts.clear();
 
 

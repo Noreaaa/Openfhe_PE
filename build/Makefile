@@ -249,6 +249,33 @@ src/cnn/model.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/cnn.dir/build.make CMakeFiles/cnn.dir/src/cnn/model.cpp.s
 .PHONY : src/cnn/model.cpp.s
 
+src/cnn/pool.o: src/cnn/pool.cpp.o
+
+.PHONY : src/cnn/pool.o
+
+# target to build an object file
+src/cnn/pool.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/cnn.dir/build.make CMakeFiles/cnn.dir/src/cnn/pool.cpp.o
+.PHONY : src/cnn/pool.cpp.o
+
+src/cnn/pool.i: src/cnn/pool.cpp.i
+
+.PHONY : src/cnn/pool.i
+
+# target to preprocess a source file
+src/cnn/pool.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/cnn.dir/build.make CMakeFiles/cnn.dir/src/cnn/pool.cpp.i
+.PHONY : src/cnn/pool.cpp.i
+
+src/cnn/pool.s: src/cnn/pool.cpp.s
+
+.PHONY : src/cnn/pool.s
+
+# target to generate assembly for a file
+src/cnn/pool.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/cnn.dir/build.make CMakeFiles/cnn.dir/src/cnn/pool.cpp.s
+.PHONY : src/cnn/pool.cpp.s
+
 src/encryption/encryption.o: src/encryption/encryption.cpp.o
 
 .PHONY : src/encryption/encryption.o
@@ -377,6 +404,9 @@ help:
 	@echo "... src/cnn/model.o"
 	@echo "... src/cnn/model.i"
 	@echo "... src/cnn/model.s"
+	@echo "... src/cnn/pool.o"
+	@echo "... src/cnn/pool.i"
+	@echo "... src/cnn/pool.s"
 	@echo "... src/encryption/encryption.o"
 	@echo "... src/encryption/encryption.i"
 	@echo "... src/encryption/encryption.s"

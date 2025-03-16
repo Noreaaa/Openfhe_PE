@@ -4,6 +4,7 @@
 CMakeFiles/encryption.dir/src/encryption/encryption.cpp.o: ../src/encryption/encryption.cpp
 CMakeFiles/encryption.dir/src/encryption/encryption.cpp.o: ../src/encryption/encryption.hpp
 CMakeFiles/encryption.dir/src/encryption/encryption.cpp.o: ../src/utils/globals.hpp
+CMakeFiles/encryption.dir/src/encryption/encryption.cpp.o: ../src/utils/helper.hpp
 CMakeFiles/encryption.dir/src/encryption/encryption.cpp.o: ../src/utils/types.hpp
 CMakeFiles/encryption.dir/src/encryption/encryption.cpp.o: /usr/local/include/openfhe/binfhe/binfhe-base-params.h
 CMakeFiles/encryption.dir/src/encryption/encryption.cpp.o: /usr/local/include/openfhe/binfhe/binfhe-base-scheme.h

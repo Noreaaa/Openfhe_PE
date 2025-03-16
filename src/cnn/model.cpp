@@ -25,3 +25,13 @@ void Network::predict(types::ciphertext1d x_cts){
 }
 
 
+void Network::predict_P(types::ciphertext1d x_cts, types::double3d x_pts){
+	types::ciphertext1d y_cts;
+	types::double3d y_pts;
+	for (int i = 0; i < static_cast<int>(layers_.size()); i++){
+    	layers_[i]->forward(x_cts, y_cts, x_pts, y_pts);
+    }
+
+	
+}
+

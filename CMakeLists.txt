@@ -23,8 +23,14 @@ option( BUILD_STATIC "Set to ON to include static versions of the library" OFF)
 #set(CMAKE_PREFIX_PATH "/home/bill/myproj/libtorch")
 
 #find_package(Torch REQUIRED)
-
+find_package(OpenMP REQUIRED)
 find_package(OpenFHE CONFIG REQUIRED)
+
+if(OpenMP_FOUND)
+  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
+endif()
+
 if (OpenFHE_FOUND)
     message(STATUS "FOUND PACKAGE OpenFHE")
     message(STATUS "OpenFHE Version: ${BASE_OPENFHE_VERSION}")
