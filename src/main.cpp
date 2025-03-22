@@ -98,6 +98,44 @@ void SetParam(uint32_t RingDim){
     parameters.SetMultiplicativeDepth(depth);
 }
 
+void test_ablation(){
+    for (int i = 5; i < 13; i++){
+        SetParam(1 << i);
+        CryptoContext<DCRTPoly> cryptoContext = GenCryptoContext(parameters);
+        cryptoContext->Enable(PKE);
+        cryptoContext->Enable(KEYSWITCH);
+        cryptoContext->Enable(LEVELEDSHE);
+        cryptoContext->Enable(ADVANCEDSHE);
+        cryptoContext->Enable(FHE);
+        
+    
+        int ringDim = cryptoContext->GetRingDimension();
+        std::cout << "CKKS scheme is using ring dimension " << ringDim << std::endl << std::endl;
+        auto keyPair = cryptoContext->KeyGen();
+        cryptoContext->EvalMultKeyGen(keyPair.secretKey);
+        cryptoContext->EvalSumKeyGen(keyPair.secretKey);
+
+        std::vector<double> vec(ringDim/2);
+        for (int i = 0; i < ringDim/2; i++){
+            vec[i] = rand() % 10;
+        }
+        Plaintext ptxt = cryptoContext->MakeCKKSPackedPlaintext(vec);
+        Ciphertext<DCRTPoly> ctxt = cryptoContext->Encrypt(keyPair.publicKey, ptxt);
+        auto start = std::chrono::high_resolution_clock::now();
+        ctxt = cryptoContext->EvalAdd(ctxt, ptxt);
+        auto end = std::chrono::high_resolution_clock::now();
+        std::cout << "ringDim: " << ringDim << " Eval Add in " << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << "ms" << std::endl;
+        start = std::chrono::high_resolution_clock::now();
+        ctxt = cryptoContext->EvalMult(ctxt, ptxt);
+        end = std::chrono::high_resolution_clock::now();
+        std::cout << "ringDim: " << ringDim << " Eval Mult in " << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << "ms" << std::endl;
+        start = std::chrono::high_resolution_clock::now();
+        ctxt = cryptoContext->EvalSum(ctxt, ringDim/2);
+        end = std::chrono::high_resolution_clock::now();
+        std::cout << "ringDim: " << ringDim << " Eval Sum in " << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << "ms" << std::endl;
+
+    }
+}
 
 int main(int argc, char *argv[]) {
     cmdline::parser parser;
@@ -111,7 +149,9 @@ int main(int argc, char *argv[]) {
     int bottom = parser.get<int>("bottom");
     int left = parser.get<int>("left");
     int right = parser.get<int>("right");
-    int ringDim = 1 << 9;
+    //test_ablation();
+    //return 0;
+    int ringDim = 1 << 11;
     SetParam(ringDim);
     std::vector<uint32_t> levelBudget = {3, 3};
     std::vector<uint32_t> bsgsDim = {0, 0};
@@ -140,6 +180,7 @@ int main(int argc, char *argv[]) {
     cryptoContext->EvalSumKeyGen(keyPair.secretKey);
     // Generate bootstrapping keys.
     cryptoContext->EvalBootstrapKeyGen(keyPair.secretKey, numSlots);
+    
     std::vector<int32_t> rotate_index;
 
     // Test Step 1: 
@@ -204,10 +245,9 @@ int main(int argc, char *argv[]) {
 
     // to be changed 
     height_start = 2;
-    height_end = 3;
+    height_end = 4;
     width_start = 2;
-    width_end = 3;
-    int max_channel = 3;
+    width_end = 4;
 
     ENCRYPTED_HEIGHT_START = height_start;
     ENCRYPTED_HEIGHT_END = height_end;
@@ -227,7 +267,15 @@ int main(int argc, char *argv[]) {
     GoldenConv2d(image_3d, filter_3d, 1, 0);
 
 
-    Encrypt_MCSR_P(image_3d, numSlots, depth, 5, cryptoContext, height_start, height_end, width_start, width_end, keyPair, x_ctxt_vec);
+    Encrypt_MCSR_P(image_3d, numSlots, depth, cryptoContext, height_start, height_end, width_start, width_end, keyPair, x_ctxt_vec);
+    types::vector2d<Ciphertext<DCRTPoly>> x_ctxt_2d;
+    x_ctxt_2d.resize(height_end - height_start + 1);
+
+    for(int i = 0; i < height_end - height_start + 1; i++){
+        // height x stored rows of multiple channels
+        x_ctxt_2d[i].push_back(x_ctxt_vec[i]);
+    }
+
     std::cout << "finished encryption" << std::endl;
 
     std::cout << "create the model:" << std::endl;
@@ -245,7 +293,7 @@ int main(int argc, char *argv[]) {
     auto start = std::chrono::high_resolution_clock::now();
     model.predict_P(x_ctxt_vec, image_3d);
     auto end = std::chrono::high_resolution_clock::now();
-    std::cout << "prediction time: " << std::chrono::duration_cast<std::chrono::seconds>(end - start).count() << "s" << std::endl;
+    std::cout << "prediction time: " << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << "ms" << std::endl;
     return 0;
     
 

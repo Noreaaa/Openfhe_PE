@@ -10,8 +10,6 @@ set(CMAKE_MAKEFILE_DEPENDS
   "../CMakeLists.txt"
   "CMakeFiles/3.18.6/CMakeCXXCompiler.cmake"
   "CMakeFiles/3.18.6/CMakeSystem.cmake"
-  "CMakeFiles/FindOpenMP/OpenMPCheckVersion.cpp"
-  "CMakeFiles/FindOpenMP/OpenMPTryFlag.cpp"
   "/usr/local/lib/OpenFHE/OpenFHEConfig.cmake"
   "/usr/local/lib/OpenFHE/OpenFHEConfigVersion.cmake"
   "/usr/local/lib/OpenFHE/OpenFHETargets-release.cmake"

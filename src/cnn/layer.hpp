@@ -39,6 +39,14 @@ public:
   }
 
 
+  virtual void forward(types::vector2d<Ciphertext<DCRTPoly>>& x_cts,
+    double3d& x_pts,
+    types::vector2d<Ciphertext<DCRTPoly>>& y_cts,
+    double3d& y_pts) {
+    std::cerr <<  "forward is not implemented." << std::endl;
+  }
+
+
   virtual void forward(vector<Ciphertext<DCRTPoly>>& x_cts,
     vector<Ciphertext<DCRTPoly>>& y_cts, double3d& x_pts, double3d& y_pts) {
       std::cerr <<  "forward is not implemented." << std::endl;

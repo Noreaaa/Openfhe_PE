@@ -120,17 +120,13 @@ KeyPair<lbcrypto::DCRTPoly> Keypair, std::vector<Ciphertext<DCRTPoly>> &x_ctxt){
  * MCSC: multiple channel single row partially encrypted
  */
 void Encrypt_MCSR_P(types::double3d& image3d, uint32_t numSlots, int depth,
-    int max_channel,  CryptoContext<DCRTPoly> cryptocontext, 
-    int enc_height_start, int enc_height_end, int enc_width_start, int enc_width_end,
+      CryptoContext<DCRTPoly> cryptocontext, int enc_height_start, int enc_height_end, int enc_width_start, int enc_width_end,
     KeyPair<lbcrypto::DCRTPoly> Keypair, std::vector<Ciphertext<DCRTPoly>> &x_ctxt){
         // ensure we can pack all channel in one ciphertext
         int channel = image3d.size();
         int height = image3d[0].size();
         int width = image3d[0][0].size();
-        if (max_channel * width > static_cast<int>(numSlots)){
-            std::cerr << "Cannot pack all channels in one ciphertext, please use a larger parameter set" << std::endl;
-            return;
-        }
+
     
         for (int i = 0; i < height; i++){
             if (isInRange(i, enc_height_start, enc_height_end)){

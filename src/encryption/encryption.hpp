@@ -24,7 +24,6 @@ void Encrypt_MCSR(types::double3d image3d, uint32_t numSlots, int depth,
     KeyPair<lbcrypto::DCRTPoly> Keypair, std::vector<Ciphertext<DCRTPoly>> &x_ctxt);
 
 void Encrypt_MCSR_P(types::double3d& image3d, uint32_t numSlots, int depth,
-    int max_channel,  CryptoContext<DCRTPoly> cryptocontext, 
-    int enc_height_start, int enc_height_end, int enc_width_start, int enc_width_end,
+    CryptoContext<DCRTPoly> cryptocontext, int enc_height_start, int enc_height_end, int enc_width_start, int enc_width_end,
     KeyPair<lbcrypto::DCRTPoly> Keypair, std::vector<Ciphertext<DCRTPoly>> &x_ctxt);
 
