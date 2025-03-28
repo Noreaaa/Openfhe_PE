@@ -641,7 +641,7 @@ void Conv2d_P::forward(types::vector2d<Ciphertext<DCRTPoly>>& x_cts, double3d& x
                     // get a single output value in cts
                     local_y_vec_ct.push_back(temp_res);
 
-                    if (local_y_vec_ct.size() >= batch_size_){
+                    if (local_y_vec_ct.size() >= batch_size_ || (fn == filter_n - 1 && ow == output_w - 1)) {
                         #ifdef _OPENMP
                         #pragma omp critical
                         #endif
@@ -656,10 +656,15 @@ void Conv2d_P::forward(types::vector2d<Ciphertext<DCRTPoly>>& x_cts, double3d& x
             }
     
             // 合并线程结果到 y_vec_ct
-            #ifdef _OPENMP
-            #pragma omp critical
-            #endif
-            y_vec_ct.insert(y_vec_ct.end(), local_y_vec_ct.begin(), local_y_vec_ct.end());
+            if (!local_y_vec_ct.empty()) {
+                #ifdef _OPENMP
+                #pragma omp critical
+                #endif
+                {
+                    y_vec_ct.insert(y_vec_ct.end(), local_y_vec_ct.begin(), local_y_vec_ct.end());
+                    y_cts[y_cts_idx].push_back(CRYPTOCONTEXT->EvalAddMany(y_vec_ct));
+                }
+            }
         }
     
         //y_cts.push_back(CRYPTOCONTEXT->EvalAddMany(y_vec_ct));
@@ -670,9 +675,11 @@ void Conv2d_P::forward(types::vector2d<Ciphertext<DCRTPoly>>& x_cts, double3d& x
     #ifdef Y_CTS_CHECK
     cout << "value check for encrypted parts" << endl;
     for(int i = 0; i < static_cast<int>(y_cts.size()); i++){
-        Plaintext res;
-        //CRYPTOCONTEXT->Decrypt(KEYPAIR.secretKey, y_cts[i], &res);
-        cout << "y_cts[" << i << "]: " << res << endl;
+        for (int j = 0; j < static_cast<int>(y_cts[i].size()); j++){
+            Plaintext res;
+            CRYPTOCONTEXT->Decrypt(KEYPAIR.secretKey, y_cts[i][j], &res);
+            cout << "y_cts[" << i << "][" << j << "]: " << res << endl;
+        }
     }
     #endif
     
