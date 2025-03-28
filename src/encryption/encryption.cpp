@@ -148,9 +148,38 @@ void Encrypt_MCSR_P(types::double3d& image3d, uint32_t numSlots, int depth,
                 x_ctxt.push_back(cryptocontext->Encrypt(Keypair.secretKey, x_ptxt));
             }
         }
-        
-        
-    
-    
-    
+    }
+
+    /**
+     * @brief Encrypt the input image partially compacted 
+     * MCSC: multiple channel single row partially encrypted
+     * 
+     */
+    void Encrypt_MCSR_P_COMPACT(double3d& image3d, uint32_t numSlots, 
+      CryptoContext<DCRTPoly> cryptocontext, int enc_height_start, int enc_height_end, int enc_width_start, int enc_width_end,
+    KeyPair<DCRTPoly> Keypair, std::vector<Ciphertext<DCRTPoly>> &x_ctxt){
+        int channel = image3d.size();
+        int height = image3d[0].size();
+        int width = image3d[0][0].size();
+
+        for (int i = 0; i < height; i++){
+            if (isInRange(i, enc_height_start, enc_height_end)){
+                std::vector<double> x_vec;
+                for (int c = 0; c < channel; c++){
+                    for (int j = 0; j < width; j++){
+                        if(isInRange(i, enc_height_start, enc_height_end) && isInRange(j, enc_width_start, enc_width_end)){
+                            x_vec.push_back(image3d[c][i][j]);
+                            image3d[c][i][j] = 0;
+                        }
+                        else{
+                            x_vec.push_back(0);
+                        }
+                    }
+                }
+                Plaintext x_ptxt = cryptocontext->MakeCKKSPackedPlaintext(x_vec);
+                std::cout << "Plaintext: " << x_ptxt << std::endl;
+                x_ctxt.push_back(cryptocontext->Encrypt(Keypair.secretKey, x_ptxt));
+            }
+        }
+
     }

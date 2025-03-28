@@ -738,6 +738,7 @@ CMakeFiles/cnn.dir/src/cnn/model.cpp.o: /usr/local/include/openfhe/pke/schemerns
 CMakeFiles/cnn.dir/src/cnn/model.cpp.o: /usr/local/include/openfhe/pke/schemerns/rns-pre.h
 CMakeFiles/cnn.dir/src/cnn/model.cpp.o: /usr/local/include/openfhe/pke/schemerns/rns-scheme.h
 
+CMakeFiles/cnn.dir/src/cnn/pool.cpp.o: ../src/cnn/conv2d.hpp
 CMakeFiles/cnn.dir/src/cnn/pool.cpp.o: ../src/cnn/layer.hpp
 CMakeFiles/cnn.dir/src/cnn/pool.cpp.o: ../src/cnn/pool.cpp
 CMakeFiles/cnn.dir/src/cnn/pool.cpp.o: ../src/cnn/pool.hpp

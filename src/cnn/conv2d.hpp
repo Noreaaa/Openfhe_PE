@@ -84,6 +84,6 @@
 
     void GoldenConv2d(double3d& input, double3d& filters, int stride, int padding);
 
-    bool isEncrypted_h(int val, int filter_size);
+    bool isEncrypted_h(int val, int filter_size, int padding);
 
-    bool isEncrypted(int oh, int ow, int fh, int fw);
+    bool isEncrypted(int oh, int ow, int fh, int fw, int padding);

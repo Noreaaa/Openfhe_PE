@@ -102,7 +102,7 @@ void SumPooling_P::forward(vector<Ciphertext<DCRTPoly>>& x_cts, vector<Ciphertex
         for (int ow = 0; ow < output_w; ow++){
             // check if the output value will involve encrypted data
             // to do: update the condition
-            if (isEncrypted(oh * stride_, ow * stride_, kernel_size_, kernel_size_)){
+            if (isEncrypted(oh * stride_, ow * stride_, kernel_size_, kernel_size_, padding_)){
                 continue;
             }
             for (int c = 0; c < output_c; c++){
@@ -113,7 +113,15 @@ void SumPooling_P::forward(vector<Ciphertext<DCRTPoly>>& x_cts, vector<Ciphertex
                     }
                 }
                 sum /= kernel_size_ * kernel_size_;
+                y_pts[c][oh][ow] = sum;
             }
+        }
+    }
+
+
+    for (int oh = 0; oh < output_h; oh++){
+        for (int ow = 0; ow < output_w; ow++){
+            
         }
     }
 }

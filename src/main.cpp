@@ -151,7 +151,7 @@ int main(int argc, char *argv[]) {
     int right = parser.get<int>("right");
     //test_ablation();
     //return 0;
-    int ringDim = 1 << 11;
+    int ringDim = 1 << 8;
     SetParam(ringDim);
     std::vector<uint32_t> levelBudget = {3, 3};
     std::vector<uint32_t> bsgsDim = {0, 0};
@@ -174,6 +174,7 @@ int main(int argc, char *argv[]) {
     // Step 2: Precomputations for bootstrapping
     cryptoContext->EvalBootstrapSetup(levelBudget, bsgsDim, numSlots);
 
+    
     // Step 3: Key Generation
     auto keyPair = cryptoContext->KeyGen();
     cryptoContext->EvalMultKeyGen(keyPair.secretKey);
@@ -204,9 +205,9 @@ int main(int argc, char *argv[]) {
     }
 
     // create the test filter
-    int filter_height = 2;
-    int filter_width = 2;
-    int filter_num = 32;
+    int filter_height = 3;
+    int filter_width = 3;
+    int filter_num = 1;
     types::double3d filter_3d(filter_num, types::double2d(filter_height,
     std::vector<double>(filter_width, 0)));
 
@@ -264,7 +265,7 @@ int main(int argc, char *argv[]) {
         3, max_channel, height_start, height_end, width_start, width_end, x_ctxt_vec);
     */
 
-    GoldenConv2d(image_3d, filter_3d, 1, 0);
+    GoldenConv2d(image_3d, filter_3d, 1, 1);
 
 
     Encrypt_MCSR_P(image_3d, numSlots, depth, cryptoContext, height_start, height_end, width_start, width_end, keyPair, x_ctxt_vec);
@@ -282,7 +283,7 @@ int main(int argc, char *argv[]) {
     // create the model
     Network model;
     //model.add_layer(std::make_shared<Conv2d>(CONV_2D, "conv1", filter_3d, bias, 1, 0, numSlots));
-    model.add_layer(std::make_shared<Conv2d_P>(CONV_2D, "conv1", filter_3d, bias, 1, 0, numSlots));
+    model.add_layer(std::make_shared<Conv2d_P>(CONV_2D, "conv1", filter_3d, bias, 1, 1, numSlots));
     std::cout << "start prediction" << std::endl;
     CURRENT_HEIGHT = test_height;
     CURRENT_WIDTH = test_width;
@@ -291,7 +292,7 @@ int main(int argc, char *argv[]) {
     KEYPAIR = keyPair;
 
     auto start = std::chrono::high_resolution_clock::now();
-    model.predict_P(x_ctxt_vec, image_3d);
+    model.predict_P(x_ctxt_2d, image_3d);
     auto end = std::chrono::high_resolution_clock::now();
     std::cout << "prediction time: " << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << "ms" << std::endl;
     return 0;
