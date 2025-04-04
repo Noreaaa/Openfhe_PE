@@ -61,7 +61,7 @@ void SetParam(uint32_t RingDim){
 #else
     // All modes are supported for 64-bit CKKS bootstrapping.
     ScalingTechnique rescaleTech = FLEXIBLEAUTO;
-    usint dcrtBits               = 59;
+    usint dcrtBits               = 50;
     usint firstMod               = 60;
 #endif
 
@@ -93,7 +93,7 @@ void SetParam(uint32_t RingDim){
     * using GetBootstrapDepth, and add it to levelsAvailableAfterBootstrap to set our initial multiplicative
     * depth.
     */
-    uint32_t levelsAvailableAfterBootstrap = 10;
+    uint32_t levelsAvailableAfterBootstrap = 11;
     usint depth = levelsAvailableAfterBootstrap + FHECKKSRNS::GetBootstrapDepth(levelBudget, secretKeyDist);
     parameters.SetMultiplicativeDepth(depth);
 }
@@ -151,7 +151,7 @@ int main(int argc, char *argv[]) {
     int right = parser.get<int>("right");
     //test_ablation();
     //return 0;
-    int ringDim = 1 << 8;
+    int ringDim = 64;
     SetParam(ringDim);
     std::vector<uint32_t> levelBudget = {3, 3};
     std::vector<uint32_t> bsgsDim = {0, 0};
@@ -186,8 +186,8 @@ int main(int argc, char *argv[]) {
 
     // Test Step 1: 
     // generate random 3d vector as input
-    int test_height = 6;
-    int test_width = 6;
+    int test_height = 32;
+    int test_width = 32;
     for (int32_t i = 0; i < test_width; i++){
         rotate_index.push_back(i);
     }
@@ -199,7 +199,7 @@ int main(int argc, char *argv[]) {
     for (int i = 0; i < 3; i++){
         for (int j = 0; j < test_height; j++){
             for (int k = 0; k < test_width; k++){
-                image_3d[i][j][k] = rand() % 10;
+                image_3d[i][j][k] = rand() % 5;
             }
         }
     }
@@ -207,14 +207,14 @@ int main(int argc, char *argv[]) {
     // create the test filter
     int filter_height = 3;
     int filter_width = 3;
-    int filter_num = 1;
+    int filter_num = 32;
     types::double3d filter_3d(filter_num, types::double2d(filter_height,
     std::vector<double>(filter_width, 0)));
 
     for (int i = 0; i < filter_num; i++){
         for (int j = 0; j < filter_height; j++){
             for (int k = 0; k < filter_width; k++){
-                filter_3d[i][j][k] = rand() % 10;
+                filter_3d[i][j][k] = rand() % 5;
             }
         }
     }
@@ -267,16 +267,11 @@ int main(int argc, char *argv[]) {
 
     GoldenConv2d(image_3d, filter_3d, 1, 1);
 
-
-    Encrypt_MCSR_P(image_3d, numSlots, depth, cryptoContext, height_start, height_end, width_start, width_end, keyPair, x_ctxt_vec);
     types::vector2d<Ciphertext<DCRTPoly>> x_ctxt_2d;
-    x_ctxt_2d.resize(height_end - height_start + 1);
+    Encrypt_MCSR_P(image_3d, numSlots, depth, cryptoContext, height_start, height_end, width_start, width_end, keyPair, x_ctxt_2d);
 
-    for(int i = 0; i < height_end - height_start + 1; i++){
-        // height x stored rows of multiple channels
-        x_ctxt_2d[i].push_back(x_ctxt_vec[i]);
-    }
 
+    //return 0;
     std::cout << "finished encryption" << std::endl;
 
     std::cout << "create the model:" << std::endl;

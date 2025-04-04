@@ -36,7 +36,7 @@ Conv2d::Conv2d(
 
 Conv2d::~Conv2d() {}
 // copy from conv test
-#define DEBUG
+//#define DEBUG
 void Conv2d::forward(vector<Ciphertext<DCRTPoly>>& x_cts,
     vector<Ciphertext<DCRTPoly>>& y_cts) {
     // need to know the input row size 
@@ -485,14 +485,13 @@ void Conv2d_P::forward(types::vector2d<Ciphertext<DCRTPoly>>& x_cts, double3d& x
     #endif
 
     // create filter vector to multiply with x_cts
-    // 0 x x 1 1 1 0 
-    // 1 1 0 0 0 0 0
+
     for (int n = 0; n < filter_n; n++){
         for (int h = 0; h < filter_h; h++){
             std::vector<double> filter_row_vec;
-            for (int i = 0; i < input_n * input_w; i++){
-                if (i%CURRENT_WIDTH < filter_w){
-                    filter_row_vec.push_back(filters_[n][h][i%CURRENT_WIDTH]);
+            for (int i = 0; i < padded_input_w; i++){
+                if (i < filter_w){
+                    filter_row_vec.push_back(filters_[n][h][i]);
                 }
                 else{
                     filter_row_vec.push_back(0);
@@ -508,52 +507,25 @@ void Conv2d_P::forward(types::vector2d<Ciphertext<DCRTPoly>>& x_cts, double3d& x
             f_rows[n].push_back(filter_row_vec);
         }
     }
-    #ifdef DEBUG
-    cout << "f_plaintexts[0][0] value check: " << endl;
-    for (int i = 0; i < static_cast<int>(f_rows[0][0].size()); i++){
-        cout << f_rows[0][0][i] << " ";
-    }
-    cout << endl;
-    #endif
+
 
     // then we do re-encryption and addition
     // regarding encrypted rows
-    int re_encrypt_start = 0;
-    int re_encrypt_end = 0;
-    for(int w = 0; w < output_w; w+=stride_){
-        if (intervalsOverlap(w, w + filter_w, ENCRYPTED_WIDTH_START + padding_, ENCRYPTED_WIDTH_END + padding_)){
-            re_encrypt_start = w;
-            break;
-        }
-    }
-    for(int w = re_encrypt_start; w < output_w; w+=stride_){
-        if (!intervalsOverlap(w, w + filter_w, ENCRYPTED_WIDTH_START + padding_, ENCRYPTED_WIDTH_END + padding_) || w == output_w - 1){
-            re_encrypt_end = w;
-            break;
-        }
-    }
-    std::cout << "re_encrypt_start: " << re_encrypt_start << std::endl;
-    std::cout << "re_encrypt_end: " << re_encrypt_end << std::endl;
-
     for(int h = ENCRYPTED_HEIGHT_START; h <= ENCRYPTED_HEIGHT_END; h++){
         std::vector<double> to_add;
         for(int c = 0; c < input_n; c++){
-            int cts_idx = (c * input_w)/batch_size_;
             for(int w = 0; w < input_w; w++){
-                if (isInRange(w, re_encrypt_start, re_encrypt_end)){
-                    to_add.push_back(x_pts[c][h][w]);
-                }
-                else{
-                    to_add.push_back(0);
-                }
-            }
-            if (c * input_w % batch_size_ == 0 && (c != 0 && input_w != 0)){
-                auto to_add_plain = CRYPTOCONTEXT->MakeCKKSPackedPlaintext(to_add);
-                x_cts[h - ENCRYPTED_HEIGHT_START][cts_idx] = CRYPTOCONTEXT->EvalAdd(x_cts[h - ENCRYPTED_HEIGHT_START][cts_idx], to_add_plain);
+                to_add.push_back(x_pts[c][h][w]);
             }
         }
+        for (size_t i = 0; i < to_add.size(); i+= batch_size_){
+            size_t end = std::min(i + batch_size_, to_add.size());
+            std::vector<double> one_batch(to_add.begin() + i, to_add.begin() + end);
+            auto to_add_plain = CRYPTOCONTEXT->MakeCKKSPackedPlaintext(one_batch);
+            x_cts[h - ENCRYPTED_HEIGHT_START][i/batch_size_] = CRYPTOCONTEXT->EvalAdd(x_cts[h - ENCRYPTED_HEIGHT_START][i/batch_size_], to_add_plain);
+        }
     }
-
+    
     //#define ADD_CTS_CHECK
     #ifdef ADD_CTS_CHECK
     std::cout << "check added cts:" << std::endl;
@@ -581,15 +553,17 @@ void Conv2d_P::forward(types::vector2d<Ciphertext<DCRTPoly>>& x_cts, double3d& x
         if (!isEncrypted_h(oh * stride_, filter_h, padding_)) {
             continue;
         }
-        types::vector2d<Ciphertext<DCRTPoly>> y_vec_cts;
-        std::vector<Ciphertext<DCRTPoly>> y_vec_ct;
-    
+        int output_2nd_dim = (filter_n * output_w + batch_size_ - 1)/batch_size_;
+        types::vector2d<Ciphertext<DCRTPoly>> y_vec_ct;
+        y_vec_ct.resize(output_2nd_dim);
+
         #ifdef _OPENMP
         #pragma omp parallel
         #endif
         {
             // 每个线程维护自己的临时 vector
-            std::vector<Ciphertext<DCRTPoly>> local_y_vec_ct;
+            types::vector2d<Ciphertext<DCRTPoly>> local_y_vec_ct;
+            local_y_vec_ct.resize(output_2nd_dim);
     
             #ifdef _OPENMP
             #pragma omp for collapse(2)
@@ -620,11 +594,20 @@ void Conv2d_P::forward(types::vector2d<Ciphertext<DCRTPoly>>& x_cts, double3d& x
                             }
                         } else {
                             // consider more than one ciphertext for each row 
-                            for (int cts_idx = 0; cts_idx < static_cast<int>(x_cts[oh + fh - ENCRYPTED_HEIGHT_START].size()); cts_idx++){
-                                std::vector<double> filter_vec = rotateVector(f_rows[fn][fh], ow * stride_ - padding_);
+                            for (int cts_idx = 0; cts_idx < static_cast<int>(x_cts[oh + fh - ENCRYPTED_HEIGHT_START - padding_].size()); cts_idx++){
+                                std::vector<double> filter_vec;
+                                std::vector<double> filter_row = rotateVector(f_rows[fn][fh], ow * stride_);
+                                std::vector<double> temp(filter_row.begin() + padding_, filter_row.end()- padding_);
+                                for (int i = 0; i < input_n; i++){
+                                    filter_vec.insert(filter_vec.end(), temp.begin(), temp.end());
+                                }
+                                filter_vec.assign(filter_vec.begin(), filter_vec.begin() + batch_size_);
                                 auto filter_row_plain = CRYPTOCONTEXT->MakeCKKSPackedPlaintext(filter_vec);
-                                auto temp_res_per_row = CRYPTOCONTEXT->EvalMult(x_cts[oh + fh - ENCRYPTED_HEIGHT_START][cts_idx], filter_row_plain);
+                                auto temp_res_per_row = CRYPTOCONTEXT->EvalMult(x_cts[oh + fh - ENCRYPTED_HEIGHT_START - padding_][cts_idx], filter_row_plain);
                                 temp_res = CRYPTOCONTEXT->EvalAdd(temp_res, temp_res_per_row);
+
+                                //std::cout << "oh: " << oh << ", ow:" << ow << ", fh:" << fh << endl; 
+                                //std::cout << "filter_row_plain: " << filter_row_plain << endl;
                             }
                         }
                     }
@@ -639,39 +622,37 @@ void Conv2d_P::forward(types::vector2d<Ciphertext<DCRTPoly>>& x_cts, double3d& x
     
                     // 线程私有变量，不会造成竞争
                     // get a single output value in cts
-                    local_y_vec_ct.push_back(temp_res);
-
-                    if (local_y_vec_ct.size() >= batch_size_ || (fn == filter_n - 1 && ow == output_w - 1)) {
-                        #ifdef _OPENMP
-                        #pragma omp critical
-                        #endif
-                        {
-                            y_vec_ct.insert(y_vec_ct.end(), local_y_vec_ct.begin(), local_y_vec_ct.end());
-                            y_cts[y_cts_idx].push_back(CRYPTOCONTEXT->EvalAddMany(y_vec_ct));
-                        }
-                        local_y_vec_ct.clear();
-                    }
+                    local_y_vec_ct[(fn * output_w + ow)/batch_size_].push_back(temp_res);
                 }
 
             }
     
             // 合并线程结果到 y_vec_ct
-            if (!local_y_vec_ct.empty()) {
-                #ifdef _OPENMP
-                #pragma omp critical
-                #endif
-                {
-                    y_vec_ct.insert(y_vec_ct.end(), local_y_vec_ct.begin(), local_y_vec_ct.end());
-                    y_cts[y_cts_idx].push_back(CRYPTOCONTEXT->EvalAddMany(y_vec_ct));
-                }
+            #ifdef _OPENMP
+            #pragma omp critical
+            #endif
+            for (size_t i = 0; i < y_vec_ct.size(); i++){
+                y_vec_ct[i].insert(y_vec_ct[i].end(), local_y_vec_ct[i].begin(), local_y_vec_ct[i].end());
             }
-        }
-    
-        //y_cts.push_back(CRYPTOCONTEXT->EvalAddMany(y_vec_ct));
-        y_cts_idx++;
-    }
+            
 
-    #define Y_CTS_CHECK
+        }
+        //y_cts.push_back(CRYPTOCONTEXT->EvalAddMany(y_vec_ct));
+        #ifdef _OPENMP
+        #pragma omp critical
+        #endif
+        {
+            //std::cout << "y_vec_ct size: " << y_vec_ct.size() << std::endl;
+            size_t length = y_vec_ct.size();
+            for (size_t i = 0; i < length; i ++){
+                y_cts[y_cts_idx].push_back(CRYPTOCONTEXT->EvalAddMany(y_vec_ct[i]));
+            }
+            y_cts_idx++;
+        }
+    }
+    
+
+    //#define Y_CTS_CHECK
     #ifdef Y_CTS_CHECK
     cout << "value check for encrypted parts" << endl;
     for(int i = 0; i < static_cast<int>(y_cts.size()); i++){
@@ -748,6 +729,7 @@ void GoldenConv2d(double3d& input, double3d& filters, int stride, int padding){
             }
             cout << endl;
         }
+        cout << endl;
     }
 
 
