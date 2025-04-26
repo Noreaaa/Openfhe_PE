@@ -3,9 +3,11 @@
 
 CMakeFiles/test.dir/src/main.cpp.o
  ../src/include/cmdline.h
+ /home/bill/myproj/openfhe_pe/src/cnn/activation.hpp
  /home/bill/myproj/openfhe_pe/src/cnn/conv2d.hpp
  /home/bill/myproj/openfhe_pe/src/cnn/layer.hpp
  /home/bill/myproj/openfhe_pe/src/cnn/model.hpp
+ /home/bill/myproj/openfhe_pe/src/cnn/pool.hpp
  /home/bill/myproj/openfhe_pe/src/encryption/encryption.hpp
  /home/bill/myproj/openfhe_pe/src/main.cpp
  /home/bill/myproj/openfhe_pe/src/utils/globals.hpp

@@ -1,4 +1,5 @@
 file(REMOVE_RECURSE
+  "CMakeFiles/cnn.dir/src/cnn/activation.cpp.o"
   "CMakeFiles/cnn.dir/src/cnn/conv2d.cpp.o"
   "CMakeFiles/cnn.dir/src/cnn/layer.cpp.o"
   "CMakeFiles/cnn.dir/src/cnn/model.cpp.o"

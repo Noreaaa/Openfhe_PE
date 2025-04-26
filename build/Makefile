@@ -168,6 +168,33 @@ encryption/fast:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/encryption.dir/build.make CMakeFiles/encryption.dir/build
 .PHONY : encryption/fast
 
+src/cnn/activation.o: src/cnn/activation.cpp.o
+
+.PHONY : src/cnn/activation.o
+
+# target to build an object file
+src/cnn/activation.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/cnn.dir/build.make CMakeFiles/cnn.dir/src/cnn/activation.cpp.o
+.PHONY : src/cnn/activation.cpp.o
+
+src/cnn/activation.i: src/cnn/activation.cpp.i
+
+.PHONY : src/cnn/activation.i
+
+# target to preprocess a source file
+src/cnn/activation.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/cnn.dir/build.make CMakeFiles/cnn.dir/src/cnn/activation.cpp.i
+.PHONY : src/cnn/activation.cpp.i
+
+src/cnn/activation.s: src/cnn/activation.cpp.s
+
+.PHONY : src/cnn/activation.s
+
+# target to generate assembly for a file
+src/cnn/activation.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/cnn.dir/build.make CMakeFiles/cnn.dir/src/cnn/activation.cpp.s
+.PHONY : src/cnn/activation.cpp.s
+
 src/cnn/conv2d.o: src/cnn/conv2d.cpp.o
 
 .PHONY : src/cnn/conv2d.o
@@ -395,6 +422,9 @@ help:
 	@echo "... cnn"
 	@echo "... encryption"
 	@echo "... test"
+	@echo "... src/cnn/activation.o"
+	@echo "... src/cnn/activation.i"
+	@echo "... src/cnn/activation.s"
 	@echo "... src/cnn/conv2d.o"
 	@echo "... src/cnn/conv2d.i"
 	@echo "... src/cnn/conv2d.s"

@@ -6,16 +6,6 @@
 
 #IncludeRegexTransform: 
 
-/home/bill/myproj/openfhe_pe/src/cnn/conv2d.cpp
-conv2d.hpp
-/home/bill/myproj/openfhe_pe/src/cnn/conv2d.hpp
-utility
--
-cassert
--
-cstdlib
--
-
 /home/bill/myproj/openfhe_pe/src/cnn/conv2d.hpp
 layer.hpp
 /home/bill/myproj/openfhe_pe/src/cnn/layer.hpp
@@ -31,6 +21,20 @@ openfhe.h
 /home/bill/myproj/openfhe_pe/src/utils/types.hpp
 ../utils/helper.hpp
 /home/bill/myproj/openfhe_pe/src/utils/helper.hpp
+
+/home/bill/myproj/openfhe_pe/src/cnn/pool.cpp
+pool.hpp
+/home/bill/myproj/openfhe_pe/src/cnn/pool.hpp
+utility
+-
+cstdlib
+-
+
+/home/bill/myproj/openfhe_pe/src/cnn/pool.hpp
+layer.hpp
+/home/bill/myproj/openfhe_pe/src/cnn/layer.hpp
+conv2d.hpp
+/home/bill/myproj/openfhe_pe/src/cnn/conv2d.hpp
 
 /home/bill/myproj/openfhe_pe/src/utils/globals.hpp
 set

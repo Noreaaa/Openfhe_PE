@@ -76,9 +76,22 @@ include CMakeFiles/cnn.dir/progress.make
 # Include the compile flags for this target's objects.
 include CMakeFiles/cnn.dir/flags.make
 
+CMakeFiles/cnn.dir/src/cnn/activation.cpp.o: CMakeFiles/cnn.dir/flags.make
+CMakeFiles/cnn.dir/src/cnn/activation.cpp.o: ../src/cnn/activation.cpp
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/bill/myproj/openfhe_pe/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Building CXX object CMakeFiles/cnn.dir/src/cnn/activation.cpp.o"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/cnn.dir/src/cnn/activation.cpp.o -c /home/bill/myproj/openfhe_pe/src/cnn/activation.cpp
+
+CMakeFiles/cnn.dir/src/cnn/activation.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/cnn.dir/src/cnn/activation.cpp.i"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/bill/myproj/openfhe_pe/src/cnn/activation.cpp > CMakeFiles/cnn.dir/src/cnn/activation.cpp.i
+
+CMakeFiles/cnn.dir/src/cnn/activation.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/cnn.dir/src/cnn/activation.cpp.s"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/bill/myproj/openfhe_pe/src/cnn/activation.cpp -o CMakeFiles/cnn.dir/src/cnn/activation.cpp.s
+
 CMakeFiles/cnn.dir/src/cnn/conv2d.cpp.o: CMakeFiles/cnn.dir/flags.make
 CMakeFiles/cnn.dir/src/cnn/conv2d.cpp.o: ../src/cnn/conv2d.cpp
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/bill/myproj/openfhe_pe/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Building CXX object CMakeFiles/cnn.dir/src/cnn/conv2d.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/bill/myproj/openfhe_pe/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Building CXX object CMakeFiles/cnn.dir/src/cnn/conv2d.cpp.o"
 	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/cnn.dir/src/cnn/conv2d.cpp.o -c /home/bill/myproj/openfhe_pe/src/cnn/conv2d.cpp
 
 CMakeFiles/cnn.dir/src/cnn/conv2d.cpp.i: cmake_force
@@ -91,7 +104,7 @@ CMakeFiles/cnn.dir/src/cnn/conv2d.cpp.s: cmake_force
 
 CMakeFiles/cnn.dir/src/cnn/layer.cpp.o: CMakeFiles/cnn.dir/flags.make
 CMakeFiles/cnn.dir/src/cnn/layer.cpp.o: ../src/cnn/layer.cpp
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/bill/myproj/openfhe_pe/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Building CXX object CMakeFiles/cnn.dir/src/cnn/layer.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/bill/myproj/openfhe_pe/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Building CXX object CMakeFiles/cnn.dir/src/cnn/layer.cpp.o"
 	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/cnn.dir/src/cnn/layer.cpp.o -c /home/bill/myproj/openfhe_pe/src/cnn/layer.cpp
 
 CMakeFiles/cnn.dir/src/cnn/layer.cpp.i: cmake_force
@@ -104,7 +117,7 @@ CMakeFiles/cnn.dir/src/cnn/layer.cpp.s: cmake_force
 
 CMakeFiles/cnn.dir/src/cnn/model.cpp.o: CMakeFiles/cnn.dir/flags.make
 CMakeFiles/cnn.dir/src/cnn/model.cpp.o: ../src/cnn/model.cpp
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/bill/myproj/openfhe_pe/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Building CXX object CMakeFiles/cnn.dir/src/cnn/model.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/bill/myproj/openfhe_pe/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_4) "Building CXX object CMakeFiles/cnn.dir/src/cnn/model.cpp.o"
 	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/cnn.dir/src/cnn/model.cpp.o -c /home/bill/myproj/openfhe_pe/src/cnn/model.cpp
 
 CMakeFiles/cnn.dir/src/cnn/model.cpp.i: cmake_force
@@ -117,7 +130,7 @@ CMakeFiles/cnn.dir/src/cnn/model.cpp.s: cmake_force
 
 CMakeFiles/cnn.dir/src/cnn/pool.cpp.o: CMakeFiles/cnn.dir/flags.make
 CMakeFiles/cnn.dir/src/cnn/pool.cpp.o: ../src/cnn/pool.cpp
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/bill/myproj/openfhe_pe/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_4) "Building CXX object CMakeFiles/cnn.dir/src/cnn/pool.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/bill/myproj/openfhe_pe/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_5) "Building CXX object CMakeFiles/cnn.dir/src/cnn/pool.cpp.o"
 	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/cnn.dir/src/cnn/pool.cpp.o -c /home/bill/myproj/openfhe_pe/src/cnn/pool.cpp
 
 CMakeFiles/cnn.dir/src/cnn/pool.cpp.i: cmake_force
@@ -130,6 +143,7 @@ CMakeFiles/cnn.dir/src/cnn/pool.cpp.s: cmake_force
 
 # Object files for target cnn
 cnn_OBJECTS = \
+"CMakeFiles/cnn.dir/src/cnn/activation.cpp.o" \
 "CMakeFiles/cnn.dir/src/cnn/conv2d.cpp.o" \
 "CMakeFiles/cnn.dir/src/cnn/layer.cpp.o" \
 "CMakeFiles/cnn.dir/src/cnn/model.cpp.o" \
@@ -138,13 +152,14 @@ cnn_OBJECTS = \
 # External object files for target cnn
 cnn_EXTERNAL_OBJECTS =
 
+libcnn.a: CMakeFiles/cnn.dir/src/cnn/activation.cpp.o
 libcnn.a: CMakeFiles/cnn.dir/src/cnn/conv2d.cpp.o
 libcnn.a: CMakeFiles/cnn.dir/src/cnn/layer.cpp.o
 libcnn.a: CMakeFiles/cnn.dir/src/cnn/model.cpp.o
 libcnn.a: CMakeFiles/cnn.dir/src/cnn/pool.cpp.o
 libcnn.a: CMakeFiles/cnn.dir/build.make
 libcnn.a: CMakeFiles/cnn.dir/link.txt
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/home/bill/myproj/openfhe_pe/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_5) "Linking CXX static library libcnn.a"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/home/bill/myproj/openfhe_pe/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_6) "Linking CXX static library libcnn.a"
 	$(CMAKE_COMMAND) -P CMakeFiles/cnn.dir/cmake_clean_target.cmake
 	$(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/cnn.dir/link.txt --verbose=$(VERBOSE)
 

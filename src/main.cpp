@@ -5,6 +5,8 @@
 #include "encryption/encryption.hpp"
 #include "cnn/model.hpp"
 #include "cnn/conv2d.hpp"
+#include "cnn/activation.hpp"
+#include "cnn/pool.hpp"
 #include <chrono>
 
 
@@ -207,65 +209,69 @@ int main(int argc, char *argv[]) {
     // create the test filter
     int filter_height = 3;
     int filter_width = 3;
-    int filter_num = 32;
-    types::double3d filter_3d(filter_num, types::double2d(filter_height,
+    int filter_num_1 = 32;
+    int filter_num_2 = 64;
+    int filter_num_3 = 128;
+    types::double3d filter_3d_1(filter_num_1, types::double2d(filter_height,
     std::vector<double>(filter_width, 0)));
 
-    for (int i = 0; i < filter_num; i++){
+    for (int i = 0; i < filter_num_1; i++){
         for (int j = 0; j < filter_height; j++){
             for (int k = 0; k < filter_width; k++){
-                filter_3d[i][j][k] = rand() % 5;
+                filter_3d_1[i][j][k] = rand() % 5;
             }
         }
     }
 
-    std::cout << "filter 3d:" << std::endl;
-    print_3d(filter_3d);
+    types::double3d filter_3d_2(filter_num_1, types::double2d(filter_height,
+    std::vector<double>(filter_width, 0)));
 
+
+    for (int i = 0; i < filter_num_1; i++){
+        for (int j = 0; j < filter_height; j++){
+            for (int k = 0; k < filter_width; k++){
+                filter_3d_2[i][j][k] = rand() % 5;
+            }
+        }
+    }
+
+    types::double3d filter_3d_3(filter_num_3, types::double2d(filter_height,
+        std::vector<double>(filter_width, 0)));
+
+    for (int i = 0; i < filter_num_3; i++){
+        for (int j = 0; j < filter_height; j++){
+            for (int k = 0; k < filter_width; k++){
+                filter_3d_3[i][j][k] = rand() % 5;
+            }
+        }
+    }
+
+   
+    
     // initialize the bias
-    std::vector<double> bias(filter_num, 0);
+    std::vector<double> bias_1(filter_num_1, 0);
+    std::vector<double> bias_2(filter_num_2, 0);
+    std::vector<double> bias_3(filter_num_3, 0);
 
-    // Test step 2: doing partial encryption 
-
-    // to do: calculate channel size to be used in single ciphertext
-    //int enc_height;
-    //int enc_width;
-    // top bottom left right 
-    //std::tuple<int, int, int, int> EncRegion = CalculateRegionHCNN(10, 20, 10, 20);
     int channel_size = 3;
     int height_start, height_end, width_start, width_end;
 
-    //enc_height = std::get<1>(EncRegion) - std::get<0>(EncRegion);
-    //enc_width = std::get<3>(EncRegion) - std::get<2>(EncRegion);
 
     Ciphertext<DCRTPoly> x_ctxt;
     std::cout << "image 3d:" << std::endl;
     print_3d(image_3d);
 
-    //std::cout << "run partial encrypt" << std::endl;
-
-    // to be changed 
-    height_start = 2;
-    height_end = 4;
-    width_start = 2;
-    width_end = 4;
+    height_start = 0;
+    height_end = 1;
+    width_start = 0;
+    width_end = 1;
 
     ENCRYPTED_HEIGHT_START = height_start;
     ENCRYPTED_HEIGHT_END = height_end;
     ENCRYPTED_WIDTH_START = width_start;
     ENCRYPTED_WIDTH_END = width_end;
     std::vector<Ciphertext<DCRTPoly>> x_ctxt_vec;
-    /* 
-    Partial_Encrypt(image_3d, numSlots, depth, cryptoContext, keyPair, 
-        3, enc_height, enc_width, height_start, height_end, 
-        width_start, width_end, x_ctxt);
-    */
-    /*
-    Partial_Encrypt_Sparse(image_3d, numSlots, depth, cryptoContext, keyPair,
-        3, max_channel, height_start, height_end, width_start, width_end, x_ctxt_vec);
-    */
 
-    GoldenConv2d(image_3d, filter_3d, 1, 1);
 
     types::vector2d<Ciphertext<DCRTPoly>> x_ctxt_2d;
     Encrypt_MCSR_P(image_3d, numSlots, depth, cryptoContext, height_start, height_end, width_start, width_end, keyPair, x_ctxt_2d);
@@ -278,7 +284,18 @@ int main(int argc, char *argv[]) {
     // create the model
     Network model;
     //model.add_layer(std::make_shared<Conv2d>(CONV_2D, "conv1", filter_3d, bias, 1, 0, numSlots));
-    model.add_layer(std::make_shared<Conv2d_P>(CONV_2D, "conv1", filter_3d, bias, 1, 1, numSlots));
+    model.add_layer(std::make_shared<Conv2d_P>(CONV_2D, "conv1", filter_3d_1, bias_1, 1, 1, numSlots, AVG_POOLING));
+    model.add_layer(std::make_shared<Square>(SQUARE_ACTIVATION, std::string("square1")));
+    model.add_layer(std::make_shared<AvgPooling_P>(AVG_POOLING, std::string("avgpool1"), 2, 2, 0, numSlots));
+
+    model.add_layer(std::make_shared<Conv2d_P>(CONV_2D, "conv2", filter_3d_2, bias_2, 1, 1, numSlots, AVG_POOLING));
+    model.add_layer(std::make_shared<Square>(SQUARE_ACTIVATION, std::string("square2")));
+    model.add_layer(std::make_shared<AvgPooling_P>(AVG_POOLING, std::string("avgpool2"), 2, 2, 0, numSlots));
+
+    model.add_layer(std::make_shared<Conv2d_P>(CONV_2D, "conv3", filter_3d_3, bias_3, 1, 1, numSlots, AVG_POOLING));
+    model.add_layer(std::make_shared<Square>(SQUARE_ACTIVATION, std::string("square3")));
+    model.add_layer(std::make_shared<AvgPooling_P>(AVG_POOLING, std::string("avgpool3"), 2, 2, 0, numSlots));
+
     std::cout << "start prediction" << std::endl;
     CURRENT_HEIGHT = test_height;
     CURRENT_WIDTH = test_width;

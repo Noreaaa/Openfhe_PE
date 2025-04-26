@@ -39,7 +39,8 @@
                 std::vector<double>& biases,
                 int stride,
                 int padding,
-                uint32_t batch_size
+                uint32_t batch_size,
+                PLayerType next_pool_layer_type
                 // no padding 
             );
             ~Conv2d_P();
@@ -58,6 +59,7 @@
             int stride_;
             int padding_;
             uint32_t batch_size_;
+            PLayerType next_pool_layer_type_;
     };
 
     class Conv2dBN : public Layer {
@@ -84,6 +86,6 @@
 
     void GoldenConv2d(double3d& input, double3d& filters, int stride, int padding);
 
-    bool isEncrypted_h(int val, int filter_size, int padding);
+    bool isEncrypted_h(int val, int filter_size, int padding, int start, int end);
 
     bool isEncrypted(int oh, int ow, int fh, int fw, int padding);

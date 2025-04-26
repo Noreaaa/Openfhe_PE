@@ -6,5 +6,5 @@ CXX_DEFINES =
 
 CXX_INCLUDES = -I/usr/local/include/openfhe -I/usr/local/include/openfhe/third-party/include -I/usr/local/include/openfhe/core -I/usr/local/include/openfhe/pke -I/usr/local/include/openfhe/binfhe -I/home/bill/myproj/openfhe_pe/src/cnn
 
-CXX_FLAGS =  -Wall -Werror -O3  -DOPENFHE_VERSION=1.2.3 -Wno-parentheses -DMATHBACKEND=4 -fopenmp -std=gnu++17
+CXX_FLAGS =  -Wall -Werror -O3  -DOPENFHE_VERSION=1.2.3 -Wno-parentheses -DMATHBACKEND=4 -fopenmp -g -std=gnu++17
 

@@ -18,6 +18,7 @@ enum PLayerType {
   COMBINE_OUTPUT,
   SQUARE_ACTIVATION,
   SUM_POOLING,
+  AVG_POOLING,
 };
 
 
