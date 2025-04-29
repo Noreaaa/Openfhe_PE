@@ -357,6 +357,33 @@ src/main.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/test.dir/build.make CMakeFiles/test.dir/src/main.cpp.s
 .PHONY : src/main.cpp.s
 
+src/utils/dataloader.o: src/utils/dataloader.cpp.o
+
+.PHONY : src/utils/dataloader.o
+
+# target to build an object file
+src/utils/dataloader.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/test.dir/build.make CMakeFiles/test.dir/src/utils/dataloader.cpp.o
+.PHONY : src/utils/dataloader.cpp.o
+
+src/utils/dataloader.i: src/utils/dataloader.cpp.i
+
+.PHONY : src/utils/dataloader.i
+
+# target to preprocess a source file
+src/utils/dataloader.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/test.dir/build.make CMakeFiles/test.dir/src/utils/dataloader.cpp.i
+.PHONY : src/utils/dataloader.cpp.i
+
+src/utils/dataloader.s: src/utils/dataloader.cpp.s
+
+.PHONY : src/utils/dataloader.s
+
+# target to generate assembly for a file
+src/utils/dataloader.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/test.dir/build.make CMakeFiles/test.dir/src/utils/dataloader.cpp.s
+.PHONY : src/utils/dataloader.cpp.s
+
 src/utils/globals.o: src/utils/globals.cpp.o
 
 .PHONY : src/utils/globals.o
@@ -443,6 +470,9 @@ help:
 	@echo "... src/main.o"
 	@echo "... src/main.i"
 	@echo "... src/main.s"
+	@echo "... src/utils/dataloader.o"
+	@echo "... src/utils/dataloader.i"
+	@echo "... src/utils/dataloader.s"
 	@echo "... src/utils/globals.o"
 	@echo "... src/utils/globals.i"
 	@echo "... src/utils/globals.s"

@@ -26,6 +26,10 @@ option( BUILD_STATIC "Set to ON to include static versions of the library" OFF)
 find_package(OpenMP REQUIRED)
 find_package(OpenFHE CONFIG REQUIRED)
 
+find_library(CNPY_LIB cnpy PATHS /usr/local/lib REQUIRED)
+find_path(CNPY_INCLUDE_DIR cnpy.h PATHS /usr/local/include REQUIRED)
+include_directories(${CNPY_INCLUDE_DIR})
+
 if(OpenMP_FOUND)
   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
@@ -78,6 +82,7 @@ add_executable( test "src/main.cpp" ${common_sources})
 
 target_link_libraries(test encryption)
 target_link_libraries(test cnn)
+target_link_libraries(test ${CNPY_LIB} z)
 
 set_property(TARGET test PROPERTY CXX_STANDARD 17)
 

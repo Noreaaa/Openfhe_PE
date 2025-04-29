@@ -2,6 +2,7 @@
 #include "cmdline.h"
 #include "openfhe.h"
 #include "utils/types.hpp"
+#include "utils/dataloader.hpp"
 #include "encryption/encryption.hpp"
 #include "cnn/model.hpp"
 #include "cnn/conv2d.hpp"
@@ -16,6 +17,8 @@
 using namespace lbcrypto;
 using std::vector;
 CCParams<CryptoContextCKKSRNS> parameters; 
+
+std::string data_path = "../python_model/saved_models/parameters/";
 
 void SetParam(uint32_t RingDim){
     // Step 1: Set CryptoContext
@@ -215,13 +218,17 @@ int main(int argc, char *argv[]) {
     types::double3d filter_3d_1(filter_num_1, types::double2d(filter_height,
     std::vector<double>(filter_width, 0)));
 
-    for (int i = 0; i < filter_num_1; i++){
-        for (int j = 0; j < filter_height; j++){
-            for (int k = 0; k < filter_width; k++){
-                filter_3d_1[i][j][k] = rand() % 5;
-            }
-        }
-    }
+    //for (int i = 0; i < filter_num_1; i++){
+    //    for (int j = 0; j < filter_height; j++){
+    //        for (int k = 0; k < filter_width; k++){
+    //            filter_3d_1[i][j][k] = rand() % 5;
+    //        }
+    //    }
+    //}
+    LoadConv2dWeight(data_path + "conv1.0.weight.npy", filter_3d_1);
+
+    print_3d(filter_3d_1);
+    return 0; 
 
     types::double3d filter_3d_2(filter_num_1, types::double2d(filter_height,
     std::vector<double>(filter_width, 0)));
