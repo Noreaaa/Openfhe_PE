@@ -165,13 +165,15 @@ Conv2d_P::Conv2d_P(
     vector<double>& biases,
     int stride,
     int padding,
-    uint32_t batch_size)
+    uint32_t batch_size,
+    PLayerType next_pool_layer_type)
     : Layer(PLayerType::CONV_2D, layer_name),
     filters_(filters),
     biases_(biases),
     stride_(stride),
     padding_(padding),
-    batch_size_(batch_size) {
+    batch_size_(batch_size),
+    next_pool_layer_type_(next_pool_layer_type) {
         CONSUMED_LEVEL++;
 }
 
@@ -326,7 +328,8 @@ void Conv2d_P::forward(vector<Ciphertext<DCRTPoly>>& x_cts,
     #endif
 
     for (int oh = 0; oh < output_h; oh++) {
-        if (!isEncrypted_h(oh * stride_, filter_h, padding_)) {
+        if (!isEncrypted_h(oh * stride_, filter_h, padding_, ENCRYPTED_HEIGHT_START, ENCRYPTED_HEIGHT_END)) {
+            // 如果当前行不在加密范围内，则跳过
             continue;
         }
     
@@ -411,7 +414,7 @@ void Conv2d_P::forward(vector<Ciphertext<DCRTPoly>>& x_cts,
     
 }
 
-
+//#define DEBUG
 void Conv2d_P::forward(types::vector2d<Ciphertext<DCRTPoly>>& x_cts, double3d& x_pts,
     types::vector2d<Ciphertext<DCRTPoly>>& y_cts, double3d& y_pts) {
     #ifdef DEBUG
@@ -479,7 +482,8 @@ void Conv2d_P::forward(types::vector2d<Ciphertext<DCRTPoly>>& x_cts, double3d& x
             }
         }
     }
-    #ifdef DEBUG
+    //#define CHECK_UNENCRYPTED
+    #ifdef CHECK_UNENCRYPTED
     cout << "value check for unencrypted parts" << endl;
     print_3d(y_pts);
     #endif
@@ -542,18 +546,31 @@ void Conv2d_P::forward(types::vector2d<Ciphertext<DCRTPoly>>& x_cts, double3d& x
 
     int count = 0;
     for (int oh = 0; oh < output_h; oh++) {
-        if (isEncrypted_h(oh * stride_, filter_h, padding_)){
+        if (isEncrypted_h(oh * stride_, filter_h, padding_, ENCRYPTED_HEIGHT_START, ENCRYPTED_HEIGHT_END)) {
             count++;
         }
     }
     y_cts.resize(count);
+    bool interleave = false; 
+    int output_2nd_dim = (filter_n * output_w + batch_size_ - 1)/batch_size_;
+    if (next_pool_layer_type_ == PLayerType::AVG_POOLING || next_pool_layer_type_ == PLayerType::SUM_POOLING){
+        int even_count = 0;
+        for (int i = 0; i < output_w * filter_n; i++){
+            if (i % 2 == 0){
+                ++even_count;
+            }
+        }
+        int even_batches = (even_count + batch_size_ - 1) / batch_size_;
+        output_2nd_dim = even_batches * 2;
+        interleave = true;
+    }
 
+    
     int y_cts_idx = 0;
     for (int oh = 0; oh < output_h; oh++) {
-        if (!isEncrypted_h(oh * stride_, filter_h, padding_)) {
+        if (!isEncrypted_h(oh * stride_, filter_h, padding_, ENCRYPTED_HEIGHT_START, ENCRYPTED_HEIGHT_END)) {
             continue;
         }
-        int output_2nd_dim = (filter_n * output_w + batch_size_ - 1)/batch_size_;
         types::vector2d<Ciphertext<DCRTPoly>> y_vec_ct;
         y_vec_ct.resize(output_2nd_dim);
 
@@ -581,9 +598,6 @@ void Conv2d_P::forward(types::vector2d<Ciphertext<DCRTPoly>>& x_cts, double3d& x
                     auto temp_res = CRYPTOCONTEXT->Encrypt(KEYPAIR.secretKey, temp_plain);
                     double sum = 0;
     
-                    std::vector<double> mask(batch_size_, 0);
-                    mask[(fn * output_w + ow) % batch_size_] = 1;
-                    auto mask_plain = CRYPTOCONTEXT->MakeCKKSPackedPlaintext(mask);
     
                     for (int fh = 0; fh < filter_h; fh++) {
                         if (!isInRange(oh * stride_ + fh, ENCRYPTED_HEIGHT_START + padding_, ENCRYPTED_HEIGHT_END + padding_)) {
@@ -611,10 +625,19 @@ void Conv2d_P::forward(types::vector2d<Ciphertext<DCRTPoly>>& x_cts, double3d& x
                             }
                         }
                     }
+                    std::vector<double> mask(batch_size_, 0);
+                    std::vector<double> sum_vec(batch_size_, 0);
+                    if (interleave){
+                        // interleave the output for pooling layer
+                        mask[((fn * output_w + ow)/2) % batch_size_] = 1;
+                        sum_vec[((fn * output_w + ow)/2) % batch_size_] = sum;
+                    }else{
+                        mask[(fn * output_w + ow) % batch_size_] = 1;
+                        sum_vec[(fn * output_w + ow) % batch_size_] = sum;
+                    }
+                    auto mask_plain = CRYPTOCONTEXT->MakeCKKSPackedPlaintext(mask);
     
                     temp_res = CRYPTOCONTEXT->EvalSum(temp_res, batch_size_);
-                    std::vector<double> sum_vec(batch_size_, 0);
-                    sum_vec[(fn * output_w+ ow) % batch_size_] = sum;
                     auto sum_plain = CRYPTOCONTEXT->MakeCKKSPackedPlaintext(sum_vec);
     
                     temp_res = CRYPTOCONTEXT->EvalAdd(temp_res, sum_plain);
@@ -622,7 +645,17 @@ void Conv2d_P::forward(types::vector2d<Ciphertext<DCRTPoly>>& x_cts, double3d& x
     
                     // 线程私有变量，不会造成竞争
                     // get a single output value in cts
-                    local_y_vec_ct[(fn * output_w + ow)/batch_size_].push_back(temp_res);
+                    if (interleave){
+                        int idx = fn * output_w + ow; 
+                        int batch_idx = idx / (2 * batch_size_);
+                        int target_idx = (idx % 2 == 0) ? batch_idx * 2 : batch_idx * 2 + 1;
+                        //cout << "target_idx: " << target_idx << endl;
+                        //cout << "output_2nd_dimension: " << output_2nd_dim << endl;
+                        local_y_vec_ct[target_idx].push_back(temp_res);
+                    }
+                    else {
+                        local_y_vec_ct[(fn * output_w + ow)/batch_size_].push_back(temp_res);
+                    }
                 }
 
             }
@@ -633,6 +666,7 @@ void Conv2d_P::forward(types::vector2d<Ciphertext<DCRTPoly>>& x_cts, double3d& x
             #endif
             for (size_t i = 0; i < y_vec_ct.size(); i++){
                 y_vec_ct[i].insert(y_vec_ct[i].end(), local_y_vec_ct[i].begin(), local_y_vec_ct[i].end());
+                //cout << __LINE__ << endl;
             }
             
 
@@ -651,6 +685,7 @@ void Conv2d_P::forward(types::vector2d<Ciphertext<DCRTPoly>>& x_cts, double3d& x
         }
     }
     
+    
 
     //#define Y_CTS_CHECK
     #ifdef Y_CTS_CHECK
@@ -663,9 +698,45 @@ void Conv2d_P::forward(types::vector2d<Ciphertext<DCRTPoly>>& x_cts, double3d& x
         }
     }
     #endif
+
+    // update the encrypted height and width 
+    int start_h = -1, end_h = -1, start_w = -1, end_w = -1;
+    for (int oh = 0; oh < output_h; oh++){
+        if (isEncrypted_h(oh * stride_, filter_h, padding_, ENCRYPTED_HEIGHT_START, ENCRYPTED_HEIGHT_END)){
+            start_h = oh;
+            break;
+        }
+    }
+    for (int oh = output_h - 1; oh >= 0; oh--){
+        if (isEncrypted_h(oh * stride_, filter_h, padding_, ENCRYPTED_HEIGHT_START, ENCRYPTED_HEIGHT_END)){
+            end_h = oh;
+            break;
+        }
+    }
+    for (int ow = 0; ow < output_w; ow++){
+        if (isEncrypted_h(ow * stride_, filter_w, padding_, ENCRYPTED_WIDTH_START, ENCRYPTED_WIDTH_END)){
+            start_w = ow;
+            break;
+        }
+    }
+    for (int ow = output_w - 1; ow >= 0; ow--){
+        if (isEncrypted_h(ow * stride_, filter_w, padding_, ENCRYPTED_WIDTH_START, ENCRYPTED_WIDTH_END)){
+            end_w = ow;
+            break;
+        }
+    }
+    if (start_h == -1 || end_h == -1 || start_w == -1 || end_w == -1){
+        std::cout << "error: encrypted height or width not updated" << std::endl;
+        return;
+    }
+    ENCRYPTED_HEIGHT_START = start_h;
+    ENCRYPTED_HEIGHT_END = end_h;
+    ENCRYPTED_WIDTH_START = start_w;
+    ENCRYPTED_WIDTH_END = end_w;
     
 }
 
+<<<<<<< HEAD
 
 Conv2dBN_P::Conv2dBN_P(
     PLayerType layer_type,
@@ -953,9 +1024,12 @@ void Conv2dBN_P::forward(types::vector2d<Ciphertext<DCRTPoly>>& x_cts, double3d&
 
 
 bool isEncrypted_h(int val, int filter_size, int padding){
+=======
+bool isEncrypted_h(int val, int filter_size, int padding, int start, int end){
+>>>>>>> 216660b33f3a76331413b91a08b518b2ef3f796e
     int end_val = val + filter_size;
 
-    bool overlap = (val <= ENCRYPTED_HEIGHT_END + padding && end_val > ENCRYPTED_HEIGHT_START + padding);
+    bool overlap = (val <= end + padding && end_val > start + padding);
     return overlap;
 }
 

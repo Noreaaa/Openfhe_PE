@@ -168,6 +168,33 @@ encryption/fast:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/encryption.dir/build.make CMakeFiles/encryption.dir/build
 .PHONY : encryption/fast
 
+src/cnn/activation.o: src/cnn/activation.cpp.o
+
+.PHONY : src/cnn/activation.o
+
+# target to build an object file
+src/cnn/activation.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/cnn.dir/build.make CMakeFiles/cnn.dir/src/cnn/activation.cpp.o
+.PHONY : src/cnn/activation.cpp.o
+
+src/cnn/activation.i: src/cnn/activation.cpp.i
+
+.PHONY : src/cnn/activation.i
+
+# target to preprocess a source file
+src/cnn/activation.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/cnn.dir/build.make CMakeFiles/cnn.dir/src/cnn/activation.cpp.i
+.PHONY : src/cnn/activation.cpp.i
+
+src/cnn/activation.s: src/cnn/activation.cpp.s
+
+.PHONY : src/cnn/activation.s
+
+# target to generate assembly for a file
+src/cnn/activation.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/cnn.dir/build.make CMakeFiles/cnn.dir/src/cnn/activation.cpp.s
+.PHONY : src/cnn/activation.cpp.s
+
 src/cnn/conv2d.o: src/cnn/conv2d.cpp.o
 
 .PHONY : src/cnn/conv2d.o
@@ -330,6 +357,33 @@ src/main.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/test.dir/build.make CMakeFiles/test.dir/src/main.cpp.s
 .PHONY : src/main.cpp.s
 
+src/utils/dataloader.o: src/utils/dataloader.cpp.o
+
+.PHONY : src/utils/dataloader.o
+
+# target to build an object file
+src/utils/dataloader.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/test.dir/build.make CMakeFiles/test.dir/src/utils/dataloader.cpp.o
+.PHONY : src/utils/dataloader.cpp.o
+
+src/utils/dataloader.i: src/utils/dataloader.cpp.i
+
+.PHONY : src/utils/dataloader.i
+
+# target to preprocess a source file
+src/utils/dataloader.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/test.dir/build.make CMakeFiles/test.dir/src/utils/dataloader.cpp.i
+.PHONY : src/utils/dataloader.cpp.i
+
+src/utils/dataloader.s: src/utils/dataloader.cpp.s
+
+.PHONY : src/utils/dataloader.s
+
+# target to generate assembly for a file
+src/utils/dataloader.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/test.dir/build.make CMakeFiles/test.dir/src/utils/dataloader.cpp.s
+.PHONY : src/utils/dataloader.cpp.s
+
 src/utils/globals.o: src/utils/globals.cpp.o
 
 .PHONY : src/utils/globals.o
@@ -395,6 +449,9 @@ help:
 	@echo "... cnn"
 	@echo "... encryption"
 	@echo "... test"
+	@echo "... src/cnn/activation.o"
+	@echo "... src/cnn/activation.i"
+	@echo "... src/cnn/activation.s"
 	@echo "... src/cnn/conv2d.o"
 	@echo "... src/cnn/conv2d.i"
 	@echo "... src/cnn/conv2d.s"
@@ -413,6 +470,9 @@ help:
 	@echo "... src/main.o"
 	@echo "... src/main.i"
 	@echo "... src/main.s"
+	@echo "... src/utils/dataloader.o"
+	@echo "... src/utils/dataloader.i"
+	@echo "... src/utils/dataloader.s"
 	@echo "... src/utils/globals.o"
 	@echo "... src/utils/globals.i"
 	@echo "... src/utils/globals.s"
