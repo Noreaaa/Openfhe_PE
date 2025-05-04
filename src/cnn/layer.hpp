@@ -19,6 +19,8 @@ enum PLayerType {
   SQUARE_ACTIVATION,
   SUM_POOLING,
   AVG_POOLING,
+  BOOTSTRAP,
+  LINEAR,
 };
 
 
@@ -44,6 +46,21 @@ public:
     double3d& x_pts,
     types::vector2d<Ciphertext<DCRTPoly>>& y_cts,
     double3d& y_pts) {
+    std::cerr <<  "forward is not implemented." << std::endl;
+  }
+
+  virtual void forward(types::vector2d<Ciphertext<DCRTPoly>>& x_cts, types::double3d & x_pts,
+    vector<Ciphertext<DCRTPoly>>& y_cts, vector<double>& y_pts) {
+    std::cerr <<  "forward is not implemented." << std::endl;
+  }
+
+  virtual void forward(types::vector2d<Ciphertext<DCRTPoly>>& x_cts, double3d& x_pts,
+    vector<double>& y_pts) {
+      std::cerr <<  "forward is not implemented." << std::endl;
+    }
+
+  virtual void forward(vector<double>& x_pts,
+    vector<double>& y_pts) {
     std::cerr <<  "forward is not implemented." << std::endl;
   }
 

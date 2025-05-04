@@ -188,6 +188,8 @@ void AvgPooling_P::forward(types::vector2d<Ciphertext<DCRTPoly>>& x_cts, double3
         }
     }
 
+    //#define DEBUG
+
     #ifdef DEBUG
     cout << "value check for unencrypted pooling" << endl;
     print_3d(y_pts);
@@ -394,13 +396,14 @@ void AvgPooling_P::forward(types::vector2d<Ciphertext<DCRTPoly>>& x_cts, double3
     ENCRYPTED_HEIGHT_END = end_h;
     ENCRYPTED_WIDTH_START = start_w;
     ENCRYPTED_WIDTH_END = end_w;
-
+    //#define DEBUG
     #ifdef DEBUG
     cout << "value check for updated variables" << endl;
     cout << "ENCRYPTED_HEIGHT_START: " << ENCRYPTED_HEIGHT_START << endl;
     cout << "ENCRYPTED_HEIGHT_END: " << ENCRYPTED_HEIGHT_END << endl;
     cout << "ENCRYPTED_WIDTH_START: " << ENCRYPTED_WIDTH_START << endl;
     cout << "ENCRYPTED_WIDTH_END: " << ENCRYPTED_WIDTH_END << endl;
+    cout << "check level:" << y_cts[0][0]->GetLevel() << endl;
     #endif
     
 }
@@ -409,7 +412,7 @@ void AvgPooling_P::forward(types::vector2d<Ciphertext<DCRTPoly>>& x_cts, double3
 std::vector<double> sumAdjacentPairs(std::vector<double>& input) {
     std::vector<double> result;
 
-    // 每次跳两个元素
+    
     for (size_t i = 0; i + 1 < input.size(); i += 2) {
         result.push_back(input[i] + input[i + 1]);
     }
@@ -417,4 +420,44 @@ std::vector<double> sumAdjacentPairs(std::vector<double>& input) {
     return result;
 }
 
+
+void golden_AvgPooling(types::double3d& x_pts, int kernel_size, int stride){
+        types::double3d y_pts_temp;
+        int output_c = x_pts.size();
+        int output_h = (x_pts[0].size() + 2 * 0 - kernel_size) / stride + 1;
+        int output_w = (x_pts[0][0].size() + 2 * 0 - kernel_size) / stride + 1;
+
+        y_pts_temp.resize(output_c);
+        for (int c = 0; c < output_c; c++){
+            y_pts_temp[c].resize(output_h);
+            for (int oh = 0; oh < output_h; oh++){
+                y_pts_temp[c][oh].resize(output_w);
+                // check if the output involves encrypted data
+                for (int ow = 0; ow < output_w; ow++){
+                    double sum = 0;
+                    for (int kh = 0; kh < kernel_size; kh++){
+                        for (int kw = 0; kw < kernel_size; kw++){
+                            sum += x_pts[c][oh*stride + kh][ow*stride + kw];
+                        }
+                    }
+                    sum /= kernel_size * kernel_size;
+                    y_pts_temp[c][oh][ow] = sum;
+                }
+            }
+        }
+
+        x_pts.clear();
+        x_pts.resize(output_c);
+        for (int  c = 0; c < output_c; c++){
+            x_pts[c].resize(output_h);
+            for (int oh = 0; oh < output_h; oh++){
+                x_pts[c][oh].resize(output_w);
+                for (int ow = 0; ow < output_w; ow++){
+                    x_pts[c][oh][ow] = y_pts_temp[c][oh][ow];
+                }
+            }
+        }
+
+        
+}
     

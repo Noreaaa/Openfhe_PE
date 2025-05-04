@@ -70,4 +70,6 @@ class AvgPooling_P : public Layer {
 };
 
 
+void golden_AvgPooling(types::double3d& x_pts, int kernel_size, int stride);
+
 std::vector<double> sumAdjacentPairs(std::vector<double>& input);

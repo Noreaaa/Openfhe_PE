@@ -195,6 +195,33 @@ src/cnn/activation.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/cnn.dir/build.make CMakeFiles/cnn.dir/src/cnn/activation.cpp.s
 .PHONY : src/cnn/activation.cpp.s
 
+src/cnn/bootstrap.o: src/cnn/bootstrap.cpp.o
+
+.PHONY : src/cnn/bootstrap.o
+
+# target to build an object file
+src/cnn/bootstrap.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/cnn.dir/build.make CMakeFiles/cnn.dir/src/cnn/bootstrap.cpp.o
+.PHONY : src/cnn/bootstrap.cpp.o
+
+src/cnn/bootstrap.i: src/cnn/bootstrap.cpp.i
+
+.PHONY : src/cnn/bootstrap.i
+
+# target to preprocess a source file
+src/cnn/bootstrap.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/cnn.dir/build.make CMakeFiles/cnn.dir/src/cnn/bootstrap.cpp.i
+.PHONY : src/cnn/bootstrap.cpp.i
+
+src/cnn/bootstrap.s: src/cnn/bootstrap.cpp.s
+
+.PHONY : src/cnn/bootstrap.s
+
+# target to generate assembly for a file
+src/cnn/bootstrap.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/cnn.dir/build.make CMakeFiles/cnn.dir/src/cnn/bootstrap.cpp.s
+.PHONY : src/cnn/bootstrap.cpp.s
+
 src/cnn/conv2d.o: src/cnn/conv2d.cpp.o
 
 .PHONY : src/cnn/conv2d.o
@@ -248,6 +275,33 @@ src/cnn/layer.s: src/cnn/layer.cpp.s
 src/cnn/layer.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/cnn.dir/build.make CMakeFiles/cnn.dir/src/cnn/layer.cpp.s
 .PHONY : src/cnn/layer.cpp.s
+
+src/cnn/linear.o: src/cnn/linear.cpp.o
+
+.PHONY : src/cnn/linear.o
+
+# target to build an object file
+src/cnn/linear.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/cnn.dir/build.make CMakeFiles/cnn.dir/src/cnn/linear.cpp.o
+.PHONY : src/cnn/linear.cpp.o
+
+src/cnn/linear.i: src/cnn/linear.cpp.i
+
+.PHONY : src/cnn/linear.i
+
+# target to preprocess a source file
+src/cnn/linear.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/cnn.dir/build.make CMakeFiles/cnn.dir/src/cnn/linear.cpp.i
+.PHONY : src/cnn/linear.cpp.i
+
+src/cnn/linear.s: src/cnn/linear.cpp.s
+
+.PHONY : src/cnn/linear.s
+
+# target to generate assembly for a file
+src/cnn/linear.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/cnn.dir/build.make CMakeFiles/cnn.dir/src/cnn/linear.cpp.s
+.PHONY : src/cnn/linear.cpp.s
 
 src/cnn/model.o: src/cnn/model.cpp.o
 
@@ -452,12 +506,18 @@ help:
 	@echo "... src/cnn/activation.o"
 	@echo "... src/cnn/activation.i"
 	@echo "... src/cnn/activation.s"
+	@echo "... src/cnn/bootstrap.o"
+	@echo "... src/cnn/bootstrap.i"
+	@echo "... src/cnn/bootstrap.s"
 	@echo "... src/cnn/conv2d.o"
 	@echo "... src/cnn/conv2d.i"
 	@echo "... src/cnn/conv2d.s"
 	@echo "... src/cnn/layer.o"
 	@echo "... src/cnn/layer.i"
 	@echo "... src/cnn/layer.s"
+	@echo "... src/cnn/linear.o"
+	@echo "... src/cnn/linear.i"
+	@echo "... src/cnn/linear.s"
 	@echo "... src/cnn/model.o"
 	@echo "... src/cnn/model.i"
 	@echo "... src/cnn/model.s"

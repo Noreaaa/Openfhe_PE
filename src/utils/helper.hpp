@@ -12,6 +12,8 @@ void update_region(int& enc_height_start, int& enc_height_end, int& enc_width_st
 
 void print_3d(types::double3d& data);
 
+void print_4d(types::double4d& data);
+
 std::pair<int,int> findAffectedRange(int inStart, int inEnd, int kernelSize, int stride, int pad, int outSize);
 
 std::tuple<int,int,int,int> calcNextConvAffectedRegion(

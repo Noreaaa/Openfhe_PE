@@ -1,22 +1,19 @@
-#pragma once 
+#pragma once
 
 #include "layer.hpp"
 
-
-class Square : public Layer {
+class Bootstrap_P : public Layer {
     public:
-        Square(
+        Bootstrap_P(
             PLayerType layer_type,
             std::string layer_name
         );
-        ~Square();
+        ~Bootstrap_P();
 
         void forward(types::vector2d<Ciphertext<DCRTPoly>>& x_cts, double3d& x_pts,
             types::vector2d<Ciphertext<DCRTPoly>>& y_cts, double3d& y_pts) override;
-
+    
+    private:
+        
 };
 
-
-void golden_Square(
-    types::double3d& x_pts
-);

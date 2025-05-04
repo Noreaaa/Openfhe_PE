@@ -94,6 +94,21 @@ void print_3d(types::double3d& data){
     }
 }
 
+void print_4d(types::double4d& data){
+    for (int i = 0; i < data.size(); i++){
+        for (int j = 0; j < data[i].size(); j++){
+            for (int k = 0; k < data[i][j].size(); k++){
+                for (int l = 0; l < data[i][j][k].size(); l++){
+                    std::cout << data[i][j][k][l] << " ";
+                }
+                std::cout << std::endl;
+            }
+            std::cout << std::endl;
+        }
+        std::cout << std::endl;
+    }
+}
+
 /**
  * 计算单维度上受影响的输出最小 / 最大索引。
  * 若无交集则返回 (1, 0) 这样的空区间。

@@ -3,8 +3,10 @@
 
 CMakeFiles/test.dir/src/main.cpp.o: ../src/include/cmdline.h
 CMakeFiles/test.dir/src/main.cpp.o: ../src/cnn/activation.hpp
+CMakeFiles/test.dir/src/main.cpp.o: ../src/cnn/bootstrap.hpp
 CMakeFiles/test.dir/src/main.cpp.o: ../src/cnn/conv2d.hpp
 CMakeFiles/test.dir/src/main.cpp.o: ../src/cnn/layer.hpp
+CMakeFiles/test.dir/src/main.cpp.o: ../src/cnn/linear.hpp
 CMakeFiles/test.dir/src/main.cpp.o: ../src/cnn/model.hpp
 CMakeFiles/test.dir/src/main.cpp.o: ../src/cnn/pool.hpp
 CMakeFiles/test.dir/src/main.cpp.o: ../src/encryption/encryption.hpp

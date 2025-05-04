@@ -8,6 +8,8 @@
 #include "cnn/conv2d.hpp"
 #include "cnn/activation.hpp"
 #include "cnn/pool.hpp"
+#include "cnn/bootstrap.hpp"
+#include "cnn/linear.hpp"
 #include <chrono>
 
 
@@ -66,7 +68,7 @@ void SetParam(uint32_t RingDim){
 #else
     // All modes are supported for 64-bit CKKS bootstrapping.
     ScalingTechnique rescaleTech = FLEXIBLEAUTO;
-    usint dcrtBits               = 50;
+    usint dcrtBits               = 59;
     usint firstMod               = 60;
 #endif
 
@@ -81,7 +83,7 @@ void SetParam(uint32_t RingDim){
 	* We must choose values smaller than ceil(log2(slots)). A level budget of {4, 4} is good for higher ring
     * dimensions (65536 and higher).
     */
-    std::vector<uint32_t> levelBudget = {3, 3};
+    std::vector<uint32_t> levelBudget = {4, 4};
 
     /* We give the user the option of configuring values for an optimization algorithm in bootstrapping.
     * Here, we specify the giant step for the baby-step-giant-step algorithm in linear transforms
@@ -98,8 +100,9 @@ void SetParam(uint32_t RingDim){
     * using GetBootstrapDepth, and add it to levelsAvailableAfterBootstrap to set our initial multiplicative
     * depth.
     */
-    uint32_t levelsAvailableAfterBootstrap = 11;
+    uint32_t levelsAvailableAfterBootstrap = 10;
     usint depth = levelsAvailableAfterBootstrap + FHECKKSRNS::GetBootstrapDepth(levelBudget, secretKeyDist);
+    std::cout << "depth: " << depth << std::endl;
     parameters.SetMultiplicativeDepth(depth);
 }
 
@@ -176,11 +179,8 @@ int main(int argc, char *argv[]) {
     ringDim = cryptoContext->GetRingDimension();
     std::cout << "CKKS scheme is using ring dimension " << ringDim << std::endl << std::endl;
 
-    // Step 2: Precomputations for bootstrapping
     cryptoContext->EvalBootstrapSetup(levelBudget, bsgsDim, numSlots);
 
-    
-    // Step 3: Key Generation
     auto keyPair = cryptoContext->KeyGen();
     cryptoContext->EvalMultKeyGen(keyPair.secretKey);
     cryptoContext->EvalSumKeyGen(keyPair.secretKey);
@@ -189,8 +189,7 @@ int main(int argc, char *argv[]) {
     
     std::vector<int32_t> rotate_index;
 
-    // Test Step 1: 
-    // generate random 3d vector as input
+    // create the rotate key
     int test_height = 32;
     int test_width = 32;
     for (int32_t i = 0; i < test_width; i++){
@@ -199,12 +198,16 @@ int main(int argc, char *argv[]) {
     cryptoContext->EvalRotateKeyGen(keyPair.secretKey, rotate_index);
     types::double3d image_3d(3, types::double2d(test_height, 
         std::vector<double>(test_width, 0)));
+    
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_real_distribution<> dis(0, 1.0); 
 
     // create test image
     for (int i = 0; i < 3; i++){
         for (int j = 0; j < test_height; j++){
             for (int k = 0; k < test_width; k++){
-                image_3d[i][j][k] = rand() % 5;
+                image_3d[i][j][k] = 1;
             }
         }
     }
@@ -212,48 +215,9 @@ int main(int argc, char *argv[]) {
     // create the test filter
     int filter_height = 3;
     int filter_width = 3;
-    int filter_num_1 = 32;
+    int filter_num_1 = 3;
     int filter_num_2 = 64;
     int filter_num_3 = 128;
-    types::double3d filter_3d_1(filter_num_1, types::double2d(filter_height,
-    std::vector<double>(filter_width, 0)));
-
-    //for (int i = 0; i < filter_num_1; i++){
-    //    for (int j = 0; j < filter_height; j++){
-    //        for (int k = 0; k < filter_width; k++){
-    //            filter_3d_1[i][j][k] = rand() % 5;
-    //        }
-    //    }
-    //}
-    LoadConv2dWeight(data_path + "conv1.0.weight.npy", filter_3d_1);
-
-    print_3d(filter_3d_1);
-    return 0; 
-
-    types::double3d filter_3d_2(filter_num_1, types::double2d(filter_height,
-    std::vector<double>(filter_width, 0)));
-
-
-    for (int i = 0; i < filter_num_1; i++){
-        for (int j = 0; j < filter_height; j++){
-            for (int k = 0; k < filter_width; k++){
-                filter_3d_2[i][j][k] = rand() % 5;
-            }
-        }
-    }
-
-    types::double3d filter_3d_3(filter_num_3, types::double2d(filter_height,
-        std::vector<double>(filter_width, 0)));
-
-    for (int i = 0; i < filter_num_3; i++){
-        for (int j = 0; j < filter_height; j++){
-            for (int k = 0; k < filter_width; k++){
-                filter_3d_3[i][j][k] = rand() % 5;
-            }
-        }
-    }
-
-   
     
     // initialize the bias
     std::vector<double> bias_1(filter_num_1, 0);
@@ -265,13 +229,12 @@ int main(int argc, char *argv[]) {
 
 
     Ciphertext<DCRTPoly> x_ctxt;
-    std::cout << "image 3d:" << std::endl;
-    print_3d(image_3d);
+
 
     height_start = 0;
-    height_end = 1;
+    height_end = 31;
     width_start = 0;
-    width_end = 1;
+    width_end = 31;
 
     ENCRYPTED_HEIGHT_START = height_start;
     ENCRYPTED_HEIGHT_END = height_end;
@@ -281,8 +244,18 @@ int main(int argc, char *argv[]) {
 
 
     types::vector2d<Ciphertext<DCRTPoly>> x_ctxt_2d;
-    Encrypt_MCSR_P(image_3d, numSlots, depth, cryptoContext, height_start, height_end, width_start, width_end, keyPair, x_ctxt_2d);
 
+    types::double3d golden_output(3, types::double2d(test_height, 
+        std::vector<double>(test_width, 0)));
+    for (int i = 0; i < 3; i++){
+        for (int j = 0; j < test_height; j++){
+            for (int k = 0; k < test_width; k++){
+                golden_output[i][j][k] = image_3d[i][j][k];
+            }
+        }
+    }
+
+    Encrypt_MCSR_P(image_3d, numSlots, depth, cryptoContext, height_start, height_end, width_start, width_end, keyPair, x_ctxt_2d);
 
     //return 0;
     std::cout << "finished encryption" << std::endl;
@@ -290,20 +263,74 @@ int main(int argc, char *argv[]) {
     std::cout << "create the model:" << std::endl;
     // create the model
     Network model;
-    //model.add_layer(std::make_shared<Conv2d>(CONV_2D, "conv1", filter_3d, bias, 1, 0, numSlots));
-    model.add_layer(std::make_shared<Conv2d_P>(CONV_2D, "conv1", filter_3d_1, bias_1, 1, 1, numSlots, AVG_POOLING));
+
+    std::vector<double> gamma_1;
+    std::vector<double> beta_1;
+    std::vector<double> mean_1;
+    std::vector<double> var_1;
+    std::vector<double> epsilon_1(32, 1e-5);
+    std::vector<double> gamma_2;
+    std::vector<double> beta_2;
+    std::vector<double> mean_2;
+    std::vector<double> var_2;
+    std::vector<double> gamma_3;
+    std::vector<double> beta_3;
+    std::vector<double> mean_3;
+    std::vector<double> var_3;
+    types::double2d linear_weight_1;
+    types::double2d linear_weight_2;
+    std::vector<double> linear_bias_1;  
+    std::vector<double> linear_bias_2;
+
+
+    types::double4d filter_4d_1 = LoadConv2dWeight(data_path + "conv1.0.weight.npy");
+    LoadConv2dBias(data_path + "conv1.0.bias.npy", bias_1);
+    LoadConv2dBias(data_path + "conv1.1.weight.npy", gamma_1);
+    LoadConv2dBias(data_path + "conv1.1.bias.npy", beta_1);
+    LoadConv2dBias(data_path + "conv1.1.running_mean.npy", mean_1);
+    LoadConv2dBias(data_path + "conv1.1.running_var.npy", var_1);
+
+
+    types::double4d filter_4d_2 = LoadConv2dWeight(data_path + "conv2.0.weight.npy");
+    LoadConv2dBias(data_path + "conv2.0.bias.npy", bias_2);
+    LoadConv2dBias(data_path + "conv2.1.weight.npy", gamma_2);
+    LoadConv2dBias(data_path + "conv2.1.bias.npy", beta_2);
+    LoadConv2dBias(data_path + "conv2.1.running_mean.npy", mean_2);
+    LoadConv2dBias(data_path + "conv2.1.running_var.npy", var_2);
+
+    types::double4d filter_4d_3 = LoadConv2dWeight(data_path + "conv3.0.weight.npy");
+    LoadConv2dBias(data_path + "conv3.0.bias.npy", bias_3);
+    LoadConv2dBias(data_path + "conv3.1.weight.npy", gamma_3);
+    LoadConv2dBias(data_path + "conv3.1.bias.npy", beta_3);
+    LoadConv2dBias(data_path + "conv3.1.running_mean.npy", mean_3);
+    LoadConv2dBias(data_path + "conv3.1.running_var.npy", var_3);
+    
+    LoadLinearWeight(data_path + "fc1.weight.npy", linear_weight_1);
+    LoadLinearWeight(data_path + "fc2.weight.npy", linear_weight_2);
+    LoadConv2dBias(data_path + "fc1.bias.npy", linear_bias_1);
+    LoadConv2dBias(data_path + "fc2.bias.npy", linear_bias_2);
+
+    
+
+    
+    //model.add_layer(std::make_shared<Conv2d_P>(CONV_2D, "conv1", filter_3d_1, bias_1, 1, 1, numSlots, CONV_2D));
+    model.add_layer(std::make_shared<Conv2dBN_P>(CONV_2D, "conv1_bn", filter_4d_1, 1, 1, numSlots, gamma_1, beta_1, mean_1, var_1, epsilon_1, bias_1, AVG_POOLING));
     model.add_layer(std::make_shared<Square>(SQUARE_ACTIVATION, std::string("square1")));
     model.add_layer(std::make_shared<AvgPooling_P>(AVG_POOLING, std::string("avgpool1"), 2, 2, 0, numSlots));
-
-    model.add_layer(std::make_shared<Conv2d_P>(CONV_2D, "conv2", filter_3d_2, bias_2, 1, 1, numSlots, AVG_POOLING));
+    //model.add_layer(std::make_shared<Bootstrap_P>(BOOTSTRAP, std::string("bootstrap1")));
+    //model.add_layer(std::make_shared<Conv2d_P>(CONV_2D, "conv2", filter_3d_2, bias_2, 1, 1, numSlots, AVG_POOLING));
+    model.add_layer(std::make_shared<Conv2dBN_P>(CONV_2D, "conv2_bn", filter_4d_2, 1, 1, numSlots, gamma_2, beta_2, mean_2, var_2, epsilon_1, bias_2, AVG_POOLING));
     model.add_layer(std::make_shared<Square>(SQUARE_ACTIVATION, std::string("square2")));
     model.add_layer(std::make_shared<AvgPooling_P>(AVG_POOLING, std::string("avgpool2"), 2, 2, 0, numSlots));
 
-    model.add_layer(std::make_shared<Conv2d_P>(CONV_2D, "conv3", filter_3d_3, bias_3, 1, 1, numSlots, AVG_POOLING));
+    //model.add_layer(std::make_shared<Conv2d_P>(CONV_2D, "conv3", filter_3d_3, bias_3, 1, 1, numSlots, AVG_POOLING));
+    model.add_layer(std::make_shared<Conv2dBN_P>(CONV_2D, "conv2_bn", filter_4d_3, 1, 1, numSlots, gamma_3, beta_3, mean_3, var_3, epsilon_1, bias_3, AVG_POOLING));
     model.add_layer(std::make_shared<Square>(SQUARE_ACTIVATION, std::string("square3")));
     model.add_layer(std::make_shared<AvgPooling_P>(AVG_POOLING, std::string("avgpool3"), 2, 2, 0, numSlots));
 
-    std::cout << "start prediction" << std::endl;
+    model.add_layer(std::make_shared<Linear_P>(LINEAR, "linear1", linear_weight_1, linear_bias_1, numSlots));
+    model.add_layer(std::make_shared<Linear_P>(LINEAR, "linear2", linear_weight_2, linear_bias_2, numSlots));
+    std::cout << "start verification" << std::endl;
     CURRENT_HEIGHT = test_height;
     CURRENT_WIDTH = test_width;
     CURRENT_CHANNEL = 3;
@@ -311,9 +338,33 @@ int main(int argc, char *argv[]) {
     KEYPAIR = keyPair;
 
     auto start = std::chrono::high_resolution_clock::now();
+    std::cout << "check level at start: " << x_ctxt_2d[0][0]->GetLevel() << std::endl;
     model.predict_P(x_ctxt_2d, image_3d);
     auto end = std::chrono::high_resolution_clock::now();
     std::cout << "prediction time: " << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << "ms" << std::endl;
+    //types::double3d golden_res;
+    GoldenConv2d(golden_output, filter_4d_1, bias_1, 1, 1);
+    GoldenBN(golden_output, gamma_1, beta_1, mean_1, var_1, epsilon_1);
+    golden_Square(golden_output);
+    golden_AvgPooling(golden_output, 2, 2);
+    GoldenConv2d(golden_output, filter_4d_2, bias_2, 1, 1);
+    GoldenBN(golden_output, gamma_2, beta_2, mean_2, var_2, epsilon_1);
+    golden_Square(golden_output);
+    golden_AvgPooling(golden_output, 2, 2);
+    GoldenConv2d(golden_output, filter_4d_3, bias_2, 1, 1);
+    GoldenBN(golden_output, gamma_3, beta_3, mean_3, var_3, epsilon_1);
+    golden_Square(golden_output);
+    golden_AvgPooling(golden_output, 2, 2);
+
+    std::vector<double> golden_output_1d;
+    GoldenLinear_3d_input(golden_output, linear_weight_1, linear_bias_1, golden_output_1d);
+    GoldenLinear(golden_output_1d, linear_weight_2, linear_bias_2);
+
+    for (int i = 0; i < static_cast<int>(golden_output_1d.size()); i++){
+        std::cout << "golden_output_1d[" << i << "]: " << golden_output_1d[i] << std::endl;
+    }
+
+
     return 0;
     
 

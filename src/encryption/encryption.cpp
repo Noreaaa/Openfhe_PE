@@ -146,7 +146,7 @@ void Encrypt_MCSR_P(types::double3d& image3d, uint32_t numSlots, int depth,
             for (int j = 0; j < static_cast<int>(x_vec.size()); j += numSlots){
                 int end = std::min(j + static_cast<int>(numSlots), static_cast<int>(x_vec.size()));
                 std::vector<double> one_batch(x_vec.begin() + j, x_vec.begin() + end);
-                Plaintext x_ptxt = cryptocontext->MakeCKKSPackedPlaintext(one_batch, 1, depth, nullptr, numSlots);
+                Plaintext x_ptxt = cryptocontext->MakeCKKSPackedPlaintext(one_batch, 1, 0, nullptr, numSlots);
                 std::cout << "Plaintext[" << i - enc_height_start << "]: " << x_ptxt << std::endl;
                 x_ctxt[i - enc_height_start].push_back(cryptocontext->Encrypt(Keypair.secretKey, x_ptxt));
             }

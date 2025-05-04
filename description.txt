@@ -44,3 +44,13 @@ generate filter vector
 
 
 
+golden_output_1d[0]: 6.35144
+golden_output_1d[1]: -2.12478
+golden_output_1d[2]: 1.55216
+golden_output_1d[3]: 0.818584
+golden_output_1d[4]: -5.26032
+golden_output_1d[5]: -2.08319
+golden_output_1d[6]: -0.192855
+golden_output_1d[7]: -5.07631
+golden_output_1d[8]: -0.794058
+golden_output_1d[9]: -1.85327
