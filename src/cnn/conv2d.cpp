@@ -41,7 +41,7 @@ void Conv2d::forward(vector<Ciphertext<DCRTPoly>>& x_cts,
     vector<Ciphertext<DCRTPoly>>& y_cts) {
     // need to know the input row size 
     // if it is the first layer padding is not available
-    
+    cout << layer_name_ << " forward" << endl;
     #ifdef DEBUG
     cout << "Conv2d forward" << endl;
     #endif
@@ -545,6 +545,7 @@ Conv2dBN_P::~Conv2dBN_P() {}
 
 void Conv2dBN_P::forward(types::vector2d<Ciphertext<DCRTPoly>>& x_cts, double3d& x_pts,
     types::vector2d<Ciphertext<DCRTPoly>>& y_cts, double3d& y_pts) {
+    cout << layer_name_ << " forward" << endl;
     #ifdef DEBUG
     cout << "Conv2d_Partial forward" << endl;
     #endif

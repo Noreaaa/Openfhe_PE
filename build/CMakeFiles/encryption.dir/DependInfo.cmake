@@ -1,25 +1,22 @@
+
+# Consider dependencies only in project.
+set(CMAKE_DEPENDS_IN_PROJECT_ONLY OFF)
+
 # The set of languages for which implicit dependencies are needed:
 set(CMAKE_DEPENDS_LANGUAGES
-  "CXX"
-  )
-# The set of files for implicit dependencies of each language:
-set(CMAKE_DEPENDS_CHECK_CXX
-  "/home/bill/myproj/openfhe_pe/src/encryption/encryption.cpp" "/home/bill/myproj/openfhe_pe/build/CMakeFiles/encryption.dir/src/encryption/encryption.cpp.o"
-  )
-set(CMAKE_CXX_COMPILER_ID "GNU")
-
-# The include file search paths:
-set(CMAKE_CXX_TARGET_INCLUDE_PATH
-  "/usr/local/include/openfhe"
-  "/usr/local/include/openfhe/third-party/include"
-  "/usr/local/include/openfhe/core"
-  "/usr/local/include/openfhe/pke"
-  "/usr/local/include/openfhe/binfhe"
-  "../src/encryption"
   )
 
-# Targets to which this target links.
-set(CMAKE_TARGET_LINKED_INFO_FILES
+# The set of dependency files which are needed:
+set(CMAKE_DEPENDS_DEPENDENCY_FILES
+  "/mnt/shared/gpfs/home/billdai2/myproj/Openfhe_PE/src/encryption/encryption.cpp" "CMakeFiles/encryption.dir/src/encryption/encryption.cpp.o" "gcc" "CMakeFiles/encryption.dir/src/encryption/encryption.cpp.o.d"
+  )
+
+# Targets to which this target links which contain Fortran sources.
+set(CMAKE_Fortran_TARGET_LINKED_INFO_FILES
+  )
+
+# Targets to which this target links which contain Fortran sources.
+set(CMAKE_Fortran_TARGET_FORWARD_LINKED_INFO_FILES
   )
 
 # Fortran module output directory.

@@ -21,6 +21,7 @@ using std::vector;
 CCParams<CryptoContextCKKSRNS> parameters; 
 
 std::string data_path = "../python_model/saved_models/parameters/";
+std::string cifar_image_path = "../datasets/cifar-10/test_batch.bin";
 
 void SetParam(uint32_t RingDim){
     // Step 1: Set CryptoContext
@@ -151,12 +152,17 @@ int main(int argc, char *argv[]) {
     parser.add<int>("bottom", 0, "bottom of the encryption region 0-31", false, 0);
     parser.add<int>("left", 0, "left of the encryption region 0-31", false, 0);
     parser.add<int>("right", 0, "right of the encryption region 0-31", false, 0);
+    parser.add<int>("nums", 0, "number of images to be tested", false, 0);
 
     parser.parse_check(argc, argv);
-    int top = parser.get<int>("top");
-    int bottom = parser.get<int>("bottom");
-    int left = parser.get<int>("left");
-    int right = parser.get<int>("right");
+    int height_start = parser.get<int>("top");
+    int height_end = parser.get<int>("bottom");
+    int width_start = parser.get<int>("left");
+    int width_end = parser.get<int>("right");
+    int test_nums = parser.get<int>("nums");
+
+
+
     //test_ablation();
     //return 0;
     int ringDim = 64;
@@ -190,27 +196,13 @@ int main(int argc, char *argv[]) {
     std::vector<int32_t> rotate_index;
 
     // create the rotate key
-    int test_height = 32;
-    int test_width = 32;
-    for (int32_t i = 0; i < test_width; i++){
+    int image_size = 32;
+
+    for (int32_t i = 0; i < image_size; i++){
         rotate_index.push_back(i);
     }
     cryptoContext->EvalRotateKeyGen(keyPair.secretKey, rotate_index);
-    types::double3d image_3d(3, types::double2d(test_height, 
-        std::vector<double>(test_width, 0)));
     
-    std::random_device rd;
-    std::mt19937 gen(rd());
-    std::uniform_real_distribution<> dis(0, 1.0); 
-
-    // create test image
-    for (int i = 0; i < 3; i++){
-        for (int j = 0; j < test_height; j++){
-            for (int k = 0; k < test_width; k++){
-                image_3d[i][j][k] = 1;
-            }
-        }
-    }
 
     // create the test filter
     int filter_height = 3;
@@ -218,47 +210,23 @@ int main(int argc, char *argv[]) {
     int filter_num_1 = 3;
     int filter_num_2 = 64;
     int filter_num_3 = 128;
-    
-    // initialize the bias
+
     std::vector<double> bias_1(filter_num_1, 0);
     std::vector<double> bias_2(filter_num_2, 0);
     std::vector<double> bias_3(filter_num_3, 0);
-
-    int channel_size = 3;
-    int height_start, height_end, width_start, width_end;
 
 
     Ciphertext<DCRTPoly> x_ctxt;
 
 
-    height_start = 0;
-    height_end = 31;
-    width_start = 0;
-    width_end = 31;
-
-    ENCRYPTED_HEIGHT_START = height_start;
-    ENCRYPTED_HEIGHT_END = height_end;
-    ENCRYPTED_WIDTH_START = width_start;
-    ENCRYPTED_WIDTH_END = width_end;
     std::vector<Ciphertext<DCRTPoly>> x_ctxt_vec;
 
 
     types::vector2d<Ciphertext<DCRTPoly>> x_ctxt_2d;
 
-    types::double3d golden_output(3, types::double2d(test_height, 
-        std::vector<double>(test_width, 0)));
-    for (int i = 0; i < 3; i++){
-        for (int j = 0; j < test_height; j++){
-            for (int k = 0; k < test_width; k++){
-                golden_output[i][j][k] = image_3d[i][j][k];
-            }
-        }
-    }
 
-    Encrypt_MCSR_P(image_3d, numSlots, depth, cryptoContext, height_start, height_end, width_start, width_end, keyPair, x_ctxt_2d);
 
-    //return 0;
-    std::cout << "finished encryption" << std::endl;
+
 
     std::cout << "create the model:" << std::endl;
     // create the model
@@ -330,39 +298,73 @@ int main(int argc, char *argv[]) {
 
     model.add_layer(std::make_shared<Linear_P>(LINEAR, "linear1", linear_weight_1, linear_bias_1, numSlots));
     model.add_layer(std::make_shared<Linear_P>(LINEAR, "linear2", linear_weight_2, linear_bias_2, numSlots));
-    std::cout << "start verification" << std::endl;
-    CURRENT_HEIGHT = test_height;
-    CURRENT_WIDTH = test_width;
-    CURRENT_CHANNEL = 3;
+
+
+
+    types::double3d image_3d(3, types::double2d(image_size, 
+        std::vector<double>(image_size, 0)));
+    types::double3d golden_output(3, types::double2d(image_size, 
+        std::vector<double>(image_size, 0)));
+    int label = 0;
+    long long total_time = 0;
+    int correct_count = 0; 
     CRYPTOCONTEXT = cryptoContext;
-    KEYPAIR = keyPair;
+    for (int i = 0; i < test_nums; i++){
+        LoadImageCifar(cifar_image_path, image_3d, label, i);
+        LoadImageCifar(cifar_image_path, golden_output, label, i);
+        Encrypt_MCSR_P(image_3d, numSlots, depth, cryptoContext, height_start, height_end, width_start, width_end, keyPair, x_ctxt_2d);
 
-    auto start = std::chrono::high_resolution_clock::now();
-    std::cout << "check level at start: " << x_ctxt_2d[0][0]->GetLevel() << std::endl;
-    model.predict_P(x_ctxt_2d, image_3d);
-    auto end = std::chrono::high_resolution_clock::now();
-    std::cout << "prediction time: " << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << "ms" << std::endl;
-    //types::double3d golden_res;
-    GoldenConv2d(golden_output, filter_4d_1, bias_1, 1, 1);
-    GoldenBN(golden_output, gamma_1, beta_1, mean_1, var_1, epsilon_1);
-    golden_Square(golden_output);
-    golden_AvgPooling(golden_output, 2, 2);
-    GoldenConv2d(golden_output, filter_4d_2, bias_2, 1, 1);
-    GoldenBN(golden_output, gamma_2, beta_2, mean_2, var_2, epsilon_1);
-    golden_Square(golden_output);
-    golden_AvgPooling(golden_output, 2, 2);
-    GoldenConv2d(golden_output, filter_4d_3, bias_2, 1, 1);
-    GoldenBN(golden_output, gamma_3, beta_3, mean_3, var_3, epsilon_1);
-    golden_Square(golden_output);
-    golden_AvgPooling(golden_output, 2, 2);
+        KEYPAIR = keyPair;
+        ENCRYPTED_HEIGHT_START = height_start;
+        ENCRYPTED_HEIGHT_END = height_end;
+        ENCRYPTED_WIDTH_START = width_start;
+        ENCRYPTED_WIDTH_END = width_end;
+        std::cout << "image[" << i <<"]:" << std::endl;
+        //print_3d(image_3d);
 
-    std::vector<double> golden_output_1d;
-    GoldenLinear_3d_input(golden_output, linear_weight_1, linear_bias_1, golden_output_1d);
-    GoldenLinear(golden_output_1d, linear_weight_2, linear_bias_2);
 
-    for (int i = 0; i < static_cast<int>(golden_output_1d.size()); i++){
-        std::cout << "golden_output_1d[" << i << "]: " << golden_output_1d[i] << std::endl;
+        auto start = std::chrono::high_resolution_clock::now();
+        //std::cout << "check level at start: " << x_ctxt_2d[0][0]->GetLevel() << std::endl;
+        int predict_label = model.predict_P(x_ctxt_2d, image_3d);
+        auto end = std::chrono::high_resolution_clock::now();
+        std::cout << "prediction time: " << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << "ms" << std::endl;
+        total_time += std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
+        std::cout << "true result: " << label << std::endl;
+
+        if (predict_label == label){
+            correct_count++;
+        }
+
+        //GoldenConv2d(golden_output, filter_4d_1, bias_1, 1, 1);
+        //GoldenBN(golden_output, gamma_1, beta_1, mean_1, var_1, epsilon_1);
+        //golden_Square(golden_output);
+        //golden_AvgPooling(golden_output, 2, 2);
+        //GoldenConv2d(golden_output, filter_4d_2, bias_2, 1, 1);
+        //GoldenBN(golden_output, gamma_2, beta_2, mean_2, var_2, epsilon_1);
+        //golden_Square(golden_output);
+        //golden_AvgPooling(golden_output, 2, 2);
+        //GoldenConv2d(golden_output, filter_4d_3, bias_2, 1, 1);
+        //GoldenBN(golden_output, gamma_3, beta_3, mean_3, var_3, epsilon_1);
+        //golden_Square(golden_output);
+        //golden_AvgPooling(golden_output, 2, 2);
+
+        //std::vector<double> golden_output_1d;
+        //GoldenLinear_3d_input(golden_output, linear_weight_1, linear_bias_1, golden_output_1d);
+        //GoldenLinear(golden_output_1d, linear_weight_2, linear_bias_2);
+
+        //for (int i = 0; i < static_cast<int>(golden_output_1d.size()); i++){
+        //    std::cout << "golden_output_1d[" << i << "]: " << golden_output_1d[i] << std::endl;
+        //}
+
     }
+
+    std::cout << "average predicted time: " << total_time/test_nums << "ms" << std::endl;
+    double accuracy = (double)correct_count / (double)test_nums;
+    std::cout << "accuracy: " << accuracy * 100 << "%" << std::endl;
+
+
+
+
 
 
     return 0;

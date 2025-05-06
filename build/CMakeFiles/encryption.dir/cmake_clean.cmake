@@ -1,5 +1,6 @@
 file(REMOVE_RECURSE
   "CMakeFiles/encryption.dir/src/encryption/encryption.cpp.o"
+  "CMakeFiles/encryption.dir/src/encryption/encryption.cpp.o.d"
   "libencryption.a"
   "libencryption.pdb"
 )

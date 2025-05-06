@@ -115,3 +115,29 @@ void LoadLinearWeight(const std::string& filename, types::vector2d<double>& weig
     std::cout << "Weight size: " << weight.size() << "x" << weight[0].size() << std::endl;
 
 }
+
+const int IMAG_SIZE = 32;
+const int CHANNELS = 3;
+const int BYTES_PER_IMAGE = IMAG_SIZE * IMAG_SIZE * CHANNELS + 1; // 1 byte for label
+
+void LoadImageCifar(const std::string& filename, types::double3d& image_3d, int& label, int index){
+    std::ifstream file(filename, std::ios::binary);
+    if (!file) throw std::runtime_error("Could not open file");
+
+    file.seekg(index * BYTES_PER_IMAGE, std::ios::beg);
+
+    unsigned char label_byte;
+    file.read(reinterpret_cast<char*>(&label_byte), 1);
+    label = static_cast<int>(label_byte);
+
+    for (int ch = 0; ch < CHANNELS; ++ch) {
+        for (int row = 0; row < IMAG_SIZE; ++row) {
+            for (int col = 0; col < IMAG_SIZE; ++col) {
+                unsigned char pixel;
+                file.read(reinterpret_cast<char*>(&pixel), 1);
+                image_3d[ch][row][col] = static_cast<double>(pixel) / 255.0;
+            }
+        }
+    }
+
+}

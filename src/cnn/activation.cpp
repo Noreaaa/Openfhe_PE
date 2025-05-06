@@ -14,7 +14,8 @@ Square::~Square() {
 void Square::forward(types::vector2d<Ciphertext<DCRTPoly>>& x_cts, double3d& x_pts,
     types::vector2d<Ciphertext<DCRTPoly>>& y_cts, double3d& y_pts) {
     // Check if the input and output dimensions match
-    
+    cout << layer_name_ << " forward" << endl;
+
     y_cts.resize(x_cts.size());
     y_pts.resize(x_pts.size());
 

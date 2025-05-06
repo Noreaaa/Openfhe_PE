@@ -35,7 +35,7 @@ void Network::predict_P(types::ciphertext1d x_cts, types::double3d x_pts){
 	
 }
 
-void Network::predict_P(types::vector2d<Ciphertext<DCRTPoly>> x_cts, types::double3d x_pts){
+int Network::predict_P(types::vector2d<Ciphertext<DCRTPoly>> x_cts, types::double3d x_pts){
 	types::vector2d<Ciphertext<DCRTPoly>> y_cts;
 	types::double3d y_pts;
 	vector<double> x_pts_1d;
@@ -100,11 +100,11 @@ void Network::predict_P(types::vector2d<Ciphertext<DCRTPoly>> x_cts, types::doub
         }
     }
 
-	return;
+	return 0;
 	#endif
 
 	int max_type = -1;
-	int max = 0;
+	double max = -1000000;
 	for (size_t i = 0; i < y_pts_1d.size(); i++){
 		std::cout << "y_pts_1d[" << i << "]: " << y_pts_1d[i] << std::endl;
 		if (y_pts_1d[i] > max){
@@ -114,7 +114,7 @@ void Network::predict_P(types::vector2d<Ciphertext<DCRTPoly>> x_cts, types::doub
 	}
 	std::cout << "predicted result: " << max_type << std::endl;
 
+	return max_type;
 	
-	return;
 
 }

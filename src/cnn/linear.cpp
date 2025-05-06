@@ -17,6 +17,8 @@ Linear_P::~Linear_P() {}
 
 void Linear_P::forward(types::vector2d<Ciphertext<DCRTPoly>>& x_cts, double3d& x_pts,
     vector<double>& y_pts) {
+    std::cout << layer_name_ << " forward" << std::endl;
+
     
     // decrypt the input cihpertext
     // and add to the x_pts
@@ -72,6 +74,7 @@ void Linear_P::forward(types::vector2d<Ciphertext<DCRTPoly>>& x_cts, double3d& x
 }
 
 void Linear_P::forward(vector<double>& input, vector<double>& output){
+    std::cout << layer_name_ << " forward" << std::endl;
     output.resize(weights_.size());
     for (size_t i = 0; i < weights_.size(); i++){
         double sum = 0;

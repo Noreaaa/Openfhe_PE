@@ -5,6 +5,7 @@
 #include "globals.hpp"
 #include <vector>
 #include <iostream>
+#include <fstream>
 #include "types.hpp"
 
 types::double4d LoadConv2dWeight(const std::string& filename);
@@ -12,3 +13,5 @@ types::double4d LoadConv2dWeight(const std::string& filename);
 void LoadLinearWeight(const std::string& filename, types::vector2d<double>& weight);
 
 void LoadConv2dBias(const std::string& filename, std::vector<double>& bias);
+
+void LoadImageCifar(const std::string& filename, types::double3d& image_3d, int& label, int index);

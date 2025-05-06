@@ -34,6 +34,9 @@ SumPooling::~SumPooling() {}
 
 void SumPooling::forward(vector<Ciphertext<DCRTPoly>>& x_cts,
 vector<Ciphertext<DCRTPoly>>& y_cts) {
+
+    cout << layer_name_ << " forward" << endl;
+
     #ifdef DEBUG
     cout << "SumPooling forward" << endl;
     #endif
