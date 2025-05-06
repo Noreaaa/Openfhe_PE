@@ -75,7 +75,7 @@ void golden_Square(
     for (size_t i = 0; i < x_pts.size(); i++){
         for (size_t j = 0; j < x_pts[i].size(); j++){
             for (size_t k = 0; k < x_pts[i][j].size(); k++){
-                x_pts[i][j][k] = x_pts[i][j][k] * x_pts[i][j][k];
+                x_pts[i][j][k] *= x_pts[i][j][k];
             }
         }
     }

@@ -123,15 +123,17 @@ const int BYTES_PER_IMAGE = IMAG_SIZE * IMAG_SIZE * CHANNELS + 1; // 1 byte for 
 void LoadImageCifar(const std::string& filename, types::double3d& image_3d, int& label, int index){
     std::ifstream file(filename, std::ios::binary);
     if (!file) throw std::runtime_error("Could not open file");
-
+    image_3d.clear();
     file.seekg(index * BYTES_PER_IMAGE, std::ios::beg);
 
     unsigned char label_byte;
     file.read(reinterpret_cast<char*>(&label_byte), 1);
     label = static_cast<int>(label_byte);
-
+    image_3d.resize(CHANNELS);
     for (int ch = 0; ch < CHANNELS; ++ch) {
+        image_3d[ch].resize(IMAG_SIZE);
         for (int row = 0; row < IMAG_SIZE; ++row) {
+            image_3d[ch][row].resize(IMAG_SIZE);
             for (int col = 0; col < IMAG_SIZE; ++col) {
                 unsigned char pixel;
                 file.read(reinterpret_cast<char*>(&pixel), 1);

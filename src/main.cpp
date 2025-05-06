@@ -329,11 +329,11 @@ int main(int argc, char *argv[]) {
         auto end = std::chrono::high_resolution_clock::now();
         std::cout << "prediction time: " << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << "ms" << std::endl;
         total_time += std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
-        std::cout << "true result: " << label << std::endl;
+        //std::cout << "true result: " << label << std::endl;
 
-        if (predict_label == label){
-            correct_count++;
-        }
+        //if (predict_label == label){
+        //    correct_count++;
+        //}
 
         //GoldenConv2d(golden_output, filter_4d_1, bias_1, 1, 1);
         //GoldenBN(golden_output, gamma_1, beta_1, mean_1, var_1, epsilon_1);
@@ -347,7 +347,6 @@ int main(int argc, char *argv[]) {
         //GoldenBN(golden_output, gamma_3, beta_3, mean_3, var_3, epsilon_1);
         //golden_Square(golden_output);
         //golden_AvgPooling(golden_output, 2, 2);
-
         //std::vector<double> golden_output_1d;
         //GoldenLinear_3d_input(golden_output, linear_weight_1, linear_bias_1, golden_output_1d);
         //GoldenLinear(golden_output_1d, linear_weight_2, linear_bias_2);
@@ -358,9 +357,9 @@ int main(int argc, char *argv[]) {
 
     }
 
-    std::cout << "average predicted time: " << total_time/test_nums << "ms" << std::endl;
-    double accuracy = (double)correct_count / (double)test_nums;
-    std::cout << "accuracy: " << accuracy * 100 << "%" << std::endl;
+    //std::cout << "average predicted time: " << total_time/test_nums << "ms" << std::endl;
+    //double accuracy = (double)correct_count / (double)test_nums;
+    //std::cout << "accuracy: " << accuracy * 100 << "%" << std::endl;
 
 
 

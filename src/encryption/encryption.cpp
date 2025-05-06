@@ -125,6 +125,7 @@ void Encrypt_MCSR_P(types::double3d& image3d, uint32_t numSlots, int depth,
         // ensure we can pack all channel in one ciphertext
         int channel = image3d.size();
         int width = image3d[0][0].size();
+        x_ctxt.clear();
 
 
         x_ctxt.resize(enc_height_end - enc_height_start + 1);
