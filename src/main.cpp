@@ -198,7 +198,7 @@ int main(int argc, char *argv[]) {
     
 
     ringDim = cryptoContext->GetRingDimension();
-    std::cout << "CKKS scheme is using ring dimension " << ringDim << std::endl << std::endl;
+    //std::cout << "CKKS scheme is using ring dimension " << ringDim << std::endl << std::endl;
 
     cryptoContext->EvalBootstrapSetup(levelBudget, bsgsDim, numSlots);
 

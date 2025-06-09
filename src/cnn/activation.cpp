@@ -99,7 +99,7 @@ void Relu_ss::forward(types::vector2d<Ciphertext<DCRTPoly>>& x_cts, double3d& x_
     types::vector2d<Ciphertext<DCRTPoly>>& y_cts, double3d& y_pts) {
     cout << layer_name_ << " forward" << endl;
 
-    y_cts.resize(x_cts.size());
+    y_pts.resize(x_pts.size());
     for (size_t i = 0; i < x_cts.size(); i++){
         y_cts[i].resize(x_cts[i].size());
     }
