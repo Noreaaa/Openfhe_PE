@@ -87,45 +87,51 @@ void Linear_P::forward(vector<double>& input, vector<double>& output){
 
 
 void GoldenLinear_3d_input(double3d& input, types::double2d& weights, vector<double>& bias, vector<double>& output){
-    int input_n = input.size();
-    int input_h = input[0].size();
-    int input_w = input[0][0].size();
 
-    vector<double> flattened_input;
+    int C = input.size();
+    int H = input[0].size();
+    int W = input[0][0].size();
+    int in_dim = C * H * W;
 
-    for (int i = 0; i < input_n; i++){
-        for (int j = 0; j < input_h; j++){
-            for (int k = 0; k < input_w; k++){
-                flattened_input.push_back(input[i][j][k]);
-            }
-        }
-    }
-    output.resize(weights.size());
+    int out_dim = weights.size();
+    //assert(weights[0].size() == in_dim);
+    //assert(bias.size() == out_dim);
 
-    for (size_t i = 0; i < weights.size(); i++){
-        double sum = 0;
-        for (size_t j = 0; j < weights[i].size(); j++){
-            sum += weights[i][j] * flattened_input[j];
-        }
-        output[i] = sum + bias[i];
+    // Flatten input
+    vector<double> flat_input(in_dim);
+    int idx = 0;
+    for (int c = 0; c < C; ++c)
+        for (int h = 0; h < H; ++h)
+            for (int w = 0; w < W; ++w)
+                flat_input[idx++] = input[c][h][w];
+
+    // Compute output = weights * flat_input + bias
+    output.resize(out_dim);
+    for (int o = 0; o < out_dim; ++o) {
+        double sum = bias[o];
+        for (int i = 0; i < in_dim; ++i)
+            sum += weights[o][i] * flat_input[i];
+        output[o] = sum;
     }
 
 }
 
 void GoldenLinear(vector<double>& input, types::double2d& weights, vector<double>& bias){
-    vector<double> output;
-    output.resize(weights.size());
-    for (size_t i = 0; i < weights.size(); i++){
-        double sum = 0;
-        for (size_t j = 0; j < weights[i].size(); j++){
-            sum += weights[i][j] * input[j];
+    int in_dim = input.size();
+    int out_dim = weights.size();
+
+    //assert(weights[0].size() == in_dim);
+    //assert(bias.size() == out_dim);
+
+    vector<double> output(out_dim, 0.0);
+
+    for (int o = 0; o < out_dim; ++o) {
+        double sum = bias[o];
+        for (int i = 0; i < in_dim; ++i) {
+            sum += weights[o][i] * input[i];
         }
-        output[i] = sum + bias[i];
+        output[o] = sum;
     }
 
-    input.clear();
-
-    for(size_t i = 0; i < output.size(); i++){
-        input.push_back(output[i]);
-    }
+    input = output;  // Overwrite input with output
 }

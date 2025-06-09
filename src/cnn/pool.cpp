@@ -368,25 +368,25 @@ void AvgPooling_P::forward(types::vector2d<Ciphertext<DCRTPoly>>& x_cts, double3
     // update the encrypted height and width 
     int start_h = -1, end_h = -1, start_w = -1, end_w = -1;
     for (int oh = 0; oh < output_h; oh++){
-        if (isEncrypted_h(oh * stride_, kernel_size_, padding_, ENCRYPTED_HEIGHT_START, ENCRYPTED_HEIGHT_END)){
+        if (isOutputEncryptedFromPooling(oh * stride_, kernel_size_, ENCRYPTED_HEIGHT_START, ENCRYPTED_HEIGHT_END)){
             start_h = oh;
             break;
         }
     }
     for (int oh = output_h - 1; oh >= 0; oh--){
-        if (isEncrypted_h(oh * stride_, kernel_size_, padding_, ENCRYPTED_HEIGHT_START, ENCRYPTED_HEIGHT_END)){
+        if (isOutputEncryptedFromPooling(oh * stride_, kernel_size_, ENCRYPTED_HEIGHT_START, ENCRYPTED_HEIGHT_END)){
             end_h = oh;
             break;
         }
     }
     for (int ow = 0; ow < output_w; ow++){
-        if (isEncrypted_h(ow * stride_, kernel_size_, padding_, ENCRYPTED_WIDTH_START, ENCRYPTED_WIDTH_END)){
+        if (isOutputEncryptedFromPooling(ow * stride_, kernel_size_,  ENCRYPTED_WIDTH_START, ENCRYPTED_WIDTH_END)){
             start_w = ow;
             break;
         }
     }
     for (int ow = output_w - 1; ow >= 0; ow--){
-        if (isEncrypted_h(ow * stride_, kernel_size_, padding_, ENCRYPTED_WIDTH_START, ENCRYPTED_WIDTH_END)){
+        if (isOutputEncryptedFromPooling(ow * stride_, kernel_size_, ENCRYPTED_WIDTH_START, ENCRYPTED_WIDTH_END)){
             end_w = ow;
             break;
         }
@@ -399,7 +399,7 @@ void AvgPooling_P::forward(types::vector2d<Ciphertext<DCRTPoly>>& x_cts, double3
     ENCRYPTED_HEIGHT_END = end_h;
     ENCRYPTED_WIDTH_START = start_w;
     ENCRYPTED_WIDTH_END = end_w;
-    //#define DEBUG
+    #define DEBUG
     #ifdef DEBUG
     cout << "value check for updated variables" << endl;
     cout << "ENCRYPTED_HEIGHT_START: " << ENCRYPTED_HEIGHT_START << endl;
@@ -411,6 +411,12 @@ void AvgPooling_P::forward(types::vector2d<Ciphertext<DCRTPoly>>& x_cts, double3
     
 }
 
+
+bool isOutputEncryptedFromPooling(int val, int kernel_size, int enc_start, int enc_end) {
+    int end_val = val + kernel_size - 1;
+    
+    return !(end_val < enc_start || val > enc_end);
+}
 
 std::vector<double> sumAdjacentPairs(std::vector<double>& input) {
     std::vector<double> result;
@@ -425,42 +431,34 @@ std::vector<double> sumAdjacentPairs(std::vector<double>& input) {
 
 
 void golden_AvgPooling(types::double3d& x_pts, int kernel_size, int stride){
-        types::double3d y_pts_temp;
-        int output_c = x_pts.size();
-        int output_h = (x_pts[0].size() + 2 * 0 - kernel_size) / stride + 1;
-        int output_w = (x_pts[0][0].size() + 2 * 0 - kernel_size) / stride + 1;
+    types::double3d y_pts_temp;
+    int channels = x_pts.size();
+    int in_h = x_pts[0].size();
+    int in_w = x_pts[0][0].size();
 
-        y_pts_temp.resize(output_c);
-        for (int c = 0; c < output_c; c++){
-            y_pts_temp[c].resize(output_h);
-            for (int oh = 0; oh < output_h; oh++){
-                y_pts_temp[c][oh].resize(output_w);
-                // check if the output involves encrypted data
-                for (int ow = 0; ow < output_w; ow++){
-                    double sum = 0;
-                    for (int kh = 0; kh < kernel_size; kh++){
-                        for (int kw = 0; kw < kernel_size; kw++){
-                            sum += x_pts[c][oh*stride + kh][ow*stride + kw];
-                        }
+
+    int out_h = (in_h - kernel_size) / stride + 1;
+    int out_w = (in_w - kernel_size) / stride + 1;
+
+    types::double3d output(channels, std::vector<std::vector<double>>(out_h, std::vector<double>(out_w, 0.0)));
+
+    for (int c = 0; c < channels; ++c) {
+        for (int oh = 0; oh < out_h; ++oh) {
+            for (int ow = 0; ow < out_w; ++ow) {
+                double sum = 0.0;
+                for (int kh = 0; kh < kernel_size; ++kh) {
+                    for (int kw = 0; kw < kernel_size; ++kw) {
+                        int ih = oh * stride + kh;
+                        int iw = ow * stride + kw;
+                        sum += x_pts[c][ih][iw];
                     }
-                    sum /= kernel_size * kernel_size;
-                    y_pts_temp[c][oh][ow] = sum;
                 }
+                output[c][oh][ow] = sum / (kernel_size * kernel_size);
             }
         }
+    }
 
-        x_pts.clear();
-        x_pts.resize(output_c);
-        for (int  c = 0; c < output_c; c++){
-            x_pts[c].resize(output_h);
-            for (int oh = 0; oh < output_h; oh++){
-                x_pts[c][oh].resize(output_w);
-                for (int ow = 0; ow < output_w; ow++){
-                    x_pts[c][oh][ow] = y_pts_temp[c][oh][ow];
-                }
-            }
-        }
-
+    x_pts = output; // Overwrite input
         
 }
     

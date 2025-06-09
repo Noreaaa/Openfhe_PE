@@ -4,6 +4,7 @@ using std::size_t;
 using namespace lbcrypto;
 
 CryptoContext<DCRTPoly> CRYPTOCONTEXT;
+std::shared_ptr<lbcrypto::BinFHEContext> CCLWE;
 KeyPair<lbcrypto::DCRTPoly> KEYPAIR;
 int CURRENT_HEIGHT;
 int CURRENT_WIDTH;

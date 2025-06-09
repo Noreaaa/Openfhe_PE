@@ -69,6 +69,7 @@ class AvgPooling_P : public Layer {
         uint32_t batch_size_;
 };
 
+bool isOutputEncryptedFromPooling(int val, int kernel_size, int enc_start, int enc_end);
 
 void golden_AvgPooling(types::double3d& x_pts, int kernel_size, int stride);
 

@@ -19,6 +19,7 @@
 using namespace lbcrypto;
 using std::vector;
 CCParams<CryptoContextCKKSRNS> parameters; 
+SchSwchParams params;
 
 std::string data_path = "../python_model/saved_models/parameters/";
 std::string cifar_image_path = "../datasets/cifar-10/test_batch.bin";
@@ -69,11 +70,11 @@ void SetParam(uint32_t RingDim){
 #else
     // All modes are supported for 64-bit CKKS bootstrapping.
     ScalingTechnique rescaleTech = FLEXIBLEAUTO;
-    usint dcrtBits               = 59;
+    usint scaleModSize               = 50;
     usint firstMod               = 60;
 #endif
 
-    parameters.SetScalingModSize(dcrtBits);
+    parameters.SetScalingModSize(scaleModSize);
     parameters.SetScalingTechnique(rescaleTech);
     parameters.SetFirstModSize(firstMod);
 
@@ -84,7 +85,7 @@ void SetParam(uint32_t RingDim){
 	* We must choose values smaller than ceil(log2(slots)). A level budget of {4, 4} is good for higher ring
     * dimensions (65536 and higher).
     */
-    std::vector<uint32_t> levelBudget = {4, 4};
+    std::vector<uint32_t> levelBudget = {3, 3};
 
     /* We give the user the option of configuring values for an optimization algorithm in bootstrapping.
     * Here, we specify the giant step for the baby-step-giant-step algorithm in linear transforms
@@ -105,6 +106,18 @@ void SetParam(uint32_t RingDim){
     usint depth = levelsAvailableAfterBootstrap + FHECKKSRNS::GetBootstrapDepth(levelBudget, secretKeyDist);
     std::cout << "depth: " << depth << std::endl;
     parameters.SetMultiplicativeDepth(depth);
+}
+
+
+void SetParam_TFHE(uint32_t RingDim){
+
+    uint32_t logQ_ccLWE = 25; 
+    params.SetSecurityLevelCKKS(HEStd_NotSet);
+    params.SetSecurityLevelFHEW(TOY);
+    params.SetNumSlotsCKKS(RingDim / 2);
+    params.SetNumValues(RingDim / 2);
+    params.SetCtxtModSizeFHEWLargePrec(logQ_ccLWE);
+    
 }
 
 void test_ablation(){
@@ -172,6 +185,7 @@ int main(int argc, char *argv[]) {
     uint32_t numSlots = ringDim / 2;
     int depth = 10;
 
+    // set cryptocontext for CKKS
     CryptoContext<DCRTPoly> cryptoContext = GenCryptoContext(parameters);
 
     // Enable features that you wish to use. Note, we must enable FHE to use bootstrapping.
@@ -180,6 +194,7 @@ int main(int argc, char *argv[]) {
     cryptoContext->Enable(LEVELEDSHE);
     cryptoContext->Enable(ADVANCEDSHE);
     cryptoContext->Enable(FHE);
+    cryptoContext->Enable(SCHEMESWITCH);
     
 
     ringDim = cryptoContext->GetRingDimension();
@@ -192,6 +207,27 @@ int main(int argc, char *argv[]) {
     cryptoContext->EvalSumKeyGen(keyPair.secretKey);
     // Generate bootstrapping keys.
     cryptoContext->EvalBootstrapKeyGen(keyPair.secretKey, numSlots);
+
+    // set cryptocontext for FHEW
+        SetParam_TFHE(ringDim);
+        auto privateKeyFHEW = cryptoContext->EvalSchemeSwitchingSetup(params);
+        auto ccLWE          = cryptoContext->GetBinCCForSchemeSwitch();
+        CCLWE = cryptoContext->GetBinCCForSchemeSwitch();
+
+        ccLWE->BTKeyGen(privateKeyFHEW);
+        cryptoContext->EvalSchemeSwitchingKeyGen(keyPair, privateKeyFHEW);
+        uint32_t logQ_ccLWE = 25;
+        std::cout << "FHEW scheme is using lattice parameter " << ccLWE->GetParams()->GetLWEParams()->Getn();
+        std::cout << ", logQ " << logQ_ccLWE;
+        std::cout << ", and modulus q " << ccLWE->GetParams()->GetLWEParams()->Getq() << std::endl << std::endl;
+
+
+        auto pLWE1           = ccLWE->GetMaxPlaintextSpace().ConvertToInt();  // Small precision
+        auto modulus_LWE     = 1 << logQ_ccLWE;
+        auto beta            = ccLWE->GetBeta().ConvertToInt();
+        auto pLWE2           = modulus_LWE / (2 * beta);  // Large precision
+        double scaleSignFHEW = 1.0;
+        cryptoContext->EvalCompareSwitchPrecompute(pLWE2, scaleSignFHEW);
     
     std::vector<int32_t> rotate_index;
 
@@ -202,7 +238,7 @@ int main(int argc, char *argv[]) {
         rotate_index.push_back(i);
     }
     cryptoContext->EvalRotateKeyGen(keyPair.secretKey, rotate_index);
-    
+
 
     // create the test filter
     int filter_height = 3;
@@ -236,7 +272,6 @@ int main(int argc, char *argv[]) {
     std::vector<double> beta_1;
     std::vector<double> mean_1;
     std::vector<double> var_1;
-    std::vector<double> epsilon_1(32, 1e-5);
     std::vector<double> gamma_2;
     std::vector<double> beta_2;
     std::vector<double> mean_2;
@@ -249,6 +284,7 @@ int main(int argc, char *argv[]) {
     types::double2d linear_weight_2;
     std::vector<double> linear_bias_1;  
     std::vector<double> linear_bias_2;
+    double eps = 1e-5;
 
 
     types::double4d filter_4d_1 = LoadConv2dWeight(data_path + "conv1.0.weight.npy");
@@ -282,36 +318,44 @@ int main(int argc, char *argv[]) {
 
     
     //model.add_layer(std::make_shared<Conv2d_P>(CONV_2D, "conv1", filter_3d_1, bias_1, 1, 1, numSlots, CONV_2D));
-    model.add_layer(std::make_shared<Conv2dBN_P>(CONV_2D, "conv1_bn", filter_4d_1, 1, 1, numSlots, gamma_1, beta_1, mean_1, var_1, epsilon_1, bias_1, AVG_POOLING));
-    model.add_layer(std::make_shared<Square>(SQUARE_ACTIVATION, std::string("square1")));
+    model.add_layer(std::make_shared<Conv2dBN_P>(CONV_2D, "conv1_bn1", filter_4d_1, 2, 1, numSlots, gamma_1, beta_1, mean_1, var_1, eps, bias_1, AVG_POOLING));
+    //model.add_layer(std::make_shared<Square>(SQUARE_ACTIVATION, std::string("square1")));
+    model.add_layer(std::make_shared<Relu_ss>(RELU_SS_ACTIVATION, std::string("relu1"), privateKeyFHEW));
     model.add_layer(std::make_shared<AvgPooling_P>(AVG_POOLING, std::string("avgpool1"), 2, 2, 0, numSlots));
+
     //model.add_layer(std::make_shared<Bootstrap_P>(BOOTSTRAP, std::string("bootstrap1")));
+
     //model.add_layer(std::make_shared<Conv2d_P>(CONV_2D, "conv2", filter_3d_2, bias_2, 1, 1, numSlots, AVG_POOLING));
-    model.add_layer(std::make_shared<Conv2dBN_P>(CONV_2D, "conv2_bn", filter_4d_2, 1, 1, numSlots, gamma_2, beta_2, mean_2, var_2, epsilon_1, bias_2, AVG_POOLING));
-    model.add_layer(std::make_shared<Square>(SQUARE_ACTIVATION, std::string("square2")));
-    model.add_layer(std::make_shared<AvgPooling_P>(AVG_POOLING, std::string("avgpool2"), 2, 2, 0, numSlots));
+    //model.add_layer(std::make_shared<Conv2dBN_P>(CONV_2D, "conv2_bn2", filter_4d_2, 1, 1, numSlots, gamma_2, beta_2, mean_2, var_2, eps, bias_2, AVG_POOLING));
+    //model.add_layer(std::make_shared<Square>(SQUARE_ACTIVATION, std::string("square2")));
+    //model.add_layer(std::make_shared<AvgPooling_P>(AVG_POOLING, std::string("avgpool2"), 2, 2, 0, numSlots));
+    //model.add_layer(std::make_shared<Bootstrap_P>(BOOTSTRAP, std::string("bootstrap2")));
 
     //model.add_layer(std::make_shared<Conv2d_P>(CONV_2D, "conv3", filter_3d_3, bias_3, 1, 1, numSlots, AVG_POOLING));
-    model.add_layer(std::make_shared<Conv2dBN_P>(CONV_2D, "conv2_bn", filter_4d_3, 1, 1, numSlots, gamma_3, beta_3, mean_3, var_3, epsilon_1, bias_3, AVG_POOLING));
-    model.add_layer(std::make_shared<Square>(SQUARE_ACTIVATION, std::string("square3")));
-    model.add_layer(std::make_shared<AvgPooling_P>(AVG_POOLING, std::string("avgpool3"), 2, 2, 0, numSlots));
+    //model.add_layer(std::make_shared<Conv2dBN_P>(CONV_2D, "conv2_bn3", filter_4d_3, 1, 1, numSlots, gamma_3, beta_3, mean_3, var_3, eps, bias_3, AVG_POOLING));
+    //model.add_layer(std::make_shared<Square>(SQUARE_ACTIVATION, std::string("square3")));
+    //model.add_layer(std::make_shared<AvgPooling_P>(AVG_POOLING, std::string("avgpool3"), 2, 2, 0, numSlots));
+    //model.add_layer(std::make_shared<Bootstrap_P>(BOOTSTRAP, std::string("bootstrap3")));
 
-    model.add_layer(std::make_shared<Linear_P>(LINEAR, "linear1", linear_weight_1, linear_bias_1, numSlots));
-    model.add_layer(std::make_shared<Linear_P>(LINEAR, "linear2", linear_weight_2, linear_bias_2, numSlots));
+    //model.add_layer(std::make_shared<Linear_P>(LINEAR, "linear1", linear_weight_1, linear_bias_1, numSlots));
+    //model.add_layer(std::make_shared<Linear_P>(LINEAR, "linear2", linear_weight_2, linear_bias_2, numSlots));
 
 
 
     types::double3d image_3d(3, types::double2d(image_size, 
         std::vector<double>(image_size, 0)));
-    types::double3d golden_output(3, types::double2d(image_size, 
+    types::double3d verification_3d(3, types::double2d(image_size, 
         std::vector<double>(image_size, 0)));
     int label = 0;
     long long total_time = 0;
     int correct_count = 0; 
     CRYPTOCONTEXT = cryptoContext;
+    
     for (int i = 0; i < test_nums; i++){
         LoadImageCifar(cifar_image_path, image_3d, label, i);
-        LoadImageCifar(cifar_image_path, golden_output, label, i);
+        NormalizeImage(image_3d);
+        LoadImageCifar(cifar_image_path, verification_3d, label, i);
+        NormalizeImage(verification_3d);
         Encrypt_MCSR_P(image_3d, numSlots, depth, cryptoContext, height_start, height_end, width_start, width_end, keyPair, x_ctxt_2d);
 
         KEYPAIR = keyPair;
@@ -324,42 +368,55 @@ int main(int argc, char *argv[]) {
 
 
         auto start = std::chrono::high_resolution_clock::now();
-        //std::cout << "check level at start: " << x_ctxt_2d[0][0]->GetLevel() << std::endl;
+
         int predict_label = model.predict_P(x_ctxt_2d, image_3d);
         auto end = std::chrono::high_resolution_clock::now();
         std::cout << "prediction time: " << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << "ms" << std::endl;
         total_time += std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
         //std::cout << "true result: " << label << std::endl;
 
-        //if (predict_label == label){
-        //    correct_count++;
-        //}
-
-        //GoldenConv2d(golden_output, filter_4d_1, bias_1, 1, 1);
-        //GoldenBN(golden_output, gamma_1, beta_1, mean_1, var_1, epsilon_1);
-        //golden_Square(golden_output);
-        //golden_AvgPooling(golden_output, 2, 2);
-        //GoldenConv2d(golden_output, filter_4d_2, bias_2, 1, 1);
-        //GoldenBN(golden_output, gamma_2, beta_2, mean_2, var_2, epsilon_1);
-        //golden_Square(golden_output);
-        //golden_AvgPooling(golden_output, 2, 2);
-        //GoldenConv2d(golden_output, filter_4d_3, bias_2, 1, 1);
-        //GoldenBN(golden_output, gamma_3, beta_3, mean_3, var_3, epsilon_1);
-        //golden_Square(golden_output);
-        //golden_AvgPooling(golden_output, 2, 2);
+        
+        #ifdef _OPENMP
+        #pragma omp critical
+        #endif
+        {
+        double3d result_1 = GoldenConv2d(verification_3d, filter_4d_1, bias_1, 2, 1);
+        GoldenBN(result_1, gamma_1, beta_1, mean_1, var_1, eps);
+        golden_Relu(result_1);
+        golden_AvgPooling(result_1, 2, 2);
+        //double3d result_2 = GoldenConv2d(result_1, filter_4d_2, bias_2, 1, 1);
+        //GoldenBN(result_2, gamma_2, beta_2, mean_2, var_2, eps);
+        //golden_Square(result_2);
+        //golden_AvgPooling(result_2, 2, 2);
+        //double3d result_3 = GoldenConv2d(result_2, filter_4d_3, bias_3, 1, 1);
+        //GoldenBN(result_3, gamma_3, beta_3, mean_3, var_3, eps);
+        //golden_Square(result_3);
+        //golden_AvgPooling(result_3, 2, 2);
         //std::vector<double> golden_output_1d;
-        //GoldenLinear_3d_input(golden_output, linear_weight_1, linear_bias_1, golden_output_1d);
+        //GoldenLinear_3d_input(result_3, linear_weight_1, linear_bias_1, golden_output_1d);
         //GoldenLinear(golden_output_1d, linear_weight_2, linear_bias_2);
 
+        print_3d(result_1);
+        double max = -1000;
+        int golden_label = -1;
         //for (int i = 0; i < static_cast<int>(golden_output_1d.size()); i++){
         //    std::cout << "golden_output_1d[" << i << "]: " << golden_output_1d[i] << std::endl;
+        //    if(golden_output_1d[i] > max){
+        //        max = golden_output_1d[i];
+        //        golden_label = i;
+        //    }
         //}
+        if(label == predict_label){
+            correct_count++;
+        }
+        std::cout << "predicted label: " << predict_label << ", true label: " << label << ", golden label:" << golden_label << std::endl;
+        }
 
     }
 
-    //std::cout << "average predicted time: " << total_time/test_nums << "ms" << std::endl;
-    //double accuracy = (double)correct_count / (double)test_nums;
-    //std::cout << "accuracy: " << accuracy * 100 << "%" << std::endl;
+    std::cout << "average predicted time: " << total_time/test_nums << "ms" << std::endl;
+    double accuracy = (double)correct_count / (double)test_nums;
+    std::cout << "accuracy: " << accuracy * 100 << "%" << std::endl;
 
 
 

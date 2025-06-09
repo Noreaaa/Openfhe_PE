@@ -72,7 +72,7 @@
                 std::vector<double> & beta,
                 std::vector<double> & mean,
                 std::vector<double> & var,
-                std::vector<double> & epsilon,
+                double epsilon,
                 std::vector<double> & bias,
                 PLayerType next_pool_layer_type
             );
@@ -92,17 +92,17 @@
             std::vector<double> beta_;
             std::vector<double> mean_;
             std::vector<double> var_;
-            std::vector<double> epsilon_;
+            double epsilon_;
             std::vector<double> bias_;
             PLayerType next_pool_layer_type_;
     };
     
 
 
-    void GoldenConv2d(double3d& input, types::double4d& filters, vector<double> bias, int stride, int padding);
+    double3d GoldenConv2d(double3d input, types::double4d filters, vector<double> bias, int stride, int padding);
 
     void GoldenBN(double3d& input, vector<double>& gamma, vector<double> beta, vector<double> running_mean, vector<double> running_var,
-        vector<double> epsilon);
+        double epsilon);
     
     bool isEncrypted_h(int val, int filter_size, int padding, int start, int end);
 

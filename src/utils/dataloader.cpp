@@ -143,3 +143,13 @@ void LoadImageCifar(const std::string& filename, types::double3d& image_3d, int&
     }
 
 }
+
+void NormalizeImage(types::double3d& image_3d) {
+    for (int ch = 0; ch < CHANNELS; ++ch) {
+        for (int row = 0; row < IMAG_SIZE; ++row) {
+            for (int col = 0; col < IMAG_SIZE; ++col) {
+                image_3d[ch][row][col] = (image_3d[ch][row][col] - 0.5) * 2.0; // Normalize to [-1, 1]
+            }
+        }
+    }
+}

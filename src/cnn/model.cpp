@@ -57,6 +57,7 @@ int Network::predict_P(types::vector2d<Ciphertext<DCRTPoly>> x_cts, types::doubl
 		  case SQUARE_ACTIVATION:
 		  case AVG_POOLING:
 		  case BOOTSTRAP:
+		  case RELU_SS_ACTIVATION:
 	
 			layer->forward(x_cts, x_pts, y_cts, y_pts);
 	
@@ -72,7 +73,7 @@ int Network::predict_P(types::vector2d<Ciphertext<DCRTPoly>> x_cts, types::doubl
 		}
 	}
 
-	//#define DEBUG
+	#define DEBUG
 	#ifdef DEBUG
 	std::cout << "check cts:" << std::endl;
     for (int i = 0; i < static_cast<int>(y_cts.size()); i++){
@@ -83,7 +84,7 @@ int Network::predict_P(types::vector2d<Ciphertext<DCRTPoly>> x_cts, types::doubl
             CRYPTOCONTEXT->Decrypt(KEYPAIR.secretKey, y_cts[i][j], &plain);
 			std::vector<double> vals = plain->GetRealPackedValue();
 			for (int k = 0; k < static_cast<int>(vals.size()); k++){
-				if (channel_cout % 4 == 0){
+				if (channel_cout % 16 == 0){
 					std::cout << "channel[" << channel_cout / 16 << "]: ";
 				}
 				if (std::abs(vals[k]) < 1e-8){
@@ -92,15 +93,17 @@ int Network::predict_P(types::vector2d<Ciphertext<DCRTPoly>> x_cts, types::doubl
 				else {
 					std::cout << vals[k] << " ";
 				}
-				if (channel_cout % 4 == 3){
+				if (channel_cout % 16 == 15){
 					std::cout << std::endl;
 				}
 				channel_cout++;
 			}
         }
     }
+	//std::cout << "check pts:" << std::endl;
+	//print_3d(x_pts);
 
-	return 0;
+	//return 0;
 	#endif
 
 	int max_type = -1;
@@ -116,5 +119,4 @@ int Network::predict_P(types::vector2d<Ciphertext<DCRTPoly>> x_cts, types::doubl
 
 	return max_type;
 	
-
 }
