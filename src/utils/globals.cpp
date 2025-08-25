@@ -3,6 +3,8 @@
 using std::size_t;
 using namespace lbcrypto;
 
+bool CONV_BIAS;
+bool RESCALE_REQUIRED;
 CryptoContext<DCRTPoly> CRYPTOCONTEXT;
 std::shared_ptr<lbcrypto::BinFHEContext> CCLWE;
 KeyPair<lbcrypto::DCRTPoly> KEYPAIR;

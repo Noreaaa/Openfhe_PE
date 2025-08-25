@@ -119,23 +119,24 @@ KeyPair<lbcrypto::DCRTPoly> Keypair, std::vector<Ciphertext<DCRTPoly>> &x_ctxt){
  * @brief Encrypt the input image
  * MCSC: multiple channel single row partially encrypted
  */
-void Encrypt_MCSR_P(types::double3d& image3d, uint32_t numSlots, int depth,
+void Encrypt_MCSR_P(types::double3d& image3d, uint32_t numSlots, int padding,
       CryptoContext<DCRTPoly> cryptocontext, int enc_height_start, int enc_height_end, int enc_width_start, int enc_width_end,
     KeyPair<lbcrypto::DCRTPoly> Keypair, types::vector2d<Ciphertext<DCRTPoly>> &x_ctxt){
         // ensure we can pack all channel in one ciphertext
-        int channel = image3d.size();
-        int width = image3d[0][0].size();
+        int channel = image3d.size();//3
+        //int height = image3d[0].size();
+        int width = image3d[0][0].size();//224
+        //int reserved_size = width + 2 * padding;//230
         x_ctxt.clear();
 
 
-        x_ctxt.resize(enc_height_end - enc_height_start + 1);
+        x_ctxt.resize(enc_height_end - enc_height_start + 1);//28
 
-    
-        for (int i = enc_height_start; i <= enc_height_end; i++){
+        for (int i = enc_height_start; i <= enc_height_end; i++){//0-27
             std::vector<double> x_vec;
             for (int c = 0; c < channel; c++){
-                for (int j = 0; j < width; j++){
-                    if(isInRange(j, enc_width_start, enc_width_end)){
+                for (int j = 0; j < width; j++){//224+2x3 = 230
+                    if(isInRange(j, enc_width_start, enc_width_end)){//first push padding then start input
                         x_vec.push_back(image3d[c][i][j]);
                         image3d[c][i][j] = 0;
                     }
@@ -144,10 +145,13 @@ void Encrypt_MCSR_P(types::double3d& image3d, uint32_t numSlots, int depth,
                     }
                 }
             }
-            for (int j = 0; j < static_cast<int>(x_vec.size()); j += numSlots){
-                int end = std::min(j + static_cast<int>(numSlots), static_cast<int>(x_vec.size()));
+            // 512
+            int channel_per_cts = numSlots / width; 
+            int values_per_cts = channel_per_cts * width;
+            for (int j = 0; j < static_cast<int>(x_vec.size()); j += values_per_cts){
+                int end = std::min(j + values_per_cts, static_cast<int>(x_vec.size()));
                 std::vector<double> one_batch(x_vec.begin() + j, x_vec.begin() + end);
-                Plaintext x_ptxt = cryptocontext->MakeCKKSPackedPlaintext(one_batch, 1, 0, nullptr, numSlots);
+                Plaintext x_ptxt = cryptocontext->MakeCKKSPackedPlaintext(one_batch);
                 std::cout << "Plaintext[" << i - enc_height_start << "]: " << x_ptxt << std::endl;
                 x_ctxt[i - enc_height_start].push_back(cryptocontext->Encrypt(Keypair.secretKey, x_ptxt));
             }
@@ -186,4 +190,25 @@ void Encrypt_MCSR_P(types::double3d& image3d, uint32_t numSlots, int depth,
             }
         }
 
+    }
+
+    void Gen_random_cts2d(uint32_t numSlots, uint32_t valid_size, int dim1, int dim2, 
+    CryptoContext<DCRTPoly> cryptocontext, KeyPair<lbcrypto::DCRTPoly> Keypair, 
+    types::vector2d<Ciphertext<DCRTPoly>> &x_ctxt){
+        std::random_device rd;
+        std::mt19937 gen(rd());  // Mersenne Twister
+        std::uniform_real_distribution<> dis(0.0, 1.0);
+        x_ctxt.clear();
+        x_ctxt.resize(dim1);
+        for (int i = 0; i < dim1; i++){
+            for (int j = 0; j < dim2; j++){
+                std::vector<double> random_data(numSlots, 0);
+                for (uint32_t k = 0; k < valid_size; k++){
+                    random_data[k] = dis(gen); // Generate random
+                }
+                Plaintext x_ptxt = cryptocontext->MakeCKKSPackedPlaintext(random_data);
+                std::cout << "Plaintext: " << x_ptxt << std::endl;
+                x_ctxt[i].push_back(cryptocontext->Encrypt(Keypair.secretKey, x_ptxt));
+            }
+        }
     }

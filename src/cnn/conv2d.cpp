@@ -204,14 +204,14 @@ void Conv2dBN_P::forward(types::vector2d<Ciphertext<DCRTPoly>>& x_cts, double3d&
     int padded_input_h = input_h + 2 * padding_;
     int input_w = x_pts[0][0].size();
     int padded_input_w = input_w + 2 * padding_;
-
-
     int out_channels = filters_.size();
     int in_channels = filters_[0].size();
     int filter_h = filters_[0][0].size();
     int filter_w = filters_[0][0][0].size();
     int output_h = (input_h + 2 * padding_ - filter_h) / stride_ + 1;
     int output_w = (input_w + 2 * padding_ - filter_w) / stride_ + 1;
+
+
     double3d f_rows;
     f_rows.resize(out_channels);
     y_cts.clear();
@@ -262,9 +262,7 @@ void Conv2dBN_P::forward(types::vector2d<Ciphertext<DCRTPoly>>& x_cts, double3d&
                             }
                         }
                     }
-                    y_pts[fn][oh][ow] = (sum + bias_[fn]) * bn_a[fn] + bn_b[fn];
-
-                                                                                                                                                                        
+                    y_pts[fn][oh][ow] = (sum + bias_[fn]) * bn_a[fn] + bn_b[fn];                                                                                           
                 }
             }
         }
@@ -275,10 +273,10 @@ void Conv2dBN_P::forward(types::vector2d<Ciphertext<DCRTPoly>>& x_cts, double3d&
     print_3d(y_pts);
     #endif
 
-
-
     // then we do re-encryption and addition
     // regarding encrypted rows
+    int in_channels_per_cts = batch_size_ / input_w;
+    int values_per_cts = in_channels_per_cts * input_w;
     for(int h = ENCRYPTED_HEIGHT_START; h <= ENCRYPTED_HEIGHT_END; h++){
         std::vector<double> to_add;
         for(int c = 0; c < input_n; c++){
@@ -286,15 +284,16 @@ void Conv2dBN_P::forward(types::vector2d<Ciphertext<DCRTPoly>>& x_cts, double3d&
                 to_add.push_back(x_pts[c][h][w]);
             }
         }
-        for (size_t i = 0; i < to_add.size(); i+= batch_size_){
-            size_t end = std::min(i + batch_size_, to_add.size());
+        for (size_t i = 0; i < to_add.size(); i+= values_per_cts){
+            size_t end = std::min(i + values_per_cts, to_add.size());
             std::vector<double> one_batch(to_add.begin() + i, to_add.begin() + end);
             auto to_add_plain = CRYPTOCONTEXT->MakeCKKSPackedPlaintext(one_batch);
-            x_cts[h - ENCRYPTED_HEIGHT_START][i/batch_size_] = CRYPTOCONTEXT->EvalAdd(x_cts[h - ENCRYPTED_HEIGHT_START][i/batch_size_], to_add_plain);
+            x_cts[h - ENCRYPTED_HEIGHT_START][i / values_per_cts] = CRYPTOCONTEXT->EvalAdd(x_cts[h - ENCRYPTED_HEIGHT_START][i / values_per_cts], to_add_plain);
         }
     }
     
     //#define ADD_CTS_CHECK
+    std::cout << "check point added cts" << std::endl; 
     #ifdef ADD_CTS_CHECK
     std::cout << "check added cts:" << std::endl;
     for (int i = 0; i < static_cast<int>(x_cts.size()); i++){
@@ -316,8 +315,9 @@ void Conv2dBN_P::forward(types::vector2d<Ciphertext<DCRTPoly>>& x_cts, double3d&
     }
     y_cts.resize(count);
     bool interleave = false; 
-    int output_2nd_dim = (out_channels * output_w + batch_size_ - 1)/batch_size_;
-    if (next_pool_layer_type_ == PLayerType::AVG_POOLING || next_pool_layer_type_ == PLayerType::SUM_POOLING){
+    int out_channels_per_cts =  batch_size_ / output_w; 
+    int output_2nd_dim = (out_channels + out_channels_per_cts - 1) / out_channels_per_cts;
+    if (next_pool_layer_type_ == PLayerType::AVG_POOLING){
         int even_count = 0;
         for (int i = 0; i < output_w * out_channels; i++){
             if (i % 2 == 0){
@@ -332,6 +332,7 @@ void Conv2dBN_P::forward(types::vector2d<Ciphertext<DCRTPoly>>& x_cts, double3d&
     
     int y_cts_idx = 0;
     for (int oh = 0; oh < output_h; oh++) {
+        // skip unencrypted rows 
         if (!isEncrypted_h(oh * stride_, filter_h, padding_, ENCRYPTED_HEIGHT_START, ENCRYPTED_HEIGHT_END)) {
             continue;
         }
@@ -356,11 +357,11 @@ void Conv2dBN_P::forward(types::vector2d<Ciphertext<DCRTPoly>>& x_cts, double3d&
                         continue;
                     }
     
-                    std::vector<double> temp_vec = {0};
-                    auto temp_plain = CRYPTOCONTEXT->MakeCKKSPackedPlaintext(temp_vec);
-                    auto temp_res = CRYPTOCONTEXT->Encrypt(KEYPAIR.secretKey, temp_plain);
+                    
                     double sum = 0;
-    
+                    vector<double> temp_vec = {0};
+                    auto temp_plain = CRYPTOCONTEXT->MakeCKKSPackedPlaintext(temp_vec);
+                    lbcrypto::Ciphertext<lbcrypto::DCRTPoly> temp_res = CRYPTOCONTEXT->Encrypt(KEYPAIR.publicKey, temp_plain);    
     
                     for (int fh = 0; fh < filter_h; fh++) {
                         if (!isInRange(oh * stride_ + fh, ENCRYPTED_HEIGHT_START + padding_, ENCRYPTED_HEIGHT_END + padding_)) {
@@ -376,8 +377,11 @@ void Conv2dBN_P::forward(types::vector2d<Ciphertext<DCRTPoly>>& x_cts, double3d&
                                 continue;
                             }
                             for (int cts_idx = 0; cts_idx < static_cast<int>(x_cts[encrypted_row_idx].size()); cts_idx++){
-                                auto filter_row_plain = GenPlainFilter(fn, fh, ow, input_w, cts_idx);
+                                auto filter_row_plain = Conv2dBN_P::GenPlainFilter(fn, fh, ow, input_w, cts_idx, in_channels_per_cts);
                                 auto temp_res_per_row = CRYPTOCONTEXT->EvalMult(x_cts[encrypted_row_idx][cts_idx], filter_row_plain);
+                                if(RESCALE_REQUIRED == true){
+                                    temp_res_per_row = CRYPTOCONTEXT->Rescale(temp_res_per_row);
+                                }
                                 temp_res = CRYPTOCONTEXT->EvalAdd(temp_res, temp_res_per_row);
                             }
                         }
@@ -385,15 +389,19 @@ void Conv2dBN_P::forward(types::vector2d<Ciphertext<DCRTPoly>>& x_cts, double3d&
                     std::vector<double> mask(batch_size_, 0);
                     std::vector<double> BN_b(batch_size_, 0);
                     std::vector<double> sum_vec(batch_size_, 0);
+
+                    int channel_idx = fn % out_channels_per_cts;
+
+                    // temporarily unchanged 
                     if (interleave){
                         // interleave the output for pooling layer
                         mask[((fn * output_w + ow)/2) % batch_size_] = bn_a[fn];
                         BN_b[((fn * output_w + ow)/2) % batch_size_] = bn_b[fn];
                         sum_vec[((fn * output_w + ow)/2) % batch_size_] = sum + bias_[fn];
                     }else{
-                        mask[(fn * output_w + ow) % batch_size_] = bn_a[fn];
-                        BN_b[(fn * output_w + ow) % batch_size_] = bn_b[fn];
-                        sum_vec[(fn * output_w + ow) % batch_size_] = sum + bias_[fn];
+                        mask[(channel_idx * output_w + ow) % batch_size_] = bn_a[fn];
+                        BN_b[(channel_idx * output_w + ow) % batch_size_] = bn_b[fn];
+                        sum_vec[(channel_idx * output_w + ow) % batch_size_] = sum + bias_[fn];
                     }
                     auto mask_plain = CRYPTOCONTEXT->MakeCKKSPackedPlaintext(mask);
                     auto bn_b_plain = CRYPTOCONTEXT->MakeCKKSPackedPlaintext(BN_b);
@@ -403,6 +411,9 @@ void Conv2dBN_P::forward(types::vector2d<Ciphertext<DCRTPoly>>& x_cts, double3d&
     
                     temp_res = CRYPTOCONTEXT->EvalAdd(temp_res, sum_plain);
                     temp_res = CRYPTOCONTEXT->EvalMult(temp_res, mask_plain);
+                    if (RESCALE_REQUIRED == true){
+                        temp_res = CRYPTOCONTEXT->Rescale(temp_res);
+                    }
                     temp_res = CRYPTOCONTEXT->EvalAdd(temp_res, bn_b_plain);
     
                     
@@ -414,7 +425,8 @@ void Conv2dBN_P::forward(types::vector2d<Ciphertext<DCRTPoly>>& x_cts, double3d&
                         local_y_vec_ct[target_idx].push_back(temp_res);
                     }
                     else {
-                        local_y_vec_ct[(fn * output_w + ow)/batch_size_].push_back(temp_res);
+                        int target_idx = fn / out_channels_per_cts;
+                        local_y_vec_ct[target_idx].push_back(temp_res);
                     }
                 }
 
@@ -498,7 +510,8 @@ void Conv2dBN_P::forward(types::vector2d<Ciphertext<DCRTPoly>>& x_cts, double3d&
     #endif
 }
 
-Plaintext Conv2dBN_P::GenPlainFilter(int out_channel, int height, int output_width_idx, int input_w, int cts_idx){
+Plaintext Conv2dBN_P::GenPlainFilter(int out_channel, int height, int output_width_idx, int input_w, int cts_idx, int out_channels_per_cts) {
+    //cts_idx == dim_2 of cts
 
     std::vector<double> filter_row; 
     int padded_input_w = input_w + 2 * padding_;
@@ -507,9 +520,9 @@ Plaintext Conv2dBN_P::GenPlainFilter(int out_channel, int height, int output_wid
 
     int filter_w = filters_[0][0][0].size();
     // assure the batch size is multiple of input width
-    assert(batch_size_ % input_w == 0);
-    int start_in_channels = cts_idx * batch_size_ / input_w;
-    int end_in_channels = (cts_idx + 1) * batch_size_ / input_w;
+    //assert(batch_size_ % input_w == 0);
+    int start_in_channels = out_channels_per_cts * cts_idx;
+    int end_in_channels = out_channels_per_cts * (cts_idx + 1);
 
     for (int i = start_in_channels; i < end_in_channels && i < in_channels; i++){
         vector<double> filter_row_per_channel;

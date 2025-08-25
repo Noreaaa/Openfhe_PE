@@ -1,0 +1,100 @@
+depth: 46
+CKKS scheme is using ring dimension 512
+
+FHEW scheme is using lattice parameter 32, logQ 25, and modulus q 4096
+
+create the model:
+Shape of input_3d: 3x224x224
+ResNet-18 model is being loaded...
+Loaded Conv2d weights from ../python_model/saved_models/ResNet-18/parameters/conv1_weight.npy
+Weight size: 64x3x7x7
+Loaded Bias from ../python_model/saved_models/ResNet-18/parameters/bn1_weight.npy
+Loaded Bias from ../python_model/saved_models/ResNet-18/parameters/bn1_bias.npy
+Loaded Bias from ../python_model/saved_models/ResNet-18/parameters/bn1_running_mean.npy
+Loaded Bias from ../python_model/saved_models/ResNet-18/parameters/bn1_running_var.npy
+Loaded Conv2d weights from ../python_model/saved_models/ResNet-18/parameters/maxpool_0_weight.npy
+Weight size: 64x64x3x3
+Loaded Bias from ../python_model/saved_models/ResNet-18/parameters/maxpool_1_weight.npy
+Loaded Bias from ../python_model/saved_models/ResNet-18/parameters/maxpool_1_bias.npy
+Loaded Bias from ../python_model/saved_models/ResNet-18/parameters/maxpool_1_running_mean.npy
+Loaded Bias from ../python_model/saved_models/ResNet-18/parameters/maxpool_1_running_var.npy
+Loaded Conv2d weights from ../python_model/saved_models/ResNet-18/parameters/layer1_0_conv1_weight.npy
+Weight size: 64x64x3x3
+Loaded Bias from ../python_model/saved_models/ResNet-18/parameters/layer1_0_bn1_weight.npy
+Loaded Bias from ../python_model/saved_models/ResNet-18/parameters/layer1_0_bn1_bias.npy
+Loaded Bias from ../python_model/saved_models/ResNet-18/parameters/layer1_0_bn1_running_mean.npy
+Loaded Bias from ../python_model/saved_models/ResNet-18/parameters/layer1_0_bn1_running_var.npy
+Loaded Conv2d weights from ../python_model/saved_models/ResNet-18/parameters/layer1_1_conv2_weight.npy
+Weight size: 64x64x3x3
+Loaded Bias from ../python_model/saved_models/ResNet-18/parameters/layer1_1_bn2_weight.npy
+Loaded Bias from ../python_model/saved_models/ResNet-18/parameters/layer1_1_bn2_bias.npy
+Loaded Bias from ../python_model/saved_models/ResNet-18/parameters/layer1_1_bn2_running_mean.npy
+Loaded Bias from ../python_model/saved_models/ResNet-18/parameters/layer1_1_bn2_running_var.npy
+Plaintext[0]: (0.604932, 0.502183, 0.433684, 0.38231, 0.330936,  ... ); Estimated precision: 51 bits
+
+Plaintext[0]: (-0.565126, -0.617647, -0.670168, -0.740196, -0.77521,  ... ); Estimated precision: 51 bits
+
+Plaintext[0]: (-1.22928, -1.299, -1.33386, -1.40357, -1.43843,  ... ); Estimated precision: 51 bits
+
+Plaintext[1]: (0.604932, 0.502183, 0.450809, 0.399435, 0.365185,  ... ); Estimated precision: 51 bits
+
+Plaintext[1]: (-0.565126, -0.60014, -0.652661, -0.740196, -0.77521,  ... ); Estimated precision: 51 bits
+
+Plaintext[1]: (-1.26414, -1.28157, -1.31643, -1.36871, -1.421,  ... ); Estimated precision: 51 bits
+
+Plaintext[2]: (0.553558, 0.519308, 0.467934, 0.41656, 0.399435,  ... ); Estimated precision: 51 bits
+
+Plaintext[2]: (-0.60014, -0.617647, -0.652661, -0.740196, -0.757703,  ... ); Estimated precision: 51 bits
+
+Plaintext[2]: (-1.299, -1.28157, -1.31643, -1.36871, -1.38614,  ... ); Estimated precision: 51 bits
+
+Plaintext[3]: (0.519308, 0.485059, 0.450809, 0.399435, 0.399435,  ... ); Estimated precision: 51 bits
+
+Plaintext[3]: (-0.635154, -0.652661, -0.687675, -0.740196, -0.740196,  ... ); Estimated precision: 51 bits
+
+Plaintext[3]: (-1.299, -1.299, -1.33386, -1.38614, -1.38614,  ... ); Estimated precision: 51 bits
+
+Plaintext[4]: (0.41656, 0.38231, 0.348061, 0.313811, 0.313811,  ... ); Estimated precision: 51 bits
+
+Plaintext[4]: (-0.740196, -0.77521, -0.792717, -0.810224, -0.792717,  ... ); Estimated precision: 51 bits
+
+Plaintext[4]: (-1.35129, -1.38614, -1.421, -1.43843, -1.43843,  ... ); Estimated precision: 51 bits
+
+conv_bn1 forward
+check point added cts
+after conv_bn1 forward
+ENCRYPTED_HEIGHT_START: 0
+ENCRYPTED_HEIGHT_END: 3
+ENCRYPTED_WIDTH_START: 0
+ENCRYPTED_WIDTH_END: 3
+relu1 forward
+finish unencrypted relu_ss
+conv_bn2 forward
+check point added cts
+after conv_bn2 forward
+ENCRYPTED_HEIGHT_START: 0
+ENCRYPTED_HEIGHT_END: 2
+ENCRYPTED_WIDTH_START: 0
+ENCRYPTED_WIDTH_END: 2
+relu2 forward
+finish unencrypted relu_ss
+conv_bn3 forward
+check point added cts
+after conv_bn3 forward
+ENCRYPTED_HEIGHT_START: 0
+ENCRYPTED_HEIGHT_END: 3
+ENCRYPTED_WIDTH_START: 0
+ENCRYPTED_WIDTH_END: 3
+relu3 forward
+finish unencrypted relu_ss
+conv_bn4 forward
+check point added cts
+after conv_bn4 forward
+ENCRYPTED_HEIGHT_START: 0
+ENCRYPTED_HEIGHT_END: 4
+ENCRYPTED_WIDTH_START: 0
+ENCRYPTED_WIDTH_END: 4
+relu4 forward
+finish unencrypted relu_ss
+predicted result: -1
+prediction time: 33461ms

@@ -31,3 +31,5 @@ void rotateVectorInplace(std::vector<double>& vec, int steps);
 bool isInRange(int value, int min_val, int max_val);
 
 bool intervalsOverlap(int a, int b, int c, int d); 
+
+void Gen_test_vector3d(types::double3d& data, int channel, int size_h, int size_w);

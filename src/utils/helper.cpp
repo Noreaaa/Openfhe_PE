@@ -257,3 +257,18 @@ bool isInRange(int value, int min_val, int max_val) {
 
 
 bool intervalsOverlap(int a, int b, int c, int d) {return !(b <= c || d < a);}
+
+
+void Gen_test_vector3d(types::double3d& data, int channel, int size_h, int size_w) {
+    data.clear();
+    data.resize(channel);
+    for (int i = 0; i < channel; i++) {
+        data[i].resize(size_h);
+        for (int j = 0; j < size_h; j++) {
+            data[i][j].resize(size_w);
+            for (int k = 0; k < size_w; k++) {
+                data[i][j][k] = static_cast<double>(rand()) / RAND_MAX;
+            }
+        }
+    }
+}

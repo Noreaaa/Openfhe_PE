@@ -1,2 +1,0 @@
-/usr/bin/ar qc libencryption.a CMakeFiles/encryption.dir/src/encryption/encryption.cpp.o
-/usr/bin/ranlib libencryption.a

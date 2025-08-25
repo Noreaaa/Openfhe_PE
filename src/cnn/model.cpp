@@ -58,6 +58,7 @@ int Network::predict_P(types::vector2d<Ciphertext<DCRTPoly>> x_cts, types::doubl
 		  case AVG_POOLING:
 		  case BOOTSTRAP:
 		  case RELU_SS_ACTIVATION:
+		  case RELU_APPX_ACTIVATION:
 	
 			layer->forward(x_cts, x_pts, y_cts, y_pts);
 	
@@ -73,7 +74,7 @@ int Network::predict_P(types::vector2d<Ciphertext<DCRTPoly>> x_cts, types::doubl
 		}
 	}
 
-	#define DEBUG
+	//#define DEBUG
 	#ifdef DEBUG
 	std::cout << "check cts:" << std::endl;
     for (int i = 0; i < static_cast<int>(y_cts.size()); i++){
@@ -84,8 +85,8 @@ int Network::predict_P(types::vector2d<Ciphertext<DCRTPoly>> x_cts, types::doubl
             CRYPTOCONTEXT->Decrypt(KEYPAIR.secretKey, y_cts[i][j], &plain);
 			std::vector<double> vals = plain->GetRealPackedValue();
 			for (int k = 0; k < static_cast<int>(vals.size()); k++){
-				if (channel_cout % 16 == 0){
-					std::cout << "channel[" << channel_cout / 16 << "]: ";
+				if (channel_cout % 8 == 0){
+					std::cout << "channel[" << channel_cout / 8 << "]: ";
 				}
 				if (std::abs(vals[k]) < 1e-8){
 					std::cout << 0 << " ";
@@ -93,7 +94,7 @@ int Network::predict_P(types::vector2d<Ciphertext<DCRTPoly>> x_cts, types::doubl
 				else {
 					std::cout << vals[k] << " ";
 				}
-				if (channel_cout % 16 == 15){
+				if (channel_cout % 8 == 7){
 					std::cout << std::endl;
 				}
 				channel_cout++;

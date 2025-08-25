@@ -17,6 +17,9 @@ void Bootstrap_P::forward(types::vector2d<Ciphertext<DCRTPoly>>& x_cts, double3d
     for (size_t i = 0; i < x_cts.size(); ++i) {
         y_cts[i].resize(x_cts[i].size());
     }
+    std::cout << "Actual ringDim = " << CRYPTOCONTEXT->GetRingDimension() << std::endl;
+    std::cout << "Actual slots = " << CRYPTOCONTEXT->GetEncodingParams()->GetBatchSize() << std::endl;
+
 
     size_t inner_dim = y_cts[0].size();
 
@@ -25,7 +28,7 @@ void Bootstrap_P::forward(types::vector2d<Ciphertext<DCRTPoly>>& x_cts, double3d
     #endif
     for (size_t i = 0; i < x_cts.size(); i++){
         for (size_t j = 0; j < inner_dim; j++){
-            y_cts[i][j] = CRYPTOCONTEXT->EvalBootstrap(x_cts[i][j]);
+            y_cts[i][j] = CRYPTOCONTEXT->EvalBootstrap(x_cts[i][j], 1, 0);
         }
     }
     #define DEBUG

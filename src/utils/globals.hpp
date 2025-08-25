@@ -5,6 +5,9 @@
 #include "openfhe.h"
 using namespace lbcrypto;
 using std::size_t;
+
+extern bool CONV_BIAS;
+extern bool RESCALE_REQUIRED;
 extern CryptoContext<DCRTPoly> CRYPTOCONTEXT;
 extern std::shared_ptr<lbcrypto::BinFHEContext> CCLWE;
 extern KeyPair<lbcrypto::DCRTPoly> KEYPAIR;

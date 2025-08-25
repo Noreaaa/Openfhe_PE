@@ -78,7 +78,7 @@
             );
             ~Conv2dBN_P();
 
-            Plaintext GenPlainFilter(int out_channel, int height, int output_width_idx, int input_w, int cts_idx);
+            Plaintext GenPlainFilter(int out_channel, int height, int output_width_idx, int input_w, int cts_idx, int channels_per_cts);
 
             void forward(types::vector2d<Ciphertext<DCRTPoly>>& x_cts, double3d& x_pts,
                 types::vector2d<Ciphertext<DCRTPoly>>& y_cts, double3d& y_pts) override;

@@ -2,6 +2,10 @@
 using std::cout;
 using std::endl;
 
+
+
+
+
 Square::Square(
     PLayerType layer_type,
     std::string layer_name
@@ -86,9 +90,11 @@ void golden_Square(
 Relu_ss::Relu_ss(
     PLayerType layer_type,
     std::string layer_name,
-    lbcrypto::LWEPrivateKey FHEWKey
+    lbcrypto::LWEPrivateKey FHEWKey,
+    uint32_t batch_size
 ) : Layer(layer_type, layer_name),
- FHEWKey_(FHEWKey) {
+ FHEWKey_(FHEWKey),
+ batch_size_(batch_size) {
     CONSUMED_LEVEL++;
 }
 
@@ -97,37 +103,50 @@ Relu_ss::~Relu_ss() {
 
 void Relu_ss::forward(types::vector2d<Ciphertext<DCRTPoly>>& x_cts, double3d& x_pts,
     types::vector2d<Ciphertext<DCRTPoly>>& y_cts, double3d& y_pts) {
+    
+    int input_w = x_pts[0][0].size();
     cout << layer_name_ << " forward" << endl;
 
-    y_pts.resize(x_pts.size());
+
+
+    y_cts.resize(x_cts.size());
+
     for (size_t i = 0; i < x_cts.size(); i++){
         y_cts[i].resize(x_cts[i].size());
     }
     
+    size_t dim_2 = x_cts[0].size();
     
+    y_pts.resize(x_pts.size());
     for (size_t i = 0; i < x_pts.size(); i++){
         y_pts[i].resize(x_pts[i].size());
         for (size_t j = 0; j < x_pts[i].size(); j++){
             y_pts[i][j].resize(x_pts[i][j].size());
             for (size_t k = 0; k < x_pts[i][j].size(); k++){
-                y_pts[i][j][k] = y_pts[i][j][k] >= 0 ? y_pts[i][j][k] : 0; // relu operation
+                y_pts[i][j][k] = x_pts[i][j][k] >= 0 ? x_pts[i][j][k] : 0;
             }
         }
     }
-    // evaluate with sign evaluation in FHEW 1 if negative, 0 if positive
+
+    std::cout << "finish unencrypted relu_ss" << std::endl;
+    //evaluate with sign evaluation in FHEW 1 if negative, 0 if positive
+    #ifdef _OPENMP
+    #pragma omp parallel for collapse(2)
+    #endif
     for (size_t i = 0; i < x_cts.size(); i++){
-        for (size_t j = 0; j < x_cts[i].size(); j++){
-            auto LWECiphertexts = CRYPTOCONTEXT -> EvalCKKStoFHEW(x_cts[i][j], 0);
-            std::vector<double> relu_signs;
-            for (size_t k = 0; k < LWECiphertexts.size(); k++){
-                LWEPlaintext plainLWE;
-                LWECiphertext LWESign = CCLWE->EvalSign(LWECiphertexts[k]);
-                CCLWE->Decrypt(FHEWKey_, LWESign, &plainLWE, 2);
-                //plaintext is int64_t, 1 if negative 0 if positive
-                if (plainLWE == 1)
-                    relu_signs.push_back(0);
-                else 
-                    relu_signs.push_back(1);
+        for (size_t j = 0; j < dim_2; j++){
+            auto amplified_cts = CRYPTOCONTEXT->EvalMult(x_cts[i][j], 1000);
+            auto LWECiphertexts = CRYPTOCONTEXT -> EvalCKKStoFHEW(amplified_cts, batch_size_);
+            std::vector<double> relu_signs(batch_size_, 0);
+            for (size_t k = 0; k + input_w < batch_size_; k += input_w){
+                for (int w = ENCRYPTED_WIDTH_START; w <= ENCRYPTED_WIDTH_END; w++){
+                    LWEPlaintext plainLWE;
+                    LWECiphertext LWESign = CCLWE->EvalSign(LWECiphertexts[k + w]);
+                    CCLWE->Decrypt(FHEWKey_, LWESign, &plainLWE, 2);
+                    if (plainLWE == 0){
+                        relu_signs[k + w] = 1; // positive
+                    }
+                }
             }
             y_cts[i][j] = CRYPTOCONTEXT->EvalMult(
                 x_cts[i][j], 
@@ -135,10 +154,56 @@ void Relu_ss::forward(types::vector2d<Ciphertext<DCRTPoly>>& x_cts, double3d& x_
             );
         }
     }
+    std::cout << "finished " << layer_name_ << " forward" << std::endl;
+    /*
+    #pragma omp parallel for collapse(2) schedule(dynamic)
+    for (size_t i = 0; i < x_cts.size(); i++) {
+        for (size_t j = 0; j < dim_2; j++) {
+            auto amplified_cts = CRYPTOCONTEXT->EvalMult(x_cts[i][j], 1000);
+            auto LWECiphertexts = CRYPTOCONTEXT->EvalCKKStoFHEW(amplified_cts, batch_size_);
+
+            // relu_signs 主数组，初始化为 0
+            std::vector<double> relu_signs(batch_size_, 0.0);
+
+            // ======================
+            // 并行化 k 循环
+            // ======================
+            #pragma omp parallel for schedule(static)
+            for (size_t k = 0; k < batch_size_; k += input_w) {
+                // 每个线程独立局部数组
+                std::vector<double> relu_signs_local(batch_size_, 0.0);
+
+                for (int w = ENCRYPTED_WIDTH_START; w <= ENCRYPTED_WIDTH_END; w++) {
+                    LWEPlaintext plainLWE;
+                    LWECiphertext LWESign = CCLWE->EvalSign(LWECiphertexts[k + w]);
+                    CCLWE->Decrypt(FHEWKey_, LWESign, &plainLWE, 2);
+
+                    if (plainLWE == 0) {
+                        relu_signs_local[k + w] = 1; // positive
+                    }
+                }
+
+                // 合并到全局 relu_signs
+                #pragma omp critical
+                {
+                    for (size_t idx = 0; idx < batch_size_; idx++) {
+                        if (relu_signs_local[idx] != 0.0)
+                            relu_signs[idx] = relu_signs_local[idx];
+                    }
+                }
+            }
+
+            // 用 relu_signs 生成结果
+            y_cts[i][j] = CRYPTOCONTEXT->EvalMult(
+                x_cts[i][j],
+                CRYPTOCONTEXT->MakeCKKSPackedPlaintext(relu_signs)
+            );
+        }
+    }
+    */
+
+
 }
-
-
-
 
 
 
@@ -151,4 +216,175 @@ void golden_Relu(types::double3d& x_pts){
         for (int h = 0; h < height; ++h)
             for (int w = 0; w < width; ++w)
                 if (x_pts[c][h][w] < 0) x_pts[c][h][w] = 0; 
+}
+
+Relu_appx::Relu_appx(
+    PLayerType layer_type,
+    std::string layer_name
+) : Layer(layer_type, layer_name) {
+    CONSUMED_LEVEL++;
+}
+
+Relu_appx::~Relu_appx() {
+}
+
+// f1 = 10.8541842577442 x - 62.2833925211098 x^3 + 11
+
+lbcrypto::Ciphertext<DCRTPoly> EvalF1(lbcrypto::Ciphertext<DCRTPoly>& x) {
+    auto x2 = CRYPTOCONTEXT->EvalMult(x, x);  // x^2
+    if (RESCALE_REQUIRED)
+        x2 = CRYPTOCONTEXT->Rescale(x2);
+    auto term = CRYPTOCONTEXT->EvalMult(x2, -62.2834);
+    if (RESCALE_REQUIRED)
+        term = CRYPTOCONTEXT->Rescale(term);
+    term = CRYPTOCONTEXT->EvalAdd(term, 114.3692);
+    term = CRYPTOCONTEXT->EvalMult(term, x2);  // x^4
+    if (RESCALE_REQUIRED)
+        term = CRYPTOCONTEXT->Rescale(term);
+    term = CRYPTOCONTEXT->EvalAdd(term, -62.8023);
+    term = CRYPTOCONTEXT->EvalMult(term, x2);  // x^6
+    if (RESCALE_REQUIRED)
+        term = CRYPTOCONTEXT->Rescale(term);
+    term = CRYPTOCONTEXT->EvalAdd(term, 10.8542);
+    auto result = CRYPTOCONTEXT->EvalMult(x, term);  // x *
+    if (RESCALE_REQUIRED)
+        result = CRYPTOCONTEXT->Rescale(result);
+    return result;
+}
+
+lbcrypto::Ciphertext<DCRTPoly> EvalF2(lbcrypto::Ciphertext<DCRTPoly>& x) {
+    auto x2 = CRYPTOCONTEXT->EvalMult(x, x);  // x^2
+    if (RESCALE_REQUIRED)
+        x2 = CRYPTOCONTEXT->Rescale(x2);
+    auto term = CRYPTOCONTEXT->EvalMult(x2, -5.8499);
+    if (RESCALE_REQUIRED)
+        term = CRYPTOCONTEXT->Rescale(term);
+    term = CRYPTOCONTEXT->EvalAdd(term, 2.9438);
+    term = CRYPTOCONTEXT->EvalMult(term, x2);
+    if (RESCALE_REQUIRED)
+        term = CRYPTOCONTEXT->Rescale(term);
+    term = CRYPTOCONTEXT->EvalAdd(term, -0.4545);
+    term = CRYPTOCONTEXT->EvalMult(term, x2);
+    if (RESCALE_REQUIRED)
+        term = CRYPTOCONTEXT->Rescale(term);
+    term = CRYPTOCONTEXT->EvalAdd(term, 4.1398);
+    auto result = CRYPTOCONTEXT->EvalMult(x, term);
+    if (RESCALE_REQUIRED)
+        result = CRYPTOCONTEXT->Rescale(result);
+    return result;
+}
+
+
+lbcrypto::Ciphertext<DCRTPoly> EvalF3(lbcrypto::Ciphertext<DCRTPoly>& x) {
+    auto x2 = CRYPTOCONTEXT->EvalMult(x, x);  // x^2
+    if (RESCALE_REQUIRED)
+        x2 = CRYPTOCONTEXT->Rescale(x2);
+    auto term = CRYPTOCONTEXT->EvalMult(x2, 0.2464);
+    if (RESCALE_REQUIRED)
+        term = CRYPTOCONTEXT->Rescale(term);
+    term = CRYPTOCONTEXT->EvalAdd(term, -2.0430);
+    term = CRYPTOCONTEXT->EvalMult(term, x2);
+    if (RESCALE_REQUIRED)
+        term = CRYPTOCONTEXT->Rescale(term);
+    term = CRYPTOCONTEXT->EvalAdd(term, 6.9417);
+    term = CRYPTOCONTEXT->EvalMult(term, x2);
+    if (RESCALE_REQUIRED)
+        term = CRYPTOCONTEXT->Rescale(term);
+    term = CRYPTOCONTEXT->EvalAdd(term, -12.4917);
+    term = CRYPTOCONTEXT->EvalMult(term, x2);
+    if (RESCALE_REQUIRED)
+        term = CRYPTOCONTEXT->Rescale(term);
+    term = CRYPTOCONTEXT->EvalAdd(term, 12.8908);
+    term = CRYPTOCONTEXT->EvalMult(term, x2);
+    if (RESCALE_REQUIRED)
+        term = CRYPTOCONTEXT->Rescale(term);
+    term = CRYPTOCONTEXT->EvalAdd(term, -7.8423);
+    term = CRYPTOCONTEXT->EvalMult(term, x2);
+    if (RESCALE_REQUIRED)
+        term = CRYPTOCONTEXT->Rescale(term);
+    term = CRYPTOCONTEXT->EvalAdd(term, 3.2996);
+    auto result = CRYPTOCONTEXT->EvalMult(x, term);
+    if (RESCALE_REQUIRED)
+        result = CRYPTOCONTEXT->Rescale(result);
+    return result;
+}
+
+
+void Relu_appx::forward(types::vector2d<Ciphertext<DCRTPoly>>& x_cts, double3d& x_pts,
+            types::vector2d<Ciphertext<DCRTPoly>>& y_cts, double3d& y_pts){
+    cout << layer_name_ << " forward" << endl;
+    y_cts.resize(x_cts.size());
+    y_pts.resize(x_pts.size());
+    for (size_t i = 0; i < x_cts.size(); i++){
+        y_cts[i].resize(x_cts[i].size());
+        for (size_t j = 0; j < x_cts[i].size(); j++){
+            y_pts[i].resize(x_pts[i].size());
+        }
+    }
+    size_t dim_2 = x_cts[0].size();
+
+    for (size_t i = 0; i < x_pts.size(); i++){
+        y_pts[i].resize(x_pts[i].size());
+        for (size_t j = 0; j < x_pts[i].size(); j++){
+            y_pts[i][j].resize(x_pts[i][j].size());
+            for (size_t k = 0; k < x_pts[i][j].size(); k++){
+                y_pts[i][j][k] = y_pts[i][j][k] >= 0 ? y_pts[i][j][k] : 0; // relu operation
+            }
+        }
+    }
+
+    #ifdef _OPENMP
+    #pragma omp parallel for collapse(2)
+    #endif
+    for (size_t i = 0; i < x_cts.size(); i++){
+        for (size_t j = 0; j < dim_2; j++){
+            auto f1x = EvalF1(x_cts[i][j]);
+            f1x = CRYPTOCONTEXT->EvalBootstrap(f1x, 1, 50);
+            auto f2x = EvalF2(f1x);
+            f2x = CRYPTOCONTEXT->EvalBootstrap(f2x, 1, 50);
+            auto f3x = EvalF3(f2x);
+            f3x = CRYPTOCONTEXT->EvalBootstrap(f3x, 1, 50);
+            auto x_sign = CRYPTOCONTEXT->EvalMult(x_cts[i][j],f3x);
+            if (RESCALE_REQUIRED)
+                x_sign = CRYPTOCONTEXT->Rescale(x_sign);
+            auto relu = CRYPTOCONTEXT->EvalAdd(x_cts[i][j], x_sign);
+            y_cts[i][j] = CRYPTOCONTEXT->EvalMult(relu, 0.5);
+            //y_cts[i][j] = CRYPTOCONTEXT->EvalBootstrap(relu, 1, 0);
+            if (RESCALE_REQUIRED)
+                y_cts[i][j] = CRYPTOCONTEXT->Rescale(y_cts[i][j]);
+        }
+    }
+}
+
+void test_relu_appx(lbcrypto::Ciphertext<DCRTPoly>& x) {
+    auto f1x = EvalF1(x);
+    f1x = CRYPTOCONTEXT->EvalBootstrap(f1x, 1, 0);
+    //check intermediate result
+    Plaintext res1;
+    CRYPTOCONTEXT->Decrypt(KEYPAIR.secretKey, f1x, &res1);
+    cout << "f1x result: " << res1 << endl;
+    auto f2x = EvalF2(f1x);
+    f2x = CRYPTOCONTEXT->EvalBootstrap(f2x, 1, 0);
+    //check intermediate result
+    Plaintext res2;
+    CRYPTOCONTEXT->Decrypt(KEYPAIR.secretKey, f2x, &res2);
+    cout << "f2x result: " << res2 << endl;
+    auto f3x = EvalF3(f2x);
+    auto x_sign = CRYPTOCONTEXT->EvalMult(x, f3x);
+    //check intermediate result
+    Plaintext res3;
+    CRYPTOCONTEXT->Decrypt(KEYPAIR.secretKey, x_sign, &res3);
+    cout << "x_sign result: " << res3 << endl;
+    if (RESCALE_REQUIRED)
+        x_sign = CRYPTOCONTEXT->Rescale(x_sign);
+    auto relu = CRYPTOCONTEXT->EvalAdd(x, x_sign);
+    auto result = CRYPTOCONTEXT->EvalMult(relu, 0.5);
+    if (RESCALE_REQUIRED)
+        result = CRYPTOCONTEXT->Rescale(result);
+
+    Plaintext res;
+    CRYPTOCONTEXT->Decrypt(KEYPAIR.secretKey, result, &res);
+    cout << "relu_appx result: " << res << endl;
+    cout << "relu_appx level: " << result->GetLevel() << endl;
+
 }
