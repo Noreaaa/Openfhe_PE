@@ -267,7 +267,27 @@ void Gen_test_vector3d(types::double3d& data, int channel, int size_h, int size_
         for (int j = 0; j < size_h; j++) {
             data[i][j].resize(size_w);
             for (int k = 0; k < size_w; k++) {
-                data[i][j][k] = static_cast<double>(rand()) / RAND_MAX;
+                data[i][j][k] = static_cast<double>(rand()) / (RAND_MAX);
+                data[i][j][k] = data[i][j][k]/9;
+            }
+        }
+    }
+}
+
+
+void Gen_test_vector4d(types::double4d& data, int out_channel, int in_channel, int kernel_h, int kernel_w) {
+    data.clear();
+    data.resize(out_channel);
+    for (int i = 0; i < out_channel; i++) {
+        data[i].resize(in_channel);
+        for (int j = 0; j < in_channel; j++) {
+            data[i][j].resize(kernel_h);
+            for (int k = 0; k < kernel_h; k++) {
+                data[i][j][k].resize(kernel_w);
+                for (int l = 0; l < kernel_w; l++) {
+                    data[i][j][k][l] = static_cast<double>(rand()) / (RAND_MAX);
+                    data[i][j][k][l] = data[i][j][k][l]/9;
+                }
             }
         }
     }

@@ -34,6 +34,9 @@ class Relu_ss : public Layer {
         void forward(types::vector2d<Ciphertext<DCRTPoly>>& x_cts, double3d& x_pts,
             types::vector2d<Ciphertext<DCRTPoly>>& y_cts, double3d& y_pts) override;
 
+        void forward(std::vector<Ciphertext<DCRTPoly>>& x_cts,
+            std::vector<Ciphertext<DCRTPoly>>& y_cts) override;
+
     private:
         lbcrypto::LWEPrivateKey FHEWKey_;
         uint32_t batch_size_;
@@ -50,6 +53,10 @@ class Relu_appx : public Layer {
 
         void forward(types::vector2d<Ciphertext<DCRTPoly>>& x_cts, double3d& x_pts,
             types::vector2d<Ciphertext<DCRTPoly>>& y_cts, double3d& y_pts) override;
+
+        void forward(std::vector<Ciphertext<DCRTPoly>>& x_cts,
+            std::vector<Ciphertext<DCRTPoly>>& y_cts) override;
+
 
 };
 

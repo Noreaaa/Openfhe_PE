@@ -3,6 +3,9 @@
 using std::size_t;
 using namespace lbcrypto;
 
+std::vector<std::vector<int>> VALID_INDEX_MAP;
+std::vector<std::vector<int>> ROTATION_STEPS;
+std::vector<std::vector<int>> ANCHOR_MAP;
 bool CONV_BIAS;
 bool RESCALE_REQUIRED;
 CryptoContext<DCRTPoly> CRYPTOCONTEXT;

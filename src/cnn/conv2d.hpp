@@ -29,6 +29,31 @@
             uint32_t batch_size_;
     };
 
+    class Conv2d_C : public Layer {
+        public:
+            Conv2d_C(
+                PLayerType layer_type,
+                std::string layer_name,
+                types::double4d& filters,
+                int stride,
+                int input_height,
+                int input_width,
+                uint32_t batch_size
+            );
+            ~Conv2d_C();
+
+            void forward(std::vector<Ciphertext<DCRTPoly>>& x_cts, 
+                std::vector<Ciphertext<DCRTPoly>>& y_cts);
+        
+        private:
+            types::double4d filters_;
+            int stride_;
+            int input_height_;
+            int input_width_;
+            uint32_t batch_size_;
+    };
+
+
 
     class Conv2d_P : public Layer {
         public:
@@ -107,3 +132,9 @@
     bool isEncrypted_h(int val, int filter_size, int padding, int start, int end);
 
     bool isEncrypted(int oh, int ow, int fh, int fw, int padding);
+
+    std::vector<std::pair<int, int>> generate_anchor(int height, int width, int stride, int kernel_size);
+
+    void update_index_maps(int height, int width, int stride, int kernel_size, bool initial);
+
+    

@@ -192,6 +192,24 @@ void Encrypt_MCSR_P(types::double3d& image3d, uint32_t numSlots, int padding,
 
     }
 
+    std::vector<Ciphertext<DCRTPoly>> Encrypt_baseline(double3d& image3d, uint32_t numSlots, 
+        int image_size, int channels, CryptoContext<DCRTPoly> cryptocontext, KeyPair<DCRTPoly> Keypair){
+
+        std::vector<Ciphertext<DCRTPoly>> x_ctxt;
+        for (int c = 0; c < channels; c++) {
+            std::vector<double> x_vec;
+            for (int i = 0; i < image_size; i++) {
+                for (int j = 0; j < image_size; j++) {
+                    x_vec.push_back(image3d[c][i][j]);
+                }
+            }
+            Plaintext x_ptxt = cryptocontext->MakeCKKSPackedPlaintext(x_vec);
+            std::cout << "Plaintext: " << x_ptxt << std::endl;
+            x_ctxt.push_back(cryptocontext->Encrypt(Keypair.secretKey, x_ptxt));
+        }
+        return x_ctxt;
+    }
+
     void Gen_random_cts2d(uint32_t numSlots, uint32_t valid_size, int dim1, int dim2, 
     CryptoContext<DCRTPoly> cryptocontext, KeyPair<lbcrypto::DCRTPoly> Keypair, 
     types::vector2d<Ciphertext<DCRTPoly>> &x_ctxt){
@@ -212,3 +230,5 @@ void Encrypt_MCSR_P(types::double3d& image3d, uint32_t numSlots, int padding,
             }
         }
     }
+
+    

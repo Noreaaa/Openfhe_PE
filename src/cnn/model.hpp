@@ -1,7 +1,7 @@
 #pragma once
 
 #include "layer.hpp"
-
+#include <chrono>
 
 
 class Network {
@@ -9,7 +9,7 @@ public:
   Network();
   ~Network();
 
-  void predict(types::ciphertext1d x_cts);
+  types::double3d predict(types::ciphertext1d x_cts);
 
   void predict_P(types::ciphertext1d x_cts, types::double3d x_pts);
   

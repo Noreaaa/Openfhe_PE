@@ -6,6 +6,10 @@
 #include "../utils/globals.hpp"
 #include "../utils/helper.hpp"
 using namespace lbcrypto;
+using types::double3d;
+using types::double2d;
+using std::vector;
+using types::double4d;
 
 void Partial_Encrypt_Sparse(types::double3d &image_3d, uint32_t numSlots, 
 uint32_t depth,CryptoContext<DCRTPoly> cryptocontext, 
@@ -31,3 +35,5 @@ void Encrypt_MCSR_P(types::double3d& image3d, uint32_t numSlots, int padding,
 void Gen_random_cts2d(uint32_t numSlots, uint32_t valid_size, int dim1, int dim2,
          CryptoContext<DCRTPoly> cryptocontext, KeyPair<lbcrypto::DCRTPoly> Keypair, 
          types::vector2d<Ciphertext<DCRTPoly>> &x_ctxt);
+
+std::vector<Ciphertext<DCRTPoly>> Encrypt_baseline(double3d& image3d, uint32_t numSlots, int image_size, int channels, CryptoContext<DCRTPoly> cryptocontext, KeyPair<DCRTPoly> Keypair);

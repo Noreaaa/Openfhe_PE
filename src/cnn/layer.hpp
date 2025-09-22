@@ -13,6 +13,7 @@ using namespace lbcrypto;
 
 
 enum PLayerType {
+  CONV_2D_C,
   CONV_2D,
   CONV_2D_BN,
   COMBINE_OUTPUT,

@@ -103,20 +103,17 @@ Relu_ss::~Relu_ss() {
 
 void Relu_ss::forward(types::vector2d<Ciphertext<DCRTPoly>>& x_cts, double3d& x_pts,
     types::vector2d<Ciphertext<DCRTPoly>>& y_cts, double3d& y_pts) {
-    
+
     int input_w = x_pts[0][0].size();
     cout << layer_name_ << " forward" << endl;
-
-
 
     y_cts.resize(x_cts.size());
 
     for (size_t i = 0; i < x_cts.size(); i++){
         y_cts[i].resize(x_cts[i].size());
     }
-    
+
     size_t dim_2 = x_cts[0].size();
-    
     y_pts.resize(x_pts.size());
     for (size_t i = 0; i < x_pts.size(); i++){
         y_pts[i].resize(x_pts[i].size());
@@ -138,71 +135,52 @@ void Relu_ss::forward(types::vector2d<Ciphertext<DCRTPoly>>& x_cts, double3d& x_
             auto amplified_cts = CRYPTOCONTEXT->EvalMult(x_cts[i][j], 1000);
             auto LWECiphertexts = CRYPTOCONTEXT -> EvalCKKStoFHEW(amplified_cts, batch_size_);
             std::vector<double> relu_signs(batch_size_, 0);
+
             for (size_t k = 0; k + input_w < batch_size_; k += input_w){
                 for (int w = ENCRYPTED_WIDTH_START; w <= ENCRYPTED_WIDTH_END; w++){
                     LWEPlaintext plainLWE;
                     LWECiphertext LWESign = CCLWE->EvalSign(LWECiphertexts[k + w]);
                     CCLWE->Decrypt(FHEWKey_, LWESign, &plainLWE, 2);
                     if (plainLWE == 0){
-                        relu_signs[k + w] = 1; // positive
+                        relu_signs[k + w] = 1;
                     }
                 }
             }
-            y_cts[i][j] = CRYPTOCONTEXT->EvalMult(
-                x_cts[i][j], 
-                CRYPTOCONTEXT->MakeCKKSPackedPlaintext(relu_signs)
-            );
+            y_cts[i][j] = CRYPTOCONTEXT->EvalMult(x_cts[i][j], CRYPTOCONTEXT->MakeCKKSPackedPlaintext(relu_signs));
         }
     }
     std::cout << "finished " << layer_name_ << " forward" << std::endl;
-    /*
-    #pragma omp parallel for collapse(2) schedule(dynamic)
-    for (size_t i = 0; i < x_cts.size(); i++) {
-        for (size_t j = 0; j < dim_2; j++) {
-            auto amplified_cts = CRYPTOCONTEXT->EvalMult(x_cts[i][j], 1000);
-            auto LWECiphertexts = CRYPTOCONTEXT->EvalCKKStoFHEW(amplified_cts, batch_size_);
+    
+    
 
-            // relu_signs 主数组，初始化为 0
-            std::vector<double> relu_signs(batch_size_, 0.0);
+    
 
-            // ======================
-            // 并行化 k 循环
-            // ======================
-            #pragma omp parallel for schedule(static)
-            for (size_t k = 0; k < batch_size_; k += input_w) {
-                // 每个线程独立局部数组
-                std::vector<double> relu_signs_local(batch_size_, 0.0);
+}
 
-                for (int w = ENCRYPTED_WIDTH_START; w <= ENCRYPTED_WIDTH_END; w++) {
-                    LWEPlaintext plainLWE;
-                    LWECiphertext LWESign = CCLWE->EvalSign(LWECiphertexts[k + w]);
-                    CCLWE->Decrypt(FHEWKey_, LWESign, &plainLWE, 2);
-
-                    if (plainLWE == 0) {
-                        relu_signs_local[k + w] = 1; // positive
-                    }
-                }
-
-                // 合并到全局 relu_signs
-                #pragma omp critical
-                {
-                    for (size_t idx = 0; idx < batch_size_; idx++) {
-                        if (relu_signs_local[idx] != 0.0)
-                            relu_signs[idx] = relu_signs_local[idx];
-                    }
+void Relu_ss::forward(std::vector<Ciphertext<DCRTPoly>>& x_cts,
+    std::vector<Ciphertext<DCRTPoly>>& y_cts) {
+    std::cout << layer_name_ << " forward" << std::endl;
+    size_t valid_height = VALID_INDEX_MAP.size();
+    size_t valid_width = VALID_INDEX_MAP[0].size();
+    for(size_t i = 0; i < x_cts.size(); i++){
+        auto amplified_cts = CRYPTOCONTEXT->EvalMult(x_cts[i], 1000);
+        auto LWECiphertexts = CRYPTOCONTEXT -> EvalCKKStoFHEW(amplified_cts, batch_size_);
+        std::vector<double> relu_signs(batch_size_, 0);
+        #ifdef _OPENMP
+        #pragma omp parallel for collapse(2)
+        #endif
+        for (size_t j = 0; j < valid_height; j++){
+            for (size_t k = 0; k < valid_width; k++){
+                LWEPlaintext plainLWE;
+                LWECiphertext LWESign = CCLWE->EvalSign(LWECiphertexts[VALID_INDEX_MAP[j][k]]);
+                CCLWE->Decrypt(FHEWKey_, LWESign, &plainLWE, 2);
+                if (plainLWE == 0){
+                    relu_signs[VALID_INDEX_MAP[j][k]] = 1; 
                 }
             }
-
-            // 用 relu_signs 生成结果
-            y_cts[i][j] = CRYPTOCONTEXT->EvalMult(
-                x_cts[i][j],
-                CRYPTOCONTEXT->MakeCKKSPackedPlaintext(relu_signs)
-            );
         }
+        y_cts[i] = CRYPTOCONTEXT->EvalMult(x_cts[i], CRYPTOCONTEXT->MakeCKKSPackedPlaintext(relu_signs));
     }
-    */
-
-
 }
 
 
@@ -228,8 +206,7 @@ Relu_appx::Relu_appx(
 Relu_appx::~Relu_appx() {
 }
 
-// f1 = 10.8541842577442 x - 62.2833925211098 x^3 + 11
-
+// f1 = 10.8541842577442 x - 62.2833925211098 x^3 + 114.36920213692 x^5 - 62.8023982549446 x^7
 lbcrypto::Ciphertext<DCRTPoly> EvalF1(lbcrypto::Ciphertext<DCRTPoly>& x) {
     auto x2 = CRYPTOCONTEXT->EvalMult(x, x);  // x^2
     if (RESCALE_REQUIRED)
@@ -309,6 +286,26 @@ lbcrypto::Ciphertext<DCRTPoly> EvalF3(lbcrypto::Ciphertext<DCRTPoly>& x) {
     return result;
 }
 
+void Relu_appx::forward(std::vector<Ciphertext<DCRTPoly>>& x_cts,
+    std::vector<Ciphertext<DCRTPoly>>& y_cts) {
+    cout << layer_name_ << " forward" << endl;
+    y_cts.resize(x_cts.size());
+    #ifdef _OPENMP
+    #pragma omp parallel for
+    #endif
+    for (size_t i = 0; i < x_cts.size(); i++){
+        auto x2 = CRYPTOCONTEXT->EvalMult(x_cts[i], x_cts[i]);
+        auto term = CRYPTOCONTEXT->EvalMult(x2, 1.1551725);
+        term = CRYPTOCONTEXT->EvalAdd(term, -2.089185);
+        term = CRYPTOCONTEXT->EvalMult(term, x2);
+        term = CRYPTOCONTEXT->EvalAdd(term, 1.4340124);
+        term = CRYPTOCONTEXT->EvalMult(term, x2);
+        auto halfx = CRYPTOCONTEXT->EvalMult(x_cts[i], 0.5);
+        term = CRYPTOCONTEXT->EvalAdd(term, halfx);
+        term = CRYPTOCONTEXT->EvalBootstrap(term, 1, 0);
+        y_cts[i] = CRYPTOCONTEXT->EvalAdd(term, 0.0229645);
+    }
+}
 
 void Relu_appx::forward(types::vector2d<Ciphertext<DCRTPoly>>& x_cts, double3d& x_pts,
             types::vector2d<Ciphertext<DCRTPoly>>& y_cts, double3d& y_pts){

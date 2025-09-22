@@ -3,6 +3,8 @@
 #include <utility>
 #include <cassert>
 #include <cstdlib>
+#include <algorithm>
+
 
 using std::vector;
 using std::pair;
@@ -16,6 +18,180 @@ using std::endl;
 
 #define IS_IN_RANGE(x, min_val, max_val) ((x) >= (min_val) && (x) <= (max_val))
 #define POSITIVE(x) ((x) < 0 ? 0 : (x))
+
+Conv2d_C::Conv2d_C(
+    PLayerType layer_type,
+    std::string layer_name,
+    types::double4d& filters,
+    int stride,
+    int input_height,
+    int input_width,
+    uint32_t batch_size
+): Layer(PLayerType::CONV_2D_C, layer_name),
+  filters_(filters),
+  stride_(stride),
+  input_height_(input_height),
+  input_width_(input_width),
+  batch_size_(batch_size) {
+    CONSUMED_LEVEL++;
+}
+
+Conv2d_C::~Conv2d_C() {}
+
+
+
+/**
+ * need to handle strided convolution 
+ * shape of cts 
+ * row major order 
+ * does not support padding 
+ */
+void Conv2d_C::forward(std::vector<Ciphertext<DCRTPoly>>& x_cts, 
+std::vector<Ciphertext<DCRTPoly>>& y_cts){
+    cout << layer_name_ << " forward" << endl;
+    // initialize parameters
+    int out_channels = filters_.size();
+    int in_channels = filters_[0].size();
+    int kernel_size = filters_[0][0].size();
+    int input_height = input_height_;
+    int input_width = input_width_;
+    int output_height = (input_height - kernel_size) / stride_ + 1;
+    int output_width = (input_width - kernel_size) / stride_ + 1;
+
+    y_cts.clear();
+    y_cts.resize(out_channels);
+
+    // calculate anchor map
+    std::vector<int> ROTATE_IDX;
+    std::vector<std::pair<int,int>> anchor_map = generate_anchor(input_height, input_width, stride_, kernel_size);
+    #pragma omp parallel for
+    for (int oc = 0; oc < out_channels; oc++) {
+        Ciphertext<DCRTPoly> local_sum; // to accumulate across ic
+        bool first_ic = true;
+    
+        for (int ic = 0; ic < in_channels; ic++) {
+            // construct filters
+            types::vector2d<Plaintext> filter_vecs(kernel_size, std::vector<Plaintext>(kernel_size));
+        
+            for (int kh = 0; kh < kernel_size; kh++) {
+                for (int kw = 0; kw < kernel_size; kw++) {
+                    std::vector<double> filter_vec(input_height * input_width, 0);
+                    for (size_t i = 0; i < anchor_map.size(); i++) {
+                        int pos_h = anchor_map[i].first + kh;
+                        int pos_w = anchor_map[i].second + kw;
+                        int index = VALID_INDEX_MAP[pos_h][pos_w];
+                        filter_vec[index] = filters_[oc][ic][kh][kw];
+                    }
+                    filter_vecs[kh][kw] = CRYPTOCONTEXT->MakeCKKSPackedPlaintext(filter_vec);
+                }
+            }
+        
+            // multiply with input feature map
+            Ciphertext<DCRTPoly> conv_result;
+            for (int kh = 0; kh < kernel_size; kh++) {
+                for (int kw = 0; kw < kernel_size; kw++) {
+                    auto temp_result = CRYPTOCONTEXT->EvalMult(x_cts[ic], filter_vecs[kh][kw]);
+                    if (kh == 0 && kw == 0) {
+                        conv_result = temp_result;
+                    } else {
+                        int offset = VALID_INDEX_MAP[kh][kw] - VALID_INDEX_MAP[0][0];
+                        std::cout << "offset: " << offset << std::endl;
+                        if(offset != 0){
+                            temp_result = CRYPTOCONTEXT->EvalRotate(temp_result, offset);
+                        }
+                        conv_result = CRYPTOCONTEXT->EvalAdd(conv_result, temp_result);
+                    }
+                }
+            }
+        
+            // accumulate into local_sum
+            if (first_ic) {
+                local_sum = conv_result;
+                first_ic = false;
+            } else {
+                local_sum = CRYPTOCONTEXT->EvalAdd(local_sum, conv_result);
+            }
+        }
+    
+        // write result for this oc
+        y_cts[oc] = local_sum;
+    }
+
+
+    update_index_maps(output_height, output_width, stride_, kernel_size, false);
+
+
+
+}
+/**
+ * update the valid index map 
+ * find the valid value positions in the ciphertext
+ * VALID_INDEX_MAP[0][0] = 1 the valid value of feature map [0][0] is at index 1 on cts
+ * h w ---> index on cts
+ */
+void update_index_maps(int height, int width, int stride, int kernel_size, bool initial) {
+    // Initialize index mapping
+    if (initial) {
+        int initial_height = height;
+        int initial_width = width;
+        VALID_INDEX_MAP.clear();
+        VALID_INDEX_MAP.resize(initial_height);
+        for (int h = 0; h < initial_height; h++) {
+            VALID_INDEX_MAP[h].resize(initial_width);
+        }
+        for(int h = 0; h < initial_height; h++){
+            for(int w = 0; w < initial_width; w++){
+                VALID_INDEX_MAP[h][w] = {h * initial_width + w};
+            }
+        }
+    }
+    else {
+        // based on stride update INDEX_MAP
+        int output_height = height;
+        int output_width = width;
+        types::vector2d<int> old_index_map = VALID_INDEX_MAP;
+        VALID_INDEX_MAP.clear();
+        VALID_INDEX_MAP.resize(output_height);
+        for (int h = 0; h < output_height; h++) {
+            VALID_INDEX_MAP[h].resize(output_width);
+        }
+        for (int h = 0; h < output_height; h++) {
+            for (int  w = 0; w < output_width; w++) {
+                VALID_INDEX_MAP[h][w] = old_index_map[h * stride][w * stride];
+            }
+        }
+        // Debug: Print the updated index map
+        std::cout << "Updated VALID_INDEX_MAP:" << std::endl;
+        for (int h = 0; h < output_height; h++) {
+            for (int w = 0; w < output_width; w++) {
+                std::cout <<"height: " << h << " width: " << w << " value: " << VALID_INDEX_MAP[h][w] << " ";
+            }
+            std::cout << std::endl;
+        }
+    }
+
+}
+
+/**
+ * generate anchor mapping table
+ * mapping anchors [0] to input positions [index] on the valid index map
+ * for example anchor_map[0] = 0,0 means the first anchor is stay on the index VALID_INDEX_MAP[0][0] 
+ */
+std::vector<std::pair<int, int>> generate_anchor(int height, int width, int stride, int kernel_size){
+    
+    std::vector<std::pair<int, int>> anchor_map;
+    int output_width = (width - kernel_size) / stride + 1;
+    int output_height = (height - kernel_size) / stride + 1;
+    anchor_map.resize(output_height * output_width);
+    
+    for (int oh = 0; oh < output_height; oh++){
+        for (int ow = 0; ow < output_width; ow++){
+            anchor_map[oh * output_width + ow] = std::make_pair(oh * stride, ow * stride);
+        }
+    }
+
+    return anchor_map;
+}
 
 Conv2d::Conv2d(
     PLayerType layer_type,
@@ -215,15 +391,12 @@ void Conv2dBN_P::forward(types::vector2d<Ciphertext<DCRTPoly>>& x_cts, double3d&
     double3d f_rows;
     f_rows.resize(out_channels);
     y_cts.clear();
-
     vector<double> bn_a(out_channels, 0);
     vector<double> bn_b(out_channels, 0);
-
     for (int i = 0; i < out_channels; i++){
         bn_a[i] = gamma_[i] / sqrt(var_[i] + epsilon_);
         bn_b[i] = beta_[i] - gamma_[i] * mean_[i] / sqrt(var_[i] + epsilon_);
     }
-
 
     #ifdef DEBUG
     cout << "output_h: " << output_h << endl;
@@ -247,7 +420,7 @@ void Conv2dBN_P::forward(types::vector2d<Ciphertext<DCRTPoly>>& x_cts, double3d&
             }
         }
     }
-
+    
     for (int fn = 0; fn < out_channels; fn++){
         for (int oh = 0; oh < output_h; oh++){
             for (int ow = 0; ow < output_w; ow++){
@@ -356,13 +529,10 @@ void Conv2dBN_P::forward(types::vector2d<Ciphertext<DCRTPoly>>& x_cts, double3d&
                     if (!isEncrypted(oh * stride_, ow * stride_, filter_h, filter_w, padding_)) {
                         continue;
                     }
-    
-                    
                     double sum = 0;
                     vector<double> temp_vec = {0};
                     auto temp_plain = CRYPTOCONTEXT->MakeCKKSPackedPlaintext(temp_vec);
                     lbcrypto::Ciphertext<lbcrypto::DCRTPoly> temp_res = CRYPTOCONTEXT->Encrypt(KEYPAIR.publicKey, temp_plain);    
-    
                     for (int fh = 0; fh < filter_h; fh++) {
                         if (!isInRange(oh * stride_ + fh, ENCRYPTED_HEIGHT_START + padding_, ENCRYPTED_HEIGHT_END + padding_)) {
                             for (int fw = 0; fw < filter_w; fw++) {
@@ -389,7 +559,6 @@ void Conv2dBN_P::forward(types::vector2d<Ciphertext<DCRTPoly>>& x_cts, double3d&
                     std::vector<double> mask(batch_size_, 0);
                     std::vector<double> BN_b(batch_size_, 0);
                     std::vector<double> sum_vec(batch_size_, 0);
-
                     int channel_idx = fn % out_channels_per_cts;
 
                     // temporarily unchanged 
@@ -500,6 +669,7 @@ void Conv2dBN_P::forward(types::vector2d<Ciphertext<DCRTPoly>>& x_cts, double3d&
     ENCRYPTED_HEIGHT_END = end_h;
     ENCRYPTED_WIDTH_START = start_w;
     ENCRYPTED_WIDTH_END = end_w;
+    
     #define DEBUG
     #ifdef DEBUG
     cout << "after " << layer_name_ << " forward" << endl;
@@ -636,3 +806,5 @@ void GoldenBN(double3d& input, vector<double>& gamma, vector<double> beta, vecto
             }
         }
 }
+
+

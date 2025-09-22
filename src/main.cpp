@@ -36,10 +36,10 @@ std::string imagenet_image_path = "../datasets/imagenet-mini/";
 
 int main(int argc, char *argv[]) {
     cmdline::parser parser;
-    parser.add<int>("top", 0, "top of the encryption region 0-31", false, 0);
-    parser.add<int>("bottom", 0, "bottom of the encryption region 0-31", false, 0);
-    parser.add<int>("left", 0, "left of the encryption region 0-31", false, 0);
-    parser.add<int>("right", 0, "right of the encryption region 0-31", false, 0);
+    parser.add<int>("top", 0, "top of the encryption region", false, 0);
+    parser.add<int>("bottom", 0, "bottom of the encryption region", false, 0);
+    parser.add<int>("left", 0, "left of the encryption region", false, 0);
+    parser.add<int>("right", 0, "right of the encryption region", false, 0);
     parser.add<int>("nums", 0, "number of images to be tested", false, 0);
     parser.add<std::string>("model", 'm', "model type: HCNN or ResNet-18", true, "ResNet-18");
     parser.add<std::string>("dataset", 'd', "dataset: CIFAR10, MNIST or ImageNet", false, "CIFAR10");
@@ -128,11 +128,15 @@ int main(int argc, char *argv[]) {
 
     // create the rotate key
     int image_size = 32;
-
-    for (int32_t i = 0; i < image_size; i++){
-        rotate_index.push_back(i);
+    if(MODEL_TYPE != "baseline_test"){
+        for (int32_t i = 0; i < image_size; i++){
+            rotate_index.push_back(i);
+        }
+        cryptoContext->EvalRotateKeyGen(keyPair.secretKey, rotate_index);
     }
-    cryptoContext->EvalRotateKeyGen(keyPair.secretKey, rotate_index);
+    else{
+        
+    }
 
     Ciphertext<DCRTPoly> x_ctxt;
     types::vector2d<Ciphertext<DCRTPoly>> x_ctxt_2d;
@@ -187,21 +191,11 @@ int main(int argc, char *argv[]) {
         LoadConv2dBias(hcnn_path + "fc2.bias.npy", linear_bias_2);
 
         model.add_layer(std::make_shared<Conv2dBN_P>(CONV_2D, "conv1_bn1", filter_4d_1, 1, 1, numSlots, gamma_1, beta_1, mean_1, var_1, eps, bias_1, AVG_POOLING));
-        //model.add_layer(std::make_shared<Square>(SQUARE_ACTIVATION, std::string("square1")));
-        //model.add_layer(std::make_shared<Relu_ss>(RELU_SS_ACTIVATION, std::string("relu1"), privateKeyFHEW));
         model.add_layer(std::make_shared<AvgPooling_P>(AVG_POOLING, std::string("avgpool1"), 2, 2, 0, numSlots));
-        
-
         model.add_layer(std::make_shared<Conv2dBN_P>(CONV_2D, "conv2_bn2", filter_4d_2, 1, 1, numSlots, gamma_2, beta_2, mean_2, var_2, eps, bias_2, AVG_POOLING));
-        //model.add_layer(std::make_shared<Square>(SQUARE_ACTIVATION, std::string("square2")));
-        //model.add_layer(std::make_shared<Relu_ss>(RELU_SS_ACTIVATION, std::string("relu2"), privateKeyFHEW));
         model.add_layer(std::make_shared<AvgPooling_P>(AVG_POOLING, std::string("avgpool2"), 2, 2, 0, numSlots));
-
         model.add_layer(std::make_shared<Conv2dBN_P>(CONV_2D, "conv3_bn3", filter_4d_3, 1, 1, numSlots, gamma_3, beta_3, mean_3, var_3, eps, bias_3, AVG_POOLING));
-        //model.add_layer(std::make_shared<Square>(SQUARE_ACTIVATION, std::string("square3")));
-        //model.add_layer(std::make_shared<Relu_ss>(RELU_SS_ACTIVATION, std::string("relu3"), privateKeyFHEW));
         model.add_layer(std::make_shared<AvgPooling_P>(AVG_POOLING, std::string("avgpool3"), 2, 2, 0, numSlots));
-
         model.add_layer(std::make_shared<Linear_P>(LINEAR, "linear1", linear_weight_1, linear_bias_1, numSlots));
         model.add_layer(std::make_shared<Linear_P>(LINEAR, "linear2", linear_weight_2, linear_bias_2, numSlots));
     }
@@ -236,11 +230,6 @@ int main(int argc, char *argv[]) {
         LoadConv2dBias(resnet18_path + "maxpool_1_bias.npy", beta_2);
         LoadConv2dBias(resnet18_path + "maxpool_1_running_mean.npy", mean_2);
         LoadConv2dBias(resnet18_path + "maxpool_1_running_var.npy", var_2);
-        //std::cout << "shape of gamma_2: " << gamma_2.size() << std::endl;
-        //std::cout << "shape of beta_2: " << beta_2.size() << std::endl;
-        //std::cout << "shape of mean_2: " << mean_2.size() << std::endl;
-        //std::cout << "shape of var_2: " << var_2.size() << std::endl;
-
 
         filter_4d_3 = LoadConv2dWeight(resnet18_path + "layer1_0_conv1_weight.npy");
         LoadConv2dBias(resnet18_path + "layer1_0_bn1_weight.npy", gamma_3);
@@ -279,11 +268,7 @@ int main(int argc, char *argv[]) {
         model.add_layer(std::make_shared<Conv2dBN_P>(CONV_2D, "conv_bn6", filter_4d_6, 1, 1, numSlots, gamma_6, beta_6, mean_6, var_6, eps, bias_1, CONV_2D_BN));
         model.add_layer(std::make_shared<Relu_ss>(RELU_SS_ACTIVATION, std::string("relu6"), privateKeyFHEW, numSlots));
 
-        // partial encryption
         Encrypt_MCSR_P(input_3d, numSlots, 3, CRYPTOCONTEXT, height_start, height_end, width_start, width_end, keyPair, x_ctxt_2d);
-        //print_3d(input_3d);
-
-
 
         auto start = std::chrono::high_resolution_clock::now();
         int predict_label = model.predict_P(x_ctxt_2d, input_3d);
@@ -292,6 +277,58 @@ int main(int argc, char *argv[]) {
 
         return 0;
 
+
+    }
+    else if (MODEL_TYPE == "baseline_test"){
+        types::double4d filter_4d_1;
+        types::double3d input_3d;
+        int stride = 2;
+        int kernel_size = 3;
+        int test_height = height_end - height_start + 1;
+        int test_width = width_end - width_start + 1;
+        int test_channels = test_nums;
+
+        for (int32_t i = 0; i < test_height * test_height; i+=test_height){
+            for (int32_t j = 0; j < kernel_size; j++){
+                rotate_index.push_back(i + j);
+            }
+        }
+        cryptoContext->EvalRotateKeyGen(keyPair.secretKey, rotate_index);
+
+        std::vector<double> bias_1(test_channels,0.0);
+        Gen_test_vector3d(input_3d, test_channels, test_height, test_width);
+        print_3d(input_3d);
+
+        Gen_test_vector4d(filter_4d_1, test_channels, test_channels, kernel_size, kernel_size);
+
+        std::vector<Ciphertext<DCRTPoly>> x_ctxt = Encrypt_baseline(input_3d, numSlots, test_height, test_channels, CRYPTOCONTEXT, keyPair);
+
+        model.add_layer(std::make_shared<Conv2d_C>(CONV_2D_C, "conv1", filter_4d_1, stride, test_height, test_height, numSlots));
+        //model.add_layer(std::make_shared<Relu_ss>(RELU_SS_ACTIVATION, std::string("relu1"), privateKeyFHEW, test_height*test_height));
+        model.add_layer(std::make_shared<Relu_appx>(RELU_APPX_ACTIVATION, std::string("relu1")));
+        update_index_maps(test_height, test_width, stride, 3, true);
+        auto start = std::chrono::high_resolution_clock::now();
+        types::double3d result =model.predict(x_ctxt);
+        auto end = std::chrono::high_resolution_clock::now();
+        std::cout << "prediction time: " << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << "ms" << std::endl;
+
+        types::double3d golden_res = GoldenConv2d(input_3d, filter_4d_1, bias_1, stride, 0);
+        golden_Relu(golden_res);
+
+        std::cout << "golden result:" << std::endl;
+        print_3d(golden_res);
+        // calculate precentage loss between result and golden_res
+        double sum = 0;
+        for (int i = 0; i < result.size(); i++){
+            for (int j = 0; j < result[0].size(); j++){
+                for (int k = 0; k < result[0][0].size(); k++){
+
+                    double pct_loss = std::abs(result[i][j][k] - golden_res[i][j][k])/std::abs(golden_res[i][j][k]);
+                    sum += pct_loss;
+                }
+            }
+        }
+        std::cout << "average percentage loss: " << sum / (result.size() * result[0].size() * result[0][0].size()) << std::endl;
 
     }
 
