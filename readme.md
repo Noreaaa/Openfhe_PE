@@ -15,6 +15,10 @@ This is the REPO for PFHE, we accelerated encrypted CNN through a partial encryp
 - OpenMP
 - cnpy
 
+## Datasets
+Model is ResNet-18 tuned using Imagenet-mini, to test ResNet-18 performance. Download ImageNet-mini and 
+place in datasets/imagenet-mini/
+
 ## Build
 under Openfhe_PE/build
 ```bash
@@ -22,9 +26,25 @@ cmake ..
 make -j$(nproc) 2>errors.log
 ```
 ## Run
-under build directory, if you want a encrypted region of 27x27 started upperleft of the image. 
 
+to run a single image with 5x5 encrypted region on the upperleft of image with ImageNet data.
+
+Notice: we only support a rectangle encrypted region
 ```bash
-./test --top 0 --bottom 27 --left 0 --right 27 --nums 1 -m ResNet-18 -d ImageNet -r 8192 -b 0 -> test_result.txt
+./test --top 0 --bottom 4 --left 0 --right 4 --nums 1 -m ResNet-18 -d ImageNet -r 4096 -> test_result.txt
 ```
+## Command-line Arguments
 
+| Argument | Description |
+|--------|-------------|
+| `--top` | Top boundary (row index) of the encrypted region in the input image (inclusive). |
+| `--bottom` | Bottom boundary (row index) of the encrypted region (inclusive). |
+| `--left` | Left boundary (column index) of the encrypted region (inclusive). |
+| `--right` | Right boundary (column index) of the encrypted region (inclusive). |
+| `--nums` | Number of test samples to evaluate. |
+| `-m` | Model name. Currently supports `ResNet-18`. |
+| `-d` | Dataset used for evaluation (e.g., `ImageNet`). |
+| `-r` | Ring dimension used in the CKKS scheme. |
+| `--act` | ReLu activation type 0 for scheme switching, 1 for polynomial approximation (degree 7) |
+| `>` | Redirects the program output to a file. |
+| `test_result.txt` | File used to store the execution results. |
