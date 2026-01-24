@@ -9,6 +9,8 @@ using std::size_t;
 extern std::vector<std::vector<int>> VALID_INDEX_MAP;
 extern std::vector<std::vector<int>> ROTATION_STEPS;
 extern std::vector<std::vector<int>> ANCHOR_MAP;
+extern int REMAINING_SLOTS;
+extern bool USE_COMPACT;
 extern bool CONV_BIAS;
 extern bool RESCALE_REQUIRED;
 extern CryptoContext<DCRTPoly> CRYPTOCONTEXT;

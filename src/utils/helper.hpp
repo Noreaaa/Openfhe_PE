@@ -35,3 +35,7 @@ bool intervalsOverlap(int a, int b, int c, int d);
 void Gen_test_vector3d(types::double3d& data, int channel, int size_h, int size_w);
 
 void Gen_test_vector4d(types::double4d& data, int out_channel, int in_channel, int kernel_h, int kernel_w);
+
+bool isEncrypted_h(int val, int filter_size, int padding, int start, int end);
+
+bool isEncrypted(int oh, int ow, int fh, int fw, int padding);

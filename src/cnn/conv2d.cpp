@@ -401,7 +401,7 @@ void Conv2dBN_P::forward(types::vector2d<Ciphertext<DCRTPoly>>& x_cts, double3d&
     #ifdef DEBUG
     cout << "output_h: " << output_h << endl;
     cout << "output_w: " << output_w << endl;
-    cout << "f_n: " << filter_n << endl;
+    cout << "f_n: " << out_channels << endl;
     cout << "f_h: " << filter_h << endl;
     cout << "f_w: " << filter_w << endl;
     #endif
@@ -680,6 +680,273 @@ void Conv2dBN_P::forward(types::vector2d<Ciphertext<DCRTPoly>>& x_cts, double3d&
     #endif
 }
 
+void Conv2dBN_P::forward_C(types::vector2d<Ciphertext<DCRTPoly>>& x_cts, double3d& x_pts,
+    types::vector2d<Ciphertext<DCRTPoly>>& y_cts, double3d& y_pts) {
+    cout << layer_name_ << " forward" << endl;
+    cout << "data structure compact" << endl;
+    #define DEBUG
+    #ifdef DEBUG
+    cout << "Conv2d_Partial forward" << endl;
+    #endif
+    int input_n = x_pts.size();
+    int input_h = x_pts[0].size();
+    int padded_input_h = input_h + 2 * padding_;
+    int input_w = x_pts[0][0].size();
+    int padded_input_w = input_w + 2 * padding_;
+    int out_channels = filters_.size();
+    int in_channels = filters_[0].size();
+    int filter_h = filters_[0][0].size();
+    int filter_w = filters_[0][0][0].size();
+    int output_h = (input_h + 2 * padding_ - filter_h) / stride_ + 1;
+    int output_w = (input_w + 2 * padding_ - filter_w) / stride_ + 1;
+    double3d f_rows;
+    f_rows.resize(out_channels);
+    y_cts.clear();
+    vector<double> bn_a(out_channels, 0);
+    vector<double> bn_b(out_channels, 0);
+    for (int i = 0; i < out_channels; i++){
+        bn_a[i] = gamma_[i] / sqrt(var_[i] + epsilon_);
+        bn_b[i] = beta_[i] - gamma_[i] * mean_[i] / sqrt(var_[i] + epsilon_);
+    }
+
+    #ifdef DEBUG
+    cout << "output_h: " << output_h << endl;
+    cout << "output_w: " << output_w << endl;
+    cout << "f_n: " << out_channels << endl;
+    cout << "f_h: " << filter_h << endl;
+    cout << "f_w: " << filter_w << endl;
+    #endif
+    y_pts.resize(out_channels);
+    for (int i = 0; i < out_channels; i++){
+        y_pts[i].resize(output_h);
+        for (int j = 0; j < output_h; j++){
+            y_pts[i][j].resize(output_w);
+        }
+    }
+    double3d padded_input(input_n, double2d(padded_input_h, vector<double>(padded_input_w, 0)));
+    for (int i = 0; i < input_n; i++){
+        for (int j = 0; j < input_h; j++){
+            for (int k = 0; k < input_w; k++){
+                padded_input[i][j + padding_][k + padding_] = x_pts[i][j][k];
+            }
+        }
+    }
+    for (int fn = 0; fn < out_channels; fn++){
+        for (int oh = 0; oh < output_h; oh++){
+            for (int ow = 0; ow < output_w; ow++){
+                double sum = 0;
+                // check if the output value will involve encrypted values
+                if (!isEncrypted(oh * stride_, ow * stride_, filter_h, filter_w, padding_)){
+                    for (int fh = 0; fh < filter_h; fh++){
+                        for (int fw = 0; fw < filter_w; fw++){
+                            for (int c = 0; c < in_channels; c++){
+                                sum += padded_input[c][oh*stride_ + fh][ow*stride_ + fw] * 
+                                filters_[fn][c][fh][fw];
+                            }
+                        }
+                    }
+                    y_pts[fn][oh][ow] = (sum + bias_[fn]) * bn_a[fn] + bn_b[fn];                                                                                           
+                }
+            }
+        }
+    }
+    //#define CHECK_UNENCRYPTED
+    #ifdef CHECK_UNENCRYPTED
+    cout << "value check for unencrypted parts" << endl;
+    print_3d(y_pts);
+    #endif
+    int count = 0;
+    for (int oh = 0; oh < output_h; oh++) {
+        if (isEncrypted_h(oh * stride_, filter_h, padding_, ENCRYPTED_HEIGHT_START, ENCRYPTED_HEIGHT_END)) {
+            count++;
+        }
+    }
+    y_cts.resize(count);
+    count = 0;
+    for (int ow = 0; ow < output_w; ow++){
+        if(isEncrypted_h(ow * stride_, filter_w, padding_, ENCRYPTED_WIDTH_START, ENCRYPTED_WIDTH_END)){
+            count++;
+        }
+    }
+    int output_encrypted_width = count;
+    int out_channels_per_cts =  batch_size_ / output_encrypted_width; 
+    REMAINING_SLOTS = out_channels_per_cts % batch_size_;
+    int output_2nd_dim = (out_channels + out_channels_per_cts - 1) / out_channels_per_cts;
+
+    int encrypted_width = ENCRYPTED_WIDTH_END - ENCRYPTED_WIDTH_START + 1;
+    int in_channels_per_cts = batch_size_ / encrypted_width;
+
+
+    int y_cts_idx = 0;
+    for (int oh = 0; oh < output_h; oh++) {
+        // skip unencrypted rows 
+        if (!isEncrypted_h(oh * stride_, filter_h, padding_, ENCRYPTED_HEIGHT_START, ENCRYPTED_HEIGHT_END)) {
+            continue;
+        }
+        types::vector2d<Ciphertext<DCRTPoly>> y_vec_ct;
+        y_vec_ct.resize(output_2nd_dim);
+
+        #ifdef _OPENMP
+        #pragma omp parallel
+        #endif
+        {
+            types::vector2d<Ciphertext<DCRTPoly>> local_y_vec_ct;
+            local_y_vec_ct.resize(output_2nd_dim);
+    
+            #ifdef _OPENMP
+            #pragma omp for collapse(2)
+            #endif
+            // each output channel
+            for (int fn = 0; fn < out_channels; fn++) {
+                // each output row 
+                for (int ow = 0; ow < output_w; ow++) {
+                    // skip if not including encrypted value
+                    if (!isEncrypted(oh * stride_, ow * stride_, filter_h, filter_w, padding_)) {
+                        continue;
+                    }
+                    double sum = 0;
+                    vector<double> temp_vec = {0};
+                    auto temp_plain = CRYPTOCONTEXT->MakeCKKSPackedPlaintext(temp_vec);
+                    lbcrypto::Ciphertext<lbcrypto::DCRTPoly> temp_res = CRYPTOCONTEXT->Encrypt(KEYPAIR.publicKey, temp_plain);    
+                    for (int fh = 0; fh < filter_h; fh++) {
+                        if (!isInRange(oh * stride_ + fh, ENCRYPTED_HEIGHT_START + padding_, ENCRYPTED_HEIGHT_END + padding_)) {
+                            for (int fw = 0; fw < filter_w; fw++) {
+                                for (int c = 0; c < in_channels; c++) {
+                                    sum += padded_input[c][oh * stride_ + fh][ow * stride_ + fw] * filters_[fn][c][fh][fw];
+                                }
+                            }
+                        } else {
+                            // consider more than one ciphertext for each row 
+                            int encrypted_height_idx = oh * stride_ + fh - ENCRYPTED_HEIGHT_START - padding_;
+                            // sanity check
+                            if (encrypted_height_idx < 0 || encrypted_height_idx >= static_cast<int>(x_cts.size())) {
+                                continue;
+                            }
+                            // marking encrypted filter value range
+                            std::vector<int> encrypted_filter_idxes;
+                            for (int fw = 0; fw < filter_w; fw++){
+                                int current_w = ow * stride_ + fw;
+                                if (isInRange(current_w, ENCRYPTED_WIDTH_START + padding_, ENCRYPTED_WIDTH_END + padding_)){
+                                    encrypted_filter_idxes.push_back(fw);
+                                }
+                                else {
+                                    for (int c = 0; c < in_channels; c++) {
+                                        sum += padded_input[c][oh * stride_ + fh][ow * stride_ + fw] * filters_[fn][c][fh][fw];
+                                    }
+                                }
+                            }
+                            // encrypted multiplication
+                            for (int cts_idx = 0; cts_idx < static_cast<int>(x_cts[encrypted_height_idx].size()); cts_idx++){
+                                auto filter_row_plain = Conv2dBN_P::GenPlainFilter_C(fn, fh, cts_idx, in_channels_per_cts, encrypted_filter_idxes, ENCRYPTED_WIDTH_END - ENCRYPTED_WIDTH_START + 1);
+                                auto temp_res_per_row = CRYPTOCONTEXT->EvalMult(x_cts[encrypted_height_idx][cts_idx], filter_row_plain);
+                                temp_res = CRYPTOCONTEXT->EvalAdd(temp_res, temp_res_per_row);
+                            }
+                        }
+                    }
+                    std::vector<double> mask(batch_size_, 0);
+                    std::vector<double> BN_b(batch_size_, 0);
+                    std::vector<double> sum_vec(batch_size_, 0);
+                    int channel_idx = fn % out_channels_per_cts;
+                    mask[(channel_idx * output_encrypted_width + ow) % batch_size_] = bn_a[fn];
+                    BN_b[(channel_idx * output_encrypted_width + ow) % batch_size_] = bn_b[fn];
+                    sum_vec[(channel_idx * output_encrypted_width + ow) % batch_size_] = sum + bias_[fn];
+                    auto mask_plain = CRYPTOCONTEXT->MakeCKKSPackedPlaintext(mask);
+                    auto bn_b_plain = CRYPTOCONTEXT->MakeCKKSPackedPlaintext(BN_b);
+                    temp_res = CRYPTOCONTEXT->EvalSum(temp_res, batch_size_);
+                    auto sum_plain = CRYPTOCONTEXT->MakeCKKSPackedPlaintext(sum_vec);
+                    temp_res = CRYPTOCONTEXT->EvalAdd(temp_res, sum_plain);
+                    temp_res = CRYPTOCONTEXT->EvalMult(temp_res, mask_plain);
+                    if (RESCALE_REQUIRED == true){
+                        temp_res = CRYPTOCONTEXT->Rescale(temp_res);
+                    }
+                    temp_res = CRYPTOCONTEXT->EvalAdd(temp_res, bn_b_plain);
+                    // get a single output value in cts
+                    int target_idx = fn / out_channels_per_cts;
+                    local_y_vec_ct[target_idx].push_back(temp_res);
+                }
+            }
+            #ifdef _OPENMP
+            #pragma omp critical
+            #endif
+            for (size_t i = 0; i < y_vec_ct.size(); i++){
+                y_vec_ct[i].insert(y_vec_ct[i].end(), local_y_vec_ct[i].begin(), local_y_vec_ct[i].end());
+            }
+        }
+        #ifdef _OPENMP
+        #pragma omp critical
+        #endif
+        {
+            size_t length = y_vec_ct.size();
+            for (size_t i = 0; i < length; i ++){
+                y_cts[y_cts_idx].push_back(CRYPTOCONTEXT->EvalAddMany(y_vec_ct[i]));
+            }
+            y_cts_idx++;
+        }
+    }
+    
+    
+
+    //#define Y_CTS_CHECK
+    #ifdef Y_CTS_CHECK
+    cout << "value check for encrypted parts" << endl;
+    for(int i = 0; i < static_cast<int>(y_cts.size()); i++){
+        for (int j = 0; j < static_cast<int>(y_cts[i].size()); j++){
+            Plaintext res;
+            CRYPTOCONTEXT->Decrypt(KEYPAIR.secretKey, y_cts[i][j], &res);
+            cout << "y_cts[" << i << "][" << j << "]: " << res << endl;
+        }
+    }
+    #endif
+
+
+
+    // update the encrypted height and width 
+    int start_h = -1, end_h = -1, start_w = -1, end_w = -1;
+    for (int oh = 0; oh < output_h; oh++){
+        if (isEncrypted_h(oh * stride_, filter_h, padding_, ENCRYPTED_HEIGHT_START, ENCRYPTED_HEIGHT_END)){
+            start_h = oh;
+            break;
+        }
+    }
+    for (int oh = output_h - 1; oh >= 0; oh--){
+        if (isEncrypted_h(oh * stride_, filter_h, padding_, ENCRYPTED_HEIGHT_START, ENCRYPTED_HEIGHT_END)){
+            end_h = oh;
+            break;
+        }
+    }
+    for (int ow = 0; ow < output_w; ow++){
+        if (isEncrypted_h(ow * stride_, filter_w, padding_, ENCRYPTED_WIDTH_START, ENCRYPTED_WIDTH_END)){
+            start_w = ow;
+            break;
+        }
+    }
+    for (int ow = output_w - 1; ow >= 0; ow--){
+        if (isEncrypted_h(ow * stride_, filter_w, padding_, ENCRYPTED_WIDTH_START, ENCRYPTED_WIDTH_END)){
+            end_w = ow;
+            break;
+        }
+    }
+    if (start_h == -1 || end_h == -1 || start_w == -1 || end_w == -1){
+        std::cout << "error: encrypted height or width not updated" << std::endl;
+        return;
+    }
+    ENCRYPTED_HEIGHT_START = start_h;
+    ENCRYPTED_HEIGHT_END = end_h;
+    ENCRYPTED_WIDTH_START = start_w;
+    ENCRYPTED_WIDTH_END = end_w;
+    
+    #define DEBUG
+    #ifdef DEBUG
+    cout << "after " << layer_name_ << " forward" << endl;
+    cout << "ENCRYPTED_HEIGHT_START: " << ENCRYPTED_HEIGHT_START << endl;
+    cout << "ENCRYPTED_HEIGHT_END: " << ENCRYPTED_HEIGHT_END << endl;
+    cout << "ENCRYPTED_WIDTH_START: " << ENCRYPTED_WIDTH_START << endl;
+    cout << "ENCRYPTED_WIDTH_END: " << ENCRYPTED_WIDTH_END << endl;
+    #endif
+}
+
+
+
 Plaintext Conv2dBN_P::GenPlainFilter(int out_channel, int height, int output_width_idx, int input_w, int cts_idx, int out_channels_per_cts) {
     //cts_idx == dim_2 of cts
 
@@ -713,27 +980,28 @@ Plaintext Conv2dBN_P::GenPlainFilter(int out_channel, int height, int output_wid
 
 }
 
-bool isEncrypted_h(int val, int filter_size, int padding, int start, int end){
-    int window_start = val;
-    int window_end = val + filter_size - 1;  
+Plaintext Conv2dBN_P::GenPlainFilter_C(int out_channel, int height, int cts_idx, int in_channels_per_cts, vector<int> encrypted_filter_idxes, int encrypted_width) {
 
-    int encrypted_start = start + padding;
-    int encrypted_end = end + padding;
+    std::vector<double> filter_row; 
+    //int out_channels = filters_.size();
+    int in_channels = filters_[0].size();
 
-    // check if the window overlaps with the encrypted region
-    return !(window_end < encrypted_start || window_start > encrypted_end);
-}
+    // assure the batch size is multiple of input width
+    //assert(batch_size_ % input_w == 0);
+    int start_in_channels = in_channels_per_cts * cts_idx;
+    int end_in_channels = in_channels_per_cts * (cts_idx + 1);
 
-// check if the output value will involve encrypted values
-bool isEncrypted(int oh, int ow, int fh, int fw, int padding) {
-    int end_h = oh + fh;
-    int end_w = ow + fw;
+    for (int i = start_in_channels; i < end_in_channels && i < in_channels; i++){
+        vector<double> filter_row_per_channel;
+        for (size_t j = 0; j < encrypted_filter_idxes.size(); j++){
+            
+            filter_row_per_channel.push_back(filters_[out_channel][i][height][encrypted_filter_idxes[j]]);
+        }
+        filter_row.insert(filter_row.end(), filter_row_per_channel.begin(), filter_row_per_channel.end());
+    }
 
-    // 判断区域是否与加密区域有交集
-    bool height_overlap = (oh <= ENCRYPTED_HEIGHT_END + padding && end_h > ENCRYPTED_HEIGHT_START + padding);
-    bool width_overlap = (ow <= ENCRYPTED_WIDTH_END + padding && end_w > ENCRYPTED_WIDTH_START + padding);
+    return CRYPTOCONTEXT->MakeCKKSPackedPlaintext(filter_row);
 
-    return height_overlap && width_overlap;
 }
 
 double3d GoldenConv2d(double3d input, double4d filters, vector<double> bias, int stride, int padding) {
@@ -805,6 +1073,57 @@ void GoldenBN(double3d& input, vector<double>& gamma, vector<double> beta, vecto
                 }
             }
         }
+}
+
+
+void update_Encrypted_Region(std::string layer_name,int output_h, int output_w, int filter, int padding, int stride){
+    int start_h = -1, end_h = -1, start_w = -1, end_w = -1;
+    for (int oh = 0; oh < output_h; oh++){
+        if (isEncrypted_h(oh * stride, filter, padding, ENCRYPTED_HEIGHT_START, ENCRYPTED_HEIGHT_END)){
+            start_h = oh;
+            break;
+        }
+    }
+    for (int oh = output_h - 1; oh >= 0; oh--){
+        if (isEncrypted_h(oh * stride, filter, padding, ENCRYPTED_HEIGHT_START, ENCRYPTED_HEIGHT_END)){
+            end_h = oh;
+            break;
+        }
+    }
+    for (int ow = 0; ow < output_w; ow++){
+        if (isEncrypted_h(ow * stride, filter, padding, ENCRYPTED_WIDTH_START, ENCRYPTED_WIDTH_END)){
+            start_w = ow;
+            break;
+        }
+    }
+    for (int ow = output_w - 1; ow >= 0; ow--){
+        if (isEncrypted_h(ow * stride, filter, padding, ENCRYPTED_WIDTH_START, ENCRYPTED_WIDTH_END)){
+            end_w = ow;
+            break;
+        }
+    }
+    if (start_h == -1 || end_h == -1 || start_w == -1 || end_w == -1){
+        std::cout << "error: encrypted height or width not updated" << std::endl;
+        return;
+    }
+    ENCRYPTED_HEIGHT_START = start_h;
+    ENCRYPTED_HEIGHT_END = end_h;
+    ENCRYPTED_WIDTH_START = start_w;
+    ENCRYPTED_WIDTH_END = end_w;
+    
+    #define DEBUG
+    #ifdef DEBUG
+    //cout << "after " << layer_name << " forward" << endl;
+    //cout << "ENCRYPTED_HEIGHT_START: " << ENCRYPTED_HEIGHT_START << endl;
+    //cout << "ENCRYPTED_HEIGHT_END: " << ENCRYPTED_HEIGHT_END << endl;
+    //cout << "ENCRYPTED_WIDTH_START: " << ENCRYPTED_WIDTH_START << endl;
+    //cout << "ENCRYPTED_WIDTH_END: " << ENCRYPTED_WIDTH_END << endl;
+    //cout << "new encrypted region" << ENCRYPTED_HEIGHT_END - ENCRYPTED_HEIGHT_START + 1 << " x " << ENCRYPTED_WIDTH_END - ENCRYPTED_WIDTH_START + 1 << endl;
+    //cout << "encrypted new ratio: " << double((ENCRYPTED_HEIGHT_END - ENCRYPTED_HEIGHT_START + 1) * (ENCRYPTED_WIDTH_END - ENCRYPTED_WIDTH_START + 1)) /
+    //double(output_h * output_w) << endl;
+    cout << double((ENCRYPTED_HEIGHT_END - ENCRYPTED_HEIGHT_START + 1) * (ENCRYPTED_WIDTH_END - ENCRYPTED_WIDTH_START + 1)) / 
+    double(output_h * output_w) << endl;
+    #endif
 }
 
 

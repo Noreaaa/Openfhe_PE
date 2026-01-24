@@ -59,7 +59,7 @@ else()
     link_libraries(${OpenFHE_SHARED_LIBRARIES})
 endif()
 
-# 添加源文件并创建可执行文件
+#
 file(GLOB ENCRYPTION "src/encryption/*.cpp")
 add_library(encryption ${ENCRYPTION})
 target_include_directories(encryption PUBLIC "src/encryption")
@@ -81,12 +81,12 @@ set_property(TARGET test PROPERTY CXX_STANDARD 17)
 target_include_directories(test PRIVATE ${CNPY_INCLUDE_DIR})
 target_include_directories(test PRIVATE ${CMAKE_SOURCE_DIR}/src/include)
 
-# 禁用所有警告
+
 add_compile_options(-w)
 
 target_compile_options(test PRIVATE
-    -Wall                  # 启用所有常见警告
-    -Wextra                # 启用额外的警告
-    -Wno-unused-variable   # 忽略未使用变量的警告
-    -Wno-error             # 禁止将警告视为错误
+    -Wall                  
+    -Wextra                
+    -Wno-unused-variable   
+    -Wno-error             
 )

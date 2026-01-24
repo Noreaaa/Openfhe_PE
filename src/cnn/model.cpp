@@ -102,10 +102,24 @@ int Network::predict_P(types::vector2d<Ciphertext<DCRTPoly>> x_cts, types::doubl
 			}
 		break;
 		case CONV_2D:
+		case RELU_SS_ACTIVATION:
+			if (USE_COMPACT==true){
+				layer->forward_C(x_cts, x_pts, y_cts, y_pts);
+			}
+			else {
+				layer->forward(x_cts, x_pts, y_cts, y_pts);
+			}
+
+			x_cts.clear();
+			x_cts.reserve(y_cts.size());
+			for (auto& y_ct : y_cts) {
+			  x_cts.push_back(y_ct);
+			}
+			x_pts = std::move(y_pts);
+		break;
 		case SQUARE_ACTIVATION:
 		case AVG_POOLING:
 		case BOOTSTRAP:
-		case RELU_SS_ACTIVATION:
 		case RELU_APPX_ACTIVATION:
 
 		layer->forward(x_cts, x_pts, y_cts, y_pts);
@@ -129,30 +143,51 @@ int Network::predict_P(types::vector2d<Ciphertext<DCRTPoly>> x_cts, types::doubl
 	//#define DEBUG
 	#ifdef DEBUG
 	std::cout << "check cts:" << std::endl;
-    for (int i = 0; i < static_cast<int>(y_cts.size()); i++){
+    //for (int i = 0; i < static_cast<int>(y_cts.size()); i++){
+    //    std::cout << "encrypted row: " << i << std::endl;
+	//	int channel_cout = 0;
+    //    for (int j = 0; j < static_cast<int>(y_cts[i].size()); j++){
+    //        Plaintext plain;
+    //        CRYPTOCONTEXT->Decrypt(KEYPAIR.secretKey, y_cts[i][j], &plain);
+	//		std::vector<double> vals = plain->GetRealPackedValue();
+	//		for (int k = 0; k < static_cast<int>(vals.size()); k++){
+	//			if (channel_cout % 8 == 0){
+	//				std::cout << "channel[" << channel_cout / 8 << "]: ";
+	//			}
+	//			if (std::abs(vals[k]) < 1e-8){
+	//				std::cout << 0 << " ";
+	//			}
+	//			else {
+	//				std::cout << vals[k] << " ";
+	//			}
+	//			if (channel_cout % 8 == 7){
+	//				std::cout << std::endl;
+	//			}
+	//			channel_cout++;
+	//		}
+    //    }
+    //}
+
+	for (int i = 0; i < static_cast<int>(y_cts.size()); i++){
         std::cout << "encrypted row: " << i << std::endl;
-		int channel_cout = 0;
         for (int j = 0; j < static_cast<int>(y_cts[i].size()); j++){
             Plaintext plain;
             CRYPTOCONTEXT->Decrypt(KEYPAIR.secretKey, y_cts[i][j], &plain);
 			std::vector<double> vals = plain->GetRealPackedValue();
 			for (int k = 0; k < static_cast<int>(vals.size()); k++){
-				if (channel_cout % 8 == 0){
-					std::cout << "channel[" << channel_cout / 8 << "]: ";
-				}
+
 				if (std::abs(vals[k]) < 1e-8){
 					std::cout << 0 << " ";
 				}
 				else {
 					std::cout << vals[k] << " ";
 				}
-				if (channel_cout % 8 == 7){
-					std::cout << std::endl;
-				}
-				channel_cout++;
 			}
         }
+		std::cout << std::endl;
     }
+
+
 	//std::cout << "check pts:" << std::endl;
 	//print_3d(x_pts);
 

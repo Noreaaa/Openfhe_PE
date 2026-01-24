@@ -1,6 +1,7 @@
 #define PROFILE
 #include "cmdline.h"
 #include "openfhe.h"
+#include <sys/resource.h>
 #include "utils/types.hpp"
 #include "utils/dataloader.hpp"
 #include "utils/helper.hpp"
@@ -12,6 +13,7 @@
 #include "cnn/pool.hpp"
 #include "cnn/bootstrap.hpp"
 #include "cnn/linear.hpp"
+#include "cnn/region_update.hpp"
 #include <chrono>
 
 
@@ -45,6 +47,7 @@ int main(int argc, char *argv[]) {
     parser.add<std::string>("dataset", 'd', "dataset: CIFAR10, MNIST or ImageNet", false, "CIFAR10");
     parser.add<int>("ringDim", 'r', "ring dimension for CKKS scheme", false, 64);
     parser.add<int>("batch", 'b', "batch size for cts", false, 64);
+    parser.add<int>("act", 'a', "activation type 0 for scheme switching, 1 for polynomial approximation", false, 0);
 
     parser.parse_check(argc, argv);
     int height_start = parser.get<int>("top");
@@ -54,6 +57,7 @@ int main(int argc, char *argv[]) {
     int test_nums = parser.get<int>("nums");
     std::string MODEL_TYPE = parser.get<std::string>("model");
     std::string DATASET = parser.get<std::string>("dataset");
+    int act_type = parser.get<int>("act");
 
 
     ENCRYPTED_HEIGHT_START = height_start;
@@ -65,7 +69,7 @@ int main(int argc, char *argv[]) {
 
     int ringDim = parser.get<int>("ringDim");
     SetParamCKKS(static_cast<uint32_t>(ringDim));
-    std::vector<uint32_t> levelBudget = {3, 3};
+    std::vector<uint32_t> levelBudget = {4, 3};
     std::vector<uint32_t> bsgsDim = {0, 0};
     uint32_t numSlots = ringDim / 2;
 
@@ -85,7 +89,7 @@ int main(int argc, char *argv[]) {
     ringDim = cryptoContext->GetRingDimension();
     std::cout << "CKKS scheme is using ring dimension " << ringDim << std::endl << std::endl;
 
-    cryptoContext->EvalBootstrapSetup(levelBudget, bsgsDim, numSlots);
+    cryptoContext->EvalBootstrapSetup(levelBudget, bsgsDim, numSlots, 10);
 
     auto keyPair = cryptoContext->KeyGen();
     cryptoContext->EvalMultKeyGen(keyPair.secretKey);
@@ -256,33 +260,105 @@ int main(int argc, char *argv[]) {
         LoadConv2dBias(resnet18_path + "layer1_1_bn2_running_var.npy", var_6);
 
         model.add_layer(std::make_shared<Conv2dBN_P>(CONV_2D, "conv_bn1", filter_4d_1, 2, 3, numSlots, gamma_1, beta_1, mean_1, var_1, eps, bias_1, CONV_2D_BN));
-        model.add_layer(std::make_shared<Relu_ss>(RELU_SS_ACTIVATION, std::string("relu1"), privateKeyFHEW, numSlots));
+        if (act_type == 0){
+            model.add_layer(std::make_shared<Relu_ss>(RELU_SS_ACTIVATION, std::string("relu1"), privateKeyFHEW, numSlots));
+        }
+        else{
+            model.add_layer(std::make_shared<Relu_appx>(RELU_APPX_ACTIVATION, std::string("relu1")));
+        }
         model.add_layer(std::make_shared<Conv2dBN_P>(CONV_2D, "conv_bn2", filter_4d_2, 2, 1, numSlots, gamma_2, beta_2, mean_2, var_2, eps, bias_1, CONV_2D_BN));
-        model.add_layer(std::make_shared<Relu_ss>(RELU_SS_ACTIVATION, std::string("relu2"), privateKeyFHEW, numSlots));
+        if (act_type == 0){
+            model.add_layer(std::make_shared<Relu_ss>(RELU_SS_ACTIVATION, std::string("relu2"), privateKeyFHEW, numSlots));
+        }
+        else{
+            model.add_layer(std::make_shared<Relu_appx>(RELU_APPX_ACTIVATION, std::string("relu2")));
+        }
         model.add_layer(std::make_shared<Conv2dBN_P>(CONV_2D, "conv_bn3", filter_4d_3, 1, 1, numSlots, gamma_3, beta_3, mean_3, var_3, eps, bias_1, CONV_2D_BN));
-        model.add_layer(std::make_shared<Relu_ss>(RELU_SS_ACTIVATION, std::string("relu3"), privateKeyFHEW, numSlots));
+        if (act_type == 0){
+            model.add_layer(std::make_shared<Relu_ss>(RELU_SS_ACTIVATION, std::string("relu3"), privateKeyFHEW, numSlots));
+        }
+        else{
+            model.add_layer(std::make_shared<Relu_appx>(RELU_APPX_ACTIVATION, std::string("relu3")));
+        }
         model.add_layer(std::make_shared<Conv2dBN_P>(CONV_2D, "conv_bn4", filter_4d_4, 1, 1, numSlots, gamma_4, beta_4, mean_4, var_4, eps, bias_1, CONV_2D_BN));
-        model.add_layer(std::make_shared<Relu_ss>(RELU_SS_ACTIVATION, std::string("relu4"), privateKeyFHEW, numSlots));
+        if (act_type == 0){
+            model.add_layer(std::make_shared<Relu_ss>(RELU_SS_ACTIVATION, std::string("relu4"), privateKeyFHEW, numSlots));
+        }
+        else{
+            model.add_layer(std::make_shared<Relu_appx>(RELU_APPX_ACTIVATION, std::string("relu4")));
+        }
         model.add_layer(std::make_shared<Conv2dBN_P>(CONV_2D, "conv_bn5", filter_4d_5, 1, 1, numSlots, gamma_5, beta_5, mean_5, var_5, eps, bias_1, CONV_2D_BN));
-        model.add_layer(std::make_shared<Relu_ss>(RELU_SS_ACTIVATION, std::string("relu5"), privateKeyFHEW, numSlots));
+        if (act_type == 0){
+            model.add_layer(std::make_shared<Relu_ss>(RELU_SS_ACTIVATION, std::string("relu5"), privateKeyFHEW, numSlots));
+        }
+        else{
+            model.add_layer(std::make_shared<Relu_appx>(RELU_APPX_ACTIVATION, std::string("relu5")));
+        }
         model.add_layer(std::make_shared<Conv2dBN_P>(CONV_2D, "conv_bn6", filter_4d_6, 1, 1, numSlots, gamma_6, beta_6, mean_6, var_6, eps, bias_1, CONV_2D_BN));
-        model.add_layer(std::make_shared<Relu_ss>(RELU_SS_ACTIVATION, std::string("relu6"), privateKeyFHEW, numSlots));
+        if (act_type == 0){
+            model.add_layer(std::make_shared<Relu_ss>(RELU_SS_ACTIVATION, std::string("relu6"), privateKeyFHEW, numSlots));
+        }
+        else{
+            model.add_layer(std::make_shared<Relu_appx>(RELU_APPX_ACTIVATION, std::string("relu6")));
+        }
+        types::double3d golden_res = GoldenConv2d(input_3d, filter_4d_1, bias_1, 2, 3);
+        GoldenBN(golden_res, gamma_1, beta_1, mean_1, var_1, eps);
+        golden_Relu(golden_res);
+        //print_3d(golden_res);
 
-        Encrypt_MCSR_P(input_3d, numSlots, 3, CRYPTOCONTEXT, height_start, height_end, width_start, width_end, keyPair, x_ctxt_2d);
+        USE_COMPACT = false;
+        if (USE_COMPACT == true){
+            Encrypt_MCSR_P_COMPACT(input_3d, numSlots, CRYPTOCONTEXT, height_start, height_end, width_start, width_end, keyPair, x_ctxt_2d);
+        }
+        else{
+            Encrypt_MCSR_P(input_3d, numSlots, CRYPTOCONTEXT, height_start, height_end, width_start, width_end, keyPair, x_ctxt_2d);
+        }
 
         auto start = std::chrono::high_resolution_clock::now();
         int predict_label = model.predict_P(x_ctxt_2d, input_3d);
         auto end = std::chrono::high_resolution_clock::now();
         std::cout << "prediction time: " << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << "ms" << std::endl;
 
-        return 0;
-
 
     }
     else if (MODEL_TYPE == "baseline_test"){
+
+
+        // load transformed image 
+        types::double4d filter_4d_1, filter_4d_2, filter_4d_3, filter_4d_4, filter_4d_5, filter_4d_6;
+        std::vector<double> gamma_1, gamma_2, gamma_3, gamma_4, gamma_5, gamma_6;
+        std::vector<double> beta_1, beta_2, beta_3, beta_4, beta_5, beta_6;
+        std::vector<double> mean_1, mean_2, mean_3, mean_4, mean_5, mean_6;
+        std::vector<double> var_1, var_2, var_3, var_4, var_5, var_6;
+        types::double2d linear_weight_1, linear_weight_2;
+        std::vector<double> linear_bias_1, linear_bias_2;  
+        std::vector<double> bias_1(64,0.0);
+
+        CONV_BIAS = false;
+
+        double3d input_3d = load_bin_image_double(imagenet_image_path + "ILSVRC2012_val_00000029.bin");
+        std::cout << "Shape of input_3d: " << input_3d.size() << "x" << input_3d[0].size() << "x" << input_3d[0][0].size() << std::endl;
+
+        std::cout << "ResNet-18 model is being loaded..." << std::endl;
+
+
+        // convbn1
+        filter_4d_1 = LoadConv2dWeight(resnet18_path + "conv1_weight.npy");
+        LoadConv2dBias(resnet18_path + "bn1_weight.npy", gamma_1);
+        LoadConv2dBias(resnet18_path + "bn1_bias.npy", beta_1);
+        LoadConv2dBias(resnet18_path + "bn1_running_mean.npy", mean_1);
+        LoadConv2dBias(resnet18_path + "bn1_running_var.npy", var_1);
+
+        filter_4d_2 = LoadConv2dWeight(resnet18_path + "maxpool_0_weight.npy");
+        LoadConv2dBias(resnet18_path + "maxpool_1_weight.npy", gamma_2);
+        LoadConv2dBias(resnet18_path + "maxpool_1_bias.npy", beta_2);
+        LoadConv2dBias(resnet18_path + "maxpool_1_running_mean.npy", mean_2);
+        LoadConv2dBias(resnet18_path + "maxpool_1_running_var.npy", var_2);
+
+        
         types::double4d filter_4d_1;
         types::double3d input_3d;
-        int stride = 2;
+        int stride = 1;
         int kernel_size = 3;
         int test_height = height_end - height_start + 1;
         int test_width = width_end - width_start + 1;
@@ -330,90 +406,19 @@ int main(int argc, char *argv[]) {
         }
         std::cout << "average percentage loss: " << sum / (result.size() * result[0].size() * result[0][0].size()) << std::endl;
 
+    } else if (MODEL_TYPE == "encryption_estimate"){
+        encrypted_regions enc_regions;
+        vector<int> filter_sizes = {};
+        vector<int> stride_sizes = {};
+        vector<int> padding_sizes = {};
+        initialize_Encrypted_Regions(enc_regions, 3, 1, )
+
     }
 
-
-    // test the encrypt mcsr p 
-/*
-
-    int label = 0;
-    long long total_time = 0;
-    int correct_count = 0; 
-    CRYPTOCONTEXT = cryptoContext;
-    KEYPAIR = keyPair;
-    
-
-    if (MODEL_TYPE == "HCNN"){
-        for (int i = 0; i < test_nums; i++){
-            LoadImageCifar(cifar_image_path, image_3d, label, i);
-            NormalizeImage(image_3d);
-            LoadImageCifar(cifar_image_path, verification_3d, label, i);
-            NormalizeImage(verification_3d);
-            Encrypt_MCSR_P(image_3d, numSlots, 2, cryptoContext, height_start, height_end, width_start, width_end, keyPair, x_ctxt_2d);
-
-            //KEYPAIR = keyPair;
-            ENCRYPTED_HEIGHT_START = height_start;
-            ENCRYPTED_HEIGHT_END = height_end;
-            ENCRYPTED_WIDTH_START = width_start;
-            ENCRYPTED_WIDTH_END = width_end;
-            std::cout << "image[" << i <<"]:" << std::endl;
-            //print_3d(image_3d);
-
-
-            auto start = std::chrono::high_resolution_clock::now();
-
-            int predict_label = model.predict_P(x_ctxt_2d, image_3d);
-            auto end = std::chrono::high_resolution_clock::now();
-            std::cout << "prediction time: " << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << "ms" << std::endl;
-            total_time += std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
-            //std::cout << "true result: " << label << std::endl;
-            #ifdef _OPENMP
-            #pragma omp critical
-            #endif
-            {
-                double3d result_1 = GoldenConv2d(verification_3d, filter_4d_1, bias_1, 1, 1);
-                GoldenBN(result_1, gamma_1, beta_1, mean_1, var_1, eps);
-                //golden_Square(result_1);
-                golden_Relu(result_1);
-                golden_AvgPooling(result_1, 2, 2);
-                double3d result_2 = GoldenConv2d(result_1, filter_4d_2, bias_2, 1, 1);
-                GoldenBN(result_2, gamma_2, beta_2, mean_2, var_2, eps);
-                //golden_Square(result_2);
-                golden_Relu(result_2);
-                golden_AvgPooling(result_2, 2, 2);
-                double3d result_3 = GoldenConv2d(result_2, filter_4d_3, bias_3, 1, 1);
-                GoldenBN(result_3, gamma_3, beta_3, mean_3, var_3, eps);
-                //golden_Square(result_3);
-                golden_Relu(result_3);
-                golden_AvgPooling(result_3, 2, 2);
-                std::vector<double> golden_output_1d;
-                GoldenLinear_3d_input(result_3, linear_weight_1, linear_bias_1, golden_output_1d);
-                GoldenLinear(golden_output_1d, linear_weight_2, linear_bias_2);
-
-                print_3d(result_3);
-                double max = -1000;
-                int golden_label = -1;
-                if(label == predict_label){
-                    correct_count++;
-                }
-                std::cout << "predicted label: " << predict_label << ", true label: " << label << ", golden label:" << golden_label << std::endl;
-
-            }
-
-        }
-    }
-    else if (MODEL_TYPE == "ResNet-8"){
-        
-    }
-
-    std::cout << "average predicted time: " << total_time/test_nums << "ms" << std::endl;
-    double accuracy = (double)correct_count / (double)test_nums;
-    std::cout << "accuracy: " << accuracy * 100 << "%" << std::endl;
-
-
-
-*/
-
+    struct rusage usage;
+    getrusage(RUSAGE_SELF, &usage);
+    double peak_gb = usage.ru_maxrss / 1024.0 / 1024.0;  // KB -> GB
+    std::cout << "Peak memory: " << peak_gb << " GB" << std::endl;
 
     return 0;
     
@@ -468,9 +473,9 @@ void SetParamCKKS(uint32_t RingDim){
     usint firstMod               = 89;
 #else
     // All modes are supported for 64-bit CKKS bootstrapping.
-    ScalingTechnique rescaleTech = FIXEDAUTO;
-    usint scaleModSize               = 51;
-    usint firstMod               = 60;
+    ScalingTechnique rescaleTech = FLEXIBLEAUTO;
+    usint scaleModSize               = 30;
+    usint firstMod               = 40;
 #endif
 
     parameters.SetScalingModSize(scaleModSize);
@@ -501,7 +506,7 @@ void SetParamCKKS(uint32_t RingDim){
     * using GetBootstrapDepth, and add it to levelsAvailableAfterBootstrap to set our initial multiplicative
     * depth.
     */
-    uint32_t levelsAvailableAfterBootstrap = 26;
+    uint32_t levelsAvailableAfterBootstrap = 3;
     usint depth = levelsAvailableAfterBootstrap + FHECKKSRNS::GetBootstrapDepth(levelBudget, secretKeyDist);
     std::cout << "depth: " << depth << std::endl;
     parameters.SetMultiplicativeDepth(depth);

@@ -183,4 +183,4 @@ relu6 forward
 finish unencrypted relu_ss
 finished relu6 forward
 predicted result: -1
-prediction time: 283821ms
+prediction time: 283,821ms

@@ -292,3 +292,25 @@ void Gen_test_vector4d(types::double4d& data, int out_channel, int in_channel, i
         }
     }
 }
+
+bool isEncrypted_h(int val, int filter_size, int padding, int start, int end){
+    int window_start = val;
+    int window_end = val + filter_size - 1;  
+
+    int encrypted_start = start + padding;
+    int encrypted_end = end + padding;
+
+    // check if the window overlaps with the encrypted region
+    return !(window_end < encrypted_start || window_start > encrypted_end);
+}
+
+// check if the output value will involve encrypted values
+bool isEncrypted(int oh, int ow, int fh, int fw, int padding) {
+    int end_h = oh + fh;
+    int end_w = ow + fw;
+
+    bool height_overlap = (oh <= ENCRYPTED_HEIGHT_END + padding && end_h > ENCRYPTED_HEIGHT_START + padding);
+    bool width_overlap = (ow <= ENCRYPTED_WIDTH_END + padding && end_w > ENCRYPTED_WIDTH_START + padding);
+
+    return height_overlap && width_overlap;
+}

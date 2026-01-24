@@ -135,7 +135,6 @@ void Relu_ss::forward(types::vector2d<Ciphertext<DCRTPoly>>& x_cts, double3d& x_
             auto amplified_cts = CRYPTOCONTEXT->EvalMult(x_cts[i][j], 1000);
             auto LWECiphertexts = CRYPTOCONTEXT -> EvalCKKStoFHEW(amplified_cts, batch_size_);
             std::vector<double> relu_signs(batch_size_, 0);
-
             for (size_t k = 0; k + input_w < batch_size_; k += input_w){
                 for (int w = ENCRYPTED_WIDTH_START; w <= ENCRYPTED_WIDTH_END; w++){
                     LWEPlaintext plainLWE;
@@ -149,12 +148,112 @@ void Relu_ss::forward(types::vector2d<Ciphertext<DCRTPoly>>& x_cts, double3d& x_
             y_cts[i][j] = CRYPTOCONTEXT->EvalMult(x_cts[i][j], CRYPTOCONTEXT->MakeCKKSPackedPlaintext(relu_signs));
         }
     }
+
+    //types::vector3d<lbcrypto::LWECiphertext> LWECiphertexts_3d;
+    //LWECiphertexts_3d.resize(x_cts.size());
+    //for (size_t i = 0; i < x_cts.size(); i++){
+    //    LWECiphertexts_3d[i].resize(dim_2);
+    //}
+    //#ifdef _OPENMP
+    //#pragma omp parallel for collapse(2)
+    //#endif
+    //for (size_t i = 0; i < x_cts.size(); i++){
+    //    for (size_t j = 0; j < dim_2; j++){
+    //        auto amplified_cts = CRYPTOCONTEXT->EvalMult(x_cts[i][j], 1000);
+    //        auto LWECiphertexts = CRYPTOCONTEXT -> EvalCKKStoFHEW(amplified_cts, batch_size_);
+    //        LWECiphertexts_3d[i][j] = LWECiphertexts;
+    //    }
+    //}
+    //types::double3d relu_signs_3d;
+    //relu_signs_3d.resize(x_cts.size());
+    //for (size_t i = 0; i < x_cts.size(); i++){
+    //    relu_signs_3d[i].resize(dim_2);
+    //    for (size_t j = 0; j < dim_2; j++){
+    //        relu_signs_3d[i][j].resize(batch_size_, 0);
+    //    }
+    //}
+    //#ifdef _OPENMP
+    //#pragma omp parallel for collapse(4)
+    //#endif
+    //for (size_t i = 0; i < x_cts.size(); i++){
+    //    for (size_t j = 0; j < dim_2; j++){
+    //        for (size_t k = 0; k < batch_size_ - input_w; k += input_w){
+    //            for (int w = ENCRYPTED_WIDTH_START; w <= ENCRYPTED_WIDTH_END; w++){
+    //                LWEPlaintext plainLWE;
+    //                LWECiphertext LWESign = CCLWE->EvalSign(LWECiphertexts_3d[i][j][k + w]);
+    //                CCLWE->Decrypt(FHEWKey_, LWESign, &plainLWE, 2);
+    //                if (plainLWE == 0){
+    //                    relu_signs_3d[i][j][k + w] = 1;
+    //                }
+    //            }
+    //        }
+    //    }
+    //}
+    //#ifdef _OPENMP
+    //#pragma omp parallel for collapse(2)
+    //#endif
+    //for (size_t i = 0; i < x_cts.size(); i++){
+    //    for (size_t j = 0; j < dim_2; j++){
+    //        y_cts[i][j] = CRYPTOCONTEXT->EvalMult(x_cts[i][j], CRYPTOCONTEXT->MakeCKKSPackedPlaintext(relu_signs_3d[i][j]));
+    //    }
+    //}
+
     std::cout << "finished " << layer_name_ << " forward" << std::endl;
-    
-    
+}
 
-    
+void Relu_ss::forward_C(types::vector2d<Ciphertext<DCRTPoly>>& x_cts, double3d& x_pts,
+    types::vector2d<Ciphertext<DCRTPoly>>& y_cts, double3d& y_pts) {
 
+    cout << layer_name_ << " forward" << endl;
+
+    y_cts.resize(x_cts.size());
+
+    for (size_t i = 0; i < x_cts.size(); i++){
+        y_cts[i].resize(x_cts[i].size());
+    }
+
+    size_t dim_2 = x_cts[0].size();
+    y_pts.resize(x_pts.size());
+    for (size_t i = 0; i < x_pts.size(); i++){
+        y_pts[i].resize(x_pts[i].size());
+        for (size_t j = 0; j < x_pts[i].size(); j++){
+            y_pts[i][j].resize(x_pts[i][j].size());
+            for (size_t k = 0; k < x_pts[i][j].size(); k++){
+                y_pts[i][j][k] = x_pts[i][j][k] >= 0 ? x_pts[i][j][k] : 0;
+            }
+        }
+    }
+
+    std::cout << "finish unencrypted relu_ss" << std::endl;
+    //evaluate with sign evaluation in FHEW 1 if negative, 0 if positive
+
+    int valid_slots;
+    valid_slots = batch_size_/(ENCRYPTED_WIDTH_END - ENCRYPTED_WIDTH_START + 1);
+    valid_slots *= (ENCRYPTED_WIDTH_END - ENCRYPTED_WIDTH_START + 1);
+    #ifdef _OPENMP
+    #pragma omp parallel for collapse(2)
+    #endif
+    for (size_t i = 0; i < x_cts.size(); i++){
+        for (size_t j = 0; j < dim_2; j++){
+            auto amplified_cts = CRYPTOCONTEXT->EvalMult(x_cts[i][j], 1000);
+            if (j == dim_2 - 1){
+                valid_slots = REMAINING_SLOTS;
+            }
+            auto LWECiphertexts = CRYPTOCONTEXT -> EvalCKKStoFHEW(amplified_cts, valid_slots);
+            std::vector<double> relu_signs(batch_size_, 0);
+
+            for (int k = 0; k < valid_slots; k ++){
+                    LWEPlaintext plainLWE;
+                    LWECiphertext LWESign = CCLWE->EvalSign(LWECiphertexts[k]);
+                    CCLWE->Decrypt(FHEWKey_, LWESign, &plainLWE, 2);
+                    if (plainLWE == 0){
+                        relu_signs[k] = 1;
+                    }
+            }
+            y_cts[i][j] = CRYPTOCONTEXT->EvalMult(x_cts[i][j], CRYPTOCONTEXT->MakeCKKSPackedPlaintext(relu_signs));
+        }
+    }
+    std::cout << "finished " << layer_name_ << "_COMPACT forward" << std::endl;
 }
 
 void Relu_ss::forward(std::vector<Ciphertext<DCRTPoly>>& x_cts,
@@ -286,6 +385,7 @@ lbcrypto::Ciphertext<DCRTPoly> EvalF3(lbcrypto::Ciphertext<DCRTPoly>& x) {
     return result;
 }
 
+//dergree 7 polynomial approx
 void Relu_appx::forward(std::vector<Ciphertext<DCRTPoly>>& x_cts,
     std::vector<Ciphertext<DCRTPoly>>& y_cts) {
     cout << layer_name_ << " forward" << endl;
@@ -307,6 +407,7 @@ void Relu_appx::forward(std::vector<Ciphertext<DCRTPoly>>& x_cts,
     }
 }
 
+//degree 7 polynomial approx
 void Relu_appx::forward(types::vector2d<Ciphertext<DCRTPoly>>& x_cts, double3d& x_pts,
             types::vector2d<Ciphertext<DCRTPoly>>& y_cts, double3d& y_pts){
     cout << layer_name_ << " forward" << endl;
@@ -335,20 +436,31 @@ void Relu_appx::forward(types::vector2d<Ciphertext<DCRTPoly>>& x_cts, double3d& 
     #endif
     for (size_t i = 0; i < x_cts.size(); i++){
         for (size_t j = 0; j < dim_2; j++){
-            auto f1x = EvalF1(x_cts[i][j]);
-            f1x = CRYPTOCONTEXT->EvalBootstrap(f1x, 1, 50);
-            auto f2x = EvalF2(f1x);
-            f2x = CRYPTOCONTEXT->EvalBootstrap(f2x, 1, 50);
-            auto f3x = EvalF3(f2x);
-            f3x = CRYPTOCONTEXT->EvalBootstrap(f3x, 1, 50);
-            auto x_sign = CRYPTOCONTEXT->EvalMult(x_cts[i][j],f3x);
-            if (RESCALE_REQUIRED)
-                x_sign = CRYPTOCONTEXT->Rescale(x_sign);
-            auto relu = CRYPTOCONTEXT->EvalAdd(x_cts[i][j], x_sign);
-            y_cts[i][j] = CRYPTOCONTEXT->EvalMult(relu, 0.5);
-            //y_cts[i][j] = CRYPTOCONTEXT->EvalBootstrap(relu, 1, 0);
-            if (RESCALE_REQUIRED)
-                y_cts[i][j] = CRYPTOCONTEXT->Rescale(y_cts[i][j]);
+            auto x2 = CRYPTOCONTEXT->EvalMult(x_cts[i][j], x_cts[i][j]);
+            auto term = CRYPTOCONTEXT->EvalMult(x2, 1.1551725);
+            term = CRYPTOCONTEXT->EvalAdd(term, -2.089185);
+            term = CRYPTOCONTEXT->EvalMult(term, x2);
+            term = CRYPTOCONTEXT->EvalAdd(term, 1.4340124);
+            term = CRYPTOCONTEXT->EvalMult(term, x2);
+            auto halfx = CRYPTOCONTEXT->EvalMult(x_cts[i][j], 0.5);
+            term = CRYPTOCONTEXT->EvalAdd(term, halfx);
+            term = CRYPTOCONTEXT->EvalBootstrap(term, 1, 0);
+            y_cts[i][j] = CRYPTOCONTEXT->EvalAdd(term, 0.0229645);
+
+            //auto f1x = EvalF1(x_cts[i][j]);
+            //f1x = CRYPTOCONTEXT->EvalBootstrap(f1x, 1, 50);
+            //auto f2x = EvalF2(f1x);
+            //f2x = CRYPTOCONTEXT->EvalBootstrap(f2x, 1, 50);
+            //auto f3x = EvalF3(f2x);
+            //f3x = CRYPTOCONTEXT->EvalBootstrap(f3x, 1, 50);
+            //auto x_sign = CRYPTOCONTEXT->EvalMult(x_cts[i][j],f3x);
+            //if (RESCALE_REQUIRED)
+            //    x_sign = CRYPTOCONTEXT->Rescale(x_sign);
+            //auto relu = CRYPTOCONTEXT->EvalAdd(x_cts[i][j], x_sign);
+            //y_cts[i][j] = CRYPTOCONTEXT->EvalMult(relu, 0.5);
+            ////y_cts[i][j] = CRYPTOCONTEXT->EvalBootstrap(relu, 1, 0);
+            //if (RESCALE_REQUIRED)
+            //    y_cts[i][j] = CRYPTOCONTEXT->Rescale(y_cts[i][j]);
         }
     }
 }

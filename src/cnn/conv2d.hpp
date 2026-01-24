@@ -105,8 +105,13 @@
 
             Plaintext GenPlainFilter(int out_channel, int height, int output_width_idx, int input_w, int cts_idx, int channels_per_cts);
 
+            Plaintext GenPlainFilter_C(int out_channel, int height, int cts_idx, int channels_per_cts, vector<int> encrypted_filter_idxes, int encrypted_width);
+
             void forward(types::vector2d<Ciphertext<DCRTPoly>>& x_cts, double3d& x_pts,
                 types::vector2d<Ciphertext<DCRTPoly>>& y_cts, double3d& y_pts) override;
+
+            void forward_C(types::vector2d<Ciphertext<DCRTPoly>>& x_cts, double3d& x_pts,
+            types::vector2d<Ciphertext<DCRTPoly>>& y_cts, double3d& y_pts) override;
 
         private:
             types::double4d filters_;
@@ -128,13 +133,11 @@
 
     void GoldenBN(double3d& input, vector<double>& gamma, vector<double> beta, vector<double> running_mean, vector<double> running_var,
         double epsilon);
-    
-    bool isEncrypted_h(int val, int filter_size, int padding, int start, int end);
-
-    bool isEncrypted(int oh, int ow, int fh, int fw, int padding);
 
     std::vector<std::pair<int, int>> generate_anchor(int height, int width, int stride, int kernel_size);
 
     void update_index_maps(int height, int width, int stride, int kernel_size, bool initial);
+
+    void update_Encrypted_Region(std::string layer_name,int output_h, int output_w, int filter, int padding, int stride);
 
     

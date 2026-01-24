@@ -84,6 +84,11 @@ public:
     std::cerr << "forward is not implemented." << std::endl;
   }
 
+  virtual void forward_C(types::vector2d<Ciphertext<DCRTPoly>>& x_cts, double3d& x_pts,
+  types::vector2d<Ciphertext<DCRTPoly>>& y_cts, double3d& y_pts) {
+    std::cerr << "forward_C is not implemented." << std::endl;
+  }
+
 protected:
   PLayerType layer_type_;
   std::string layer_name_;
