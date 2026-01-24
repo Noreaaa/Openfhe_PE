@@ -11,7 +11,7 @@ This is the REPO for PFHE, we accelerated encrypted CNN through a partial encryp
 ## Requirements
 - OS: Linux
 - CMake >= 3.5.1
-- OpenFHE
+- OpenFHE 1.2.4
 - OpenMP
 - cnpy
 
