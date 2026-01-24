@@ -332,7 +332,6 @@ int main(int argc, char *argv[]) {
         std::vector<double> var_1, var_2, var_3, var_4, var_5, var_6;
         types::double2d linear_weight_1, linear_weight_2;
         std::vector<double> linear_bias_1, linear_bias_2;  
-        std::vector<double> bias_1(64,0.0);
 
         CONV_BIAS = false;
 
@@ -355,9 +354,6 @@ int main(int argc, char *argv[]) {
         LoadConv2dBias(resnet18_path + "maxpool_1_running_mean.npy", mean_2);
         LoadConv2dBias(resnet18_path + "maxpool_1_running_var.npy", var_2);
 
-        
-        types::double4d filter_4d_1;
-        types::double3d input_3d;
         int stride = 1;
         int kernel_size = 3;
         int test_height = height_end - height_start + 1;
@@ -406,14 +402,14 @@ int main(int argc, char *argv[]) {
         }
         std::cout << "average percentage loss: " << sum / (result.size() * result[0].size() * result[0][0].size()) << std::endl;
 
-    } else if (MODEL_TYPE == "encryption_estimate"){
+    } /*else if (MODEL_TYPE == "encryption_estimate"){
         encrypted_regions enc_regions;
         vector<int> filter_sizes = {};
         vector<int> stride_sizes = {};
         vector<int> padding_sizes = {};
         initialize_Encrypted_Regions(enc_regions, 3, 1, )
 
-    }
+    }*/
 
     struct rusage usage;
     getrusage(RUSAGE_SELF, &usage);

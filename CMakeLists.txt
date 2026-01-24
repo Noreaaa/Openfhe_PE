@@ -36,7 +36,6 @@ else()
     message(FATAL_ERROR "PACKAGE OpenFHE NOT FOUND")
 endif()
 
-# 设置 CXX 编译选项
 set(CMAKE_CXX_FLAGS ${OpenFHE_CXX_FLAGS})
 
 include_directories(${OPENMP_INCLUDES})
