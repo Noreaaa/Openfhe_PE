@@ -78,15 +78,25 @@ a nonzero exit status; do not use a failed result as a valid performance point.
 ## Security and matching your CNN
 
 CKKS uses `HEStd_NotSet`, uniform ternary secrets, HYBRID switching with
-three large digits. The ring dimension is set explicitly by `--ring`, without
-the CKKS 128-bit security-level check. These runs do not establish 128-bit
-security. FHEW still uses `STD128`, not `TOY`.
+three large digits by default (`--digits 3`), matching `SetParamCKKS` in
+`src/main.cpp`. FHEW uses `TOY` and logQ=25, matching `SetParam_TFHE`.
+The ring dimension is explicitly set by `--ring`. These are experimental
+parameters, without a 128-bit security requirement.
 
-Defaults are depth 3, 50-bit scale, 60-bit first modulus, level 0 (FLEXIBLEAUTO
-for 64-bit native integers; FIXEDAUTO for 128-bit). They intentionally isolate
-conversion and are not the original CNN parameters. For an experiment matching
-your application, specify `--depth`, `--scale-bits`, `--first-bits`, and `--level`
-and retain the parameter record. `level` creates an input directly at that
+Defaults follow main.cpp: depth is computed as
+`3 + FHECKKSRNS::GetBootstrapDepth({3, 3}, UNIFORM_TERNARY)`, with 30-bit scale,
+40-bit first modulus and FLEXIBLEAUTO on 64-bit builds. On native 128-bit builds,
+use 78/89 bits and FIXEDAUTO (the intended settings of main.cpp's 128-bit branch).
+Calling GetBootstrapDepth only computes the chain depth; it does not perform
+bootstrapping. The actual default depth is printed in help and the run log.
+Optional `--depth`, `--scale-bits`, `--first-bits`, `--digits`, and `--level`
+override these defaults. If explicitly choosing `--depth 3`, also use `--digits 2`
+to avoid the four-tower/three-digit partition error on FLEXIBLEAUTO builds.
+Keep all these parameters fixed across slot-count comparisons.
+
+Unlike main.cpp, this test explicitly sets the encoding/switching slots to S
+and generates only the forward switching keys. Input level defaults to 0.
+`level` creates an input directly at that
 level; it does not reproduce accumulated CNN noise. At least three levels of
 depth must remain. No EvalSign, FHEW bootstrapping keys, or reverse conversion
 are included. Do not compare these numbers to the complete activation time.

@@ -19,8 +19,16 @@ using Clock = std::chrono::steady_clock;
 
 struct Options {
     uint32_t ring = 16384, slots = 1024, outputs = 64;
-    uint32_t depth = 3, level = 0, scaleBits = 50, firstBits = 60;
-    uint32_t repeats = 5, warmup = 1, threads = 1;
+    // Match SetParamCKKS in src/main.cpp. This only computes a parameter;
+    // it does not set up or execute bootstrapping.
+    uint32_t depth = 3 + FHECKKSRNS::GetBootstrapDepth({3, 3}, UNIFORM_TERNARY);
+    uint32_t level = 0;
+#if NATIVEINT == 128 && !defined(__EMSCRIPTEN__)
+    uint32_t scaleBits = 78, firstBits = 89;
+#else
+    uint32_t scaleBits = 30, firstBits = 40;
+#endif
+    uint32_t repeats = 5, warmup = 1, threads = 1, digits = 3;
 };
 
 static uint32_t parseUint(const std::string& value) {
@@ -45,8 +53,10 @@ int main(int argc, char** argv) {
             if (arg == "--help") {
                 std::cout << "Usage: sparse_packing_bench [--ring 16384] [--slots 1024]\n"
                           << "  [--outputs 64] [--repeats 5] [--warmup 1] [--threads 1]\n"
-                          << "  [--depth 3] [--level 0] [--scale-bits 50] [--first-bits 60]\n"
-                          << "CKKS: HEStd_NotSet, UNIFORM_TERNARY, HYBRID. FHEW: STD128.\n"
+                          << "  [--depth D] [--level 0] [--scale-bits B] [--first-bits B] [--digits 3]\n"
+                          << "Defaults from main.cpp: depth=" << o.depth << ", scale-bits=" << o.scaleBits
+                          << ", first-bits=" << o.firstBits << '\n'
+                          << "CKKS: HEStd_NotSet, UNIFORM_TERNARY, HYBRID. FHEW: TOY.\n"
                           << "Times are milliseconds. stdout is CSV; diagnostics go to stderr.\n";
                 return 0;
             }
@@ -60,6 +70,7 @@ int main(int argc, char** argv) {
             else if (arg == "--warmup") o.warmup = value;
             else if (arg == "--threads") o.threads = value;
             else if (arg == "--depth") o.depth = value;
+            else if (arg == "--digits") o.digits = value;
             else if (arg == "--level") o.level = value;
             else if (arg == "--scale-bits") o.scaleBits = value;
             else if (arg == "--first-bits") o.firstBits = value;
@@ -72,15 +83,23 @@ int main(int argc, char** argv) {
             throw std::invalid_argument("Require 1 <= outputs <= slots, repeats > 0, valid threads > 0");
         if (o.depth < 3 || o.level > o.depth - 3)
             throw std::invalid_argument("Leave at least depth 3 for switching: level <= depth - 3");
-        if (o.scaleBits < 30 || o.scaleBits > 59 || o.firstBits < o.scaleBits || o.firstBits > 60)
-            throw std::invalid_argument("Require 30 <= scale-bits <= 59 and scale-bits <= first-bits <= 60");
+        if (!o.digits)
+            throw std::invalid_argument("digits must be positive; OpenFHE validates tower partition compatibility");
+#if NATIVEINT == 128 && !defined(__EMSCRIPTEN__)
+        constexpr uint32_t maxScaleBits = 89, maxFirstBits = 89;
+#else
+        constexpr uint32_t maxScaleBits = 59, maxFirstBits = 60;
+#endif
+        if (o.scaleBits < 30 || o.scaleBits > maxScaleBits || o.firstBits < o.scaleBits || o.firstBits > maxFirstBits)
+            throw std::invalid_argument("Invalid scale/first modulus sizes for this native integer build");
 
         omp_set_dynamic(0);
         omp_set_num_threads(static_cast<int>(o.threads));
         std::cerr << "OpenFHE=" << BENCH_OPENFHE_VERSION << ", NATIVEINT=" << NATIVEINT
                   << ", ring=" << o.ring << ", slots=" << o.slots
-                  << ", outputs=" << o.outputs << ", threads=" << omp_get_max_threads()
-                  << ", CKKS=HEStd_NotSet, FHEW=STD128\n";
+                  << ", outputs=" << o.outputs << ", digits=" << o.digits << ", threads=" << omp_get_max_threads()
+                  << ", depth=" << o.depth << ", scale_bits=" << o.scaleBits << ", first_bits=" << o.firstBits
+                  << ", CKKS=HEStd_NotSet, FHEW=TOY\n";
 
         auto setupStart = Clock::now();
         CCParams<CryptoContextCKKSRNS> p;
@@ -92,8 +111,8 @@ int main(int argc, char** argv) {
         p.SetFirstModSize(o.firstBits);
         p.SetSecretKeyDist(UNIFORM_TERNARY);
         p.SetKeySwitchTechnique(HYBRID);
-        p.SetNumLargeDigits(3);
-#if NATIVEINT == 128
+        p.SetNumLargeDigits(o.digits);
+#if NATIVEINT == 128 && !defined(__EMSCRIPTEN__)
         p.SetScalingTechnique(FIXEDAUTO);
 #else
         p.SetScalingTechnique(FLEXIBLEAUTO);
@@ -109,7 +128,7 @@ int main(int argc, char** argv) {
         constexpr uint32_t logQ = 25;
         SchSwchParams sw;
         sw.SetSecurityLevelCKKS(HEStd_NotSet);
-        sw.SetSecurityLevelFHEW(STD128);
+        sw.SetSecurityLevelFHEW(TOY);
         sw.SetNumSlotsCKKS(o.slots);
         sw.SetNumValues(o.outputs);
         sw.SetCtxtModSizeFHEWLargePrec(logQ);
@@ -187,11 +206,11 @@ int main(int argc, char** argv) {
         double median = timings.size() % 2 ? timings[middle] :
                         (timings[middle - 1] + timings[middle]) / 2;
         double mean = std::accumulate(timings.begin(), timings.end(), 0.0) / timings.size();
-        std::cout << "openfhe,ring,slots,outputs,depth,level,scale_bits,first_bits,threads,repeats,"
+        std::cout << "openfhe,ring,slots,outputs,depth,level,scale_bits,first_bits,digits,threads,repeats,"
                      "warmup,setup_ms,min_ms,median_ms,mean_ms,max_ms,ckks_max_error,lwe_max_error,passed\n";
         std::cout << std::setprecision(10) << BENCH_OPENFHE_VERSION << ',' << cc->GetRingDimension()
                   << ',' << o.slots << ',' << o.outputs << ',' << o.depth << ',' << o.level
-                  << ',' << o.scaleBits << ',' << o.firstBits << ',' << o.threads
+                  << ',' << o.scaleBits << ',' << o.firstBits << ',' << o.digits << ',' << o.threads
                   << ',' << o.repeats << ',' << o.warmup << ',' << setupMs
                   << ',' << timings.front() << ',' << median << ',' << mean << ',' << timings.back()
                   << ',' << ckksError << ',' << worstError << ',' << (worstError <= 1 ? "true" : "false") << '\n';
