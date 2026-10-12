@@ -69,7 +69,11 @@ target_include_directories(cnn PUBLIC "src/cnn")
 
 file(GLOB SOURCES "src/*.cpp")
 file(GLOB common_sources src/utils/*.cpp)
-add_executable(test "src/main.cpp" ${common_sources})
+add_executable(test "src/main.cpp" ${common_sources}
+    src/init/hcnn.cpp
+    src/init/resnet18.cpp
+    src/init/baseline_test.cpp
+)
 
 target_link_libraries(test encryption)
 target_link_libraries(test cnn)

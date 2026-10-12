@@ -135,7 +135,7 @@ void Relu_ss::forward(types::vector2d<Ciphertext<DCRTPoly>>& x_cts, double3d& x_
             auto amplified_cts = CRYPTOCONTEXT->EvalMult(x_cts[i][j], 1000);
             auto LWECiphertexts = CRYPTOCONTEXT -> EvalCKKStoFHEW(amplified_cts, batch_size_);
             std::vector<double> relu_signs(batch_size_, 0);
-            for (size_t k = 0; k + input_w < batch_size_; k += input_w){
+            for (size_t k = 0; k + input_w <= batch_size_; k += input_w){
                 for (int w = ENCRYPTED_WIDTH_START; w <= ENCRYPTED_WIDTH_END; w++){
                     LWEPlaintext plainLWE;
                     LWECiphertext LWESign = CCLWE->EvalSign(LWECiphertexts[k + w]);
@@ -145,7 +145,7 @@ void Relu_ss::forward(types::vector2d<Ciphertext<DCRTPoly>>& x_cts, double3d& x_
                     }
                 }
             }
-            y_cts[i][j] = CRYPTOCONTEXT->EvalMult(x_cts[i][j], CRYPTOCONTEXT->MakeCKKSPackedPlaintext(relu_signs));
+            y_cts[i][j] = CRYPTOCONTEXT->EvalMult(x_cts[i][j], CRYPTOCONTEXT->MakeCKKSPackedPlaintext(relu_signs, 1, 0, nullptr, batch_size_));
         }
     }
 
@@ -250,7 +250,7 @@ void Relu_ss::forward_C(types::vector2d<Ciphertext<DCRTPoly>>& x_cts, double3d& 
                         relu_signs[k] = 1;
                     }
             }
-            y_cts[i][j] = CRYPTOCONTEXT->EvalMult(x_cts[i][j], CRYPTOCONTEXT->MakeCKKSPackedPlaintext(relu_signs));
+            y_cts[i][j] = CRYPTOCONTEXT->EvalMult(x_cts[i][j], CRYPTOCONTEXT->MakeCKKSPackedPlaintext(relu_signs, 1, 0, nullptr, batch_size_));
         }
     }
     std::cout << "finished " << layer_name_ << "_COMPACT forward" << std::endl;
@@ -278,7 +278,7 @@ void Relu_ss::forward(std::vector<Ciphertext<DCRTPoly>>& x_cts,
                 }
             }
         }
-        y_cts[i] = CRYPTOCONTEXT->EvalMult(x_cts[i], CRYPTOCONTEXT->MakeCKKSPackedPlaintext(relu_signs));
+        y_cts[i] = CRYPTOCONTEXT->EvalMult(x_cts[i], CRYPTOCONTEXT->MakeCKKSPackedPlaintext(relu_signs, 1, 0, nullptr, batch_size_));
     }
 }
 
@@ -426,7 +426,7 @@ void Relu_appx::forward(types::vector2d<Ciphertext<DCRTPoly>>& x_cts, double3d& 
         for (size_t j = 0; j < x_pts[i].size(); j++){
             y_pts[i][j].resize(x_pts[i][j].size());
             for (size_t k = 0; k < x_pts[i][j].size(); k++){
-                y_pts[i][j][k] = y_pts[i][j][k] >= 0 ? y_pts[i][j][k] : 0; // relu operation
+                y_pts[i][j][k] = x_pts[i][j][k] >= 0 ? x_pts[i][j][k] : 0; // relu operation
             }
         }
     }

@@ -1,3 +1,4 @@
+#include <stdexcept>
 #include "encryption.hpp"
 
 using namespace lbcrypto;
@@ -120,6 +121,8 @@ void Encrypt_MCSR_P(types::double3d& image3d, uint32_t numSlots,
         // ensure we can pack all channel in one ciphertext
         int channel = image3d.size();
         int width = image3d[0][0].size();
+        if (numSlots < static_cast<uint32_t>(width))
+            throw std::invalid_argument("Encrypt_MCSR_P: numSlots must hold a complete row");
         x_ctxt.clear();
 
 
@@ -144,7 +147,7 @@ void Encrypt_MCSR_P(types::double3d& image3d, uint32_t numSlots,
             for (int j = 0; j < static_cast<int>(x_vec.size()); j += values_per_cts){
                 int end = std::min(j + values_per_cts, static_cast<int>(x_vec.size()));
                 std::vector<double> one_batch(x_vec.begin() + j, x_vec.begin() + end);
-                Plaintext x_ptxt = cryptocontext->MakeCKKSPackedPlaintext(one_batch);
+                Plaintext x_ptxt = cryptocontext->MakeCKKSPackedPlaintext(one_batch, 1, 0, nullptr, numSlots);
                 std::cout << "Plaintext[" << i - enc_height_start << "]: " << x_ptxt << std::endl;
                 x_ctxt[i - enc_height_start].push_back(cryptocontext->Encrypt(Keypair.secretKey, x_ptxt));
             }
