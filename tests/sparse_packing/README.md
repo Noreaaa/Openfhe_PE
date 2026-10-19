@@ -16,9 +16,9 @@ cmake --build build-sparse -j 4
 ```
 
 The build searches `$HOME/local/openFHE`, matching the existing parent project's
-installation convention. No local Windows OpenFHE installation is needed:
-upload these sources and build/run them on the server. Compilation and runtime
-validation must be performed there; they have not been completed locally.
+installation convention. Build and run on Linux with OpenFHE installed. The synthetic convolution and
+activation correctness tests are available through `ctest --test-dir build-sparse
+--output-on-failure`; see the repository README for the complete workflow.
 
 For a different installation, pass `-DCMAKE_PREFIX_PATH=/actual/install/prefix` or
 `-DOpenFHE_DIR=/path/to/directory/containing/OpenFHEConfig.cmake`.

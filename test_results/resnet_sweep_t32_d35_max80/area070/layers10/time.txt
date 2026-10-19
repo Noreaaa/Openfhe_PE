@@ -1,0 +1,3 @@
+wall_seconds=5674.65
+peak_rss_kib=32700840
+exit_code=0

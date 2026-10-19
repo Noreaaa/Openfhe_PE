@@ -3,6 +3,8 @@
 #include <stdexcept>
 #include <algorithm>
 #include <cmath>
+#include <set>
+#include <functional>
 
 SparseConv2d::SparseConv2d(PLayerType layer_type, std::string layer_name, uint32_t ring_dim, uint32_t packing_slots, types::double3d filters, std::vector<double> biases, int stride, int padding)
     : Layer(layer_type, std::move(layer_name)),
@@ -62,12 +64,12 @@ SparseConv2dBN_P::SparseConv2dBN_P(PLayerType layer_type, std::string layer_name
       bias_(std::move(bias)),
       next_pool_layer_type_(std::move(next_pool_layer_type)) { CONSUMED_LEVEL += 2; }
 
-void SparseConv2dBN_P::forward(types::vector2d<Ciphertext<DCRTPoly>>& x_cts, double3d& x_pts,
+void SparseConv2dBN_P::forward_reference(types::vector2d<Ciphertext<DCRTPoly>>& x_cts, double3d& x_pts,
     types::vector2d<Ciphertext<DCRTPoly>>& y_cts, double3d& y_pts) {
     ValidateInput(x_cts, x_pts);
-    cout << layer_name_ << " forward" << endl;
+    std::cout << layer_name_ << " forward" << std::endl;
     #ifdef DEBUG
-    cout << "Conv2d_Partial forward" << endl;
+    std::cout << "Conv2d_Partial forward" << std::endl;
     #endif
 
     int input_n = x_pts.size();
@@ -92,14 +94,14 @@ void SparseConv2dBN_P::forward(types::vector2d<Ciphertext<DCRTPoly>>& x_cts, dou
     }
 
     #ifdef DEBUG
-    cout << "output_h: " << output_h << endl;
-    cout << "output_w: " << output_w << endl;
-    cout << "f_n: " << out_channels << endl;
-    cout << "f_h: " << filter_h << endl;
-    cout << "f_w: " << filter_w << endl;
+    std::cout << "output_h: " << output_h << std::endl;
+    std::cout << "output_w: " << output_w << std::endl;
+    std::cout << "f_n: " << out_channels << std::endl;
+    std::cout << "f_h: " << filter_h << std::endl;
+    std::cout << "f_w: " << filter_w << std::endl;
     #endif
-    y_pts.assign(out_channels, double2d(output_h, vector<double>(output_w, 0.0)));
-    double3d padded_input(input_n, double2d(padded_input_h, vector<double>(padded_input_w, 0)));
+    y_pts.assign(out_channels, types::double2d(output_h, vector<double>(output_w, 0.0)));
+    double3d padded_input(input_n, types::double2d(padded_input_h, vector<double>(padded_input_w, 0)));
     for (int i = 0; i < input_n; i++){
         for (int j = 0; j < input_h; j++){
             for (int k = 0; k < input_w; k++){
@@ -129,7 +131,7 @@ void SparseConv2dBN_P::forward(types::vector2d<Ciphertext<DCRTPoly>>& x_cts, dou
     }
     //#define CHECK_UNENCRYPTED
     #ifdef CHECK_UNENCRYPTED
-    cout << "value check for unencrypted parts" << endl;
+    std::cout << "value check for unencrypted parts" << std::endl;
     print_3d(y_pts);
     #endif
 
@@ -296,12 +298,12 @@ void SparseConv2dBN_P::forward(types::vector2d<Ciphertext<DCRTPoly>>& x_cts, dou
 
     //#define Y_CTS_CHECK
     #ifdef Y_CTS_CHECK
-    cout << "value check for encrypted parts" << endl;
+    std::cout << "value check for encrypted parts" << std::endl;
     for(int i = 0; i < static_cast<int>(y_cts.size()); i++){
         for (int j = 0; j < static_cast<int>(y_cts[i].size()); j++){
             Plaintext res;
             CRYPTOCONTEXT->Decrypt(KEYPAIR.secretKey, y_cts[i][j], &res);
-            cout << "y_cts[" << i << "][" << j << "]: " << res << endl;
+            std::cout << "y_cts[" << i << "][" << j << "]: " << res << std::endl;
         }
     }
     #endif
@@ -341,13 +343,12 @@ void SparseConv2dBN_P::forward(types::vector2d<Ciphertext<DCRTPoly>>& x_cts, dou
     ENCRYPTED_WIDTH_START = start_w;
     ENCRYPTED_WIDTH_END = end_w;
     
-    #define DEBUG
     #ifdef DEBUG
-    cout << "after " << layer_name_ << " forward" << endl;
-    cout << "ENCRYPTED_HEIGHT_START: " << ENCRYPTED_HEIGHT_START << endl;
-    cout << "ENCRYPTED_HEIGHT_END: " << ENCRYPTED_HEIGHT_END << endl;
-    cout << "ENCRYPTED_WIDTH_START: " << ENCRYPTED_WIDTH_START << endl;
-    cout << "ENCRYPTED_WIDTH_END: " << ENCRYPTED_WIDTH_END << endl;
+    std::cout << "after " << layer_name_ << " forward" << std::endl;
+    std::cout << "ENCRYPTED_HEIGHT_START: " << ENCRYPTED_HEIGHT_START << std::endl;
+    std::cout << "ENCRYPTED_HEIGHT_END: " << ENCRYPTED_HEIGHT_END << std::endl;
+    std::cout << "ENCRYPTED_WIDTH_START: " << ENCRYPTED_WIDTH_START << std::endl;
+    std::cout << "ENCRYPTED_WIDTH_END: " << ENCRYPTED_WIDTH_END << std::endl;
     #endif
 }
 
@@ -439,4 +440,176 @@ void SparseConv2dBN_P::ValidateInput(const types::vector2d<Ciphertext<DCRTPoly>>
         for (const auto& ct : row)
             if (!ct || ct->GetSlots() != packing_slots_) throw std::invalid_argument("SparseConv2dBN_P: ciphertext slot mismatch");
     }
+}
+
+
+void SparseConv2dBN_P::EnableFastPath(uint32_t width, bool generate_keys) {
+    if (!width || width > packing_slots_ || filters_.empty() || filters_[0].empty() ||
+        filters_[0][0].empty() || filters_[0][0][0].empty())
+        throw std::invalid_argument("fast convolution: invalid width or filters");
+    if (generate_keys && (!CRYPTOCONTEXT || !KEYPAIR.secretKey))
+        throw std::invalid_argument("fast convolution: initialize context and keys first");
+    if (generate_keys) {
+        std::set<int32_t> indices;
+        const int per = packing_slots_ / width;
+        const int outputWidth = (width + 2*padding_ - filters_[0][0][0].size()) / stride_ + 1;
+        const int outputPer = packing_slots_ / outputWidth;
+        for (int k = 0; k < static_cast<int>(filters_[0][0][0].size()); ++k)
+            if (k != padding_) indices.insert(k - padding_);
+        for (int c = 1; c < std::min(outputPer, static_cast<int>(filters_.size())); ++c)
+            indices.insert(-c * outputWidth);
+        if (stride_ > 1) for (int ow=1;ow<outputWidth;++ow)
+            indices.insert(ow*(stride_-1));
+        for (int n = per; n > 1; n /= 2) {
+            indices.insert((n / 2) * width);
+            if (n % 2) indices.insert((n - 1) * width);
+        }
+        if (!indices.empty()) CRYPTOCONTEXT->EvalRotateKeyGen(KEYPAIR.secretKey,
+            std::vector<int32_t>(indices.begin(), indices.end()));
+    }
+    fast_width_ = width;
+}
+
+void SparseConv2dBN_P::forward(types::vector2d<Ciphertext<DCRTPoly>>& x, double3d& pts,
+    types::vector2d<Ciphertext<DCRTPoly>>& y, double3d& out) {
+    ValidateInput(x, pts);
+    const int kw = filters_[0][0][0].size();
+    if (!RESCALE_REQUIRED && fast_width_ == pts[0][0].size() && (stride_ == 1 || stride_ == 2) && 2 * padding_ == kw - 1 &&
+        next_pool_layer_type_ != AVG_POOLING) forward_fast(x, pts, y, out);
+    else forward_reference(x, pts, y, out);
+}
+
+void SparseConv2dBN_P::forward_fast(types::vector2d<Ciphertext<DCRTPoly>>& x, double3d& pts,
+    types::vector2d<Ciphertext<DCRTPoly>>& y, double3d& out) {
+    const int ci = pts.size(), h = pts[0].size(), w = pts[0][0].size();
+    const int co = filters_.size(), kh = filters_[0][0].size(), kw = filters_[0][0][0].size();
+    const int ohCount = (h + 2 * padding_ - kh) / stride_ + 1;
+    const int outputWidth = (w + 2 * padding_ - kw) / stride_ + 1;
+    const int outputPer = packing_slots_ / outputWidth;
+    const int per = packing_slots_ / w, blocks = (co + outputPer - 1) / outputPer;
+    const int inputBlocks = (ci + per - 1) / per;
+    int hs = -1, he = -1, ws = -1, we = -1;
+    for (int i=0;i<ohCount;++i) if (isEncrypted_h(i*stride_,kh,padding_,ENCRYPTED_HEIGHT_START,ENCRYPTED_HEIGHT_END)) {
+        if (hs < 0) hs = i;
+        he = i;
+    }
+    for (int i=0;i<outputWidth;++i) if (isEncrypted_h(i*stride_,kw,padding_,ENCRYPTED_WIDTH_START,ENCRYPTED_WIDTH_END)) {
+        if (ws < 0) ws = i;
+        we = i;
+    }
+    if (hs < 0 || ws < 0) throw std::invalid_argument("fast convolution: encrypted region has no output");
+    const int rows = he - hs + 1;
+    std::vector<double> a(co), b(co);
+    for (int c=0;c<co;++c) {
+        a[c] = gamma_[c] / std::sqrt(var_[c] + epsilon_);
+        b[c] = (bias_[c] - mean_[c]) * a[c] + beta_[c];
+    }
+    // Public values are evaluated independently. Input ciphertexts keep only private entries.
+    out.assign(co, types::double2d(ohCount, std::vector<double>(outputWidth, 0)));
+    #ifdef _OPENMP
+    #pragma omp parallel for
+    #endif
+    for (int fn=0;fn<co;++fn) for (int oh=0;oh<ohCount;++oh) for (int ow=0;ow<outputWidth;++ow) {
+        double sum = 0;
+        for (int c=0;c<ci;++c) for (int fh=0;fh<kh;++fh) {
+            const int ih = oh*stride_ + fh - padding_;
+            if (ih < 0 || ih >= h) continue;
+            for (int fw=0;fw<kw;++fw) {
+                const int iw = ow*stride_ + fw - padding_;
+                if (iw >= 0 && iw < w) sum += pts[c][ih][iw] * filters_[fn][c][fh][fw];
+            }
+        }
+        out[fn][oh][ow] = sum * a[fn] + b[fn];
+    }
+    // Reuse spatial rotations for all output channels and output rows.
+    types::vector2d<Ciphertext<DCRTPoly>> rotated(x.size() * inputBlocks,
+        std::vector<Ciphertext<DCRTPoly>>(kw));
+    #ifdef _OPENMP
+    #pragma omp parallel for
+    #endif
+    for (size_t task=0;task<x.size()*inputBlocks*kw;++task) {
+        const int fw = task % kw;
+        const size_t index = task / kw;
+        auto ct = x[index / inputBlocks][index % inputBlocks];
+        rotated[index][fw] = fw == padding_ ? ct : CRYPTOCONTEXT->EvalRotate(ct, fw - padding_);
+    }
+    std::vector<double> select(packing_slots_, 0);
+    for (int ow=ws;ow<=we;++ow) select[ow*stride_] = 1;
+    auto selector = Encode(select);
+    std::vector<Plaintext> compactSelectors;
+    if (stride_ > 1) for (int ow=ws;ow<=we;++ow) {
+        std::vector<double> one(packing_slots_, 0);
+        one[ow*stride_] = 1;
+        compactSelectors.push_back(Encode(one));
+    }
+    y.assign(rows, std::vector<Ciphertext<DCRTPoly>>(blocks));
+    #ifdef _OPENMP
+    #pragma omp parallel for schedule(dynamic, 1)
+    #endif
+    for (int fn=0;fn<co;++fn) {
+        std::vector<Ciphertext<DCRTPoly>> accum(rows);
+        for (int fh=0;fh<kh;++fh) for (int fw=0;fw<kw;++fw) for (int block=0;block<inputBlocks;++block) {
+            std::vector<double> coefficients(packing_slots_, 0);
+            for (int c=0;c<per && block*per+c<ci;++c) {
+                const double coefficient = filters_[fn][block*per+c][fh][fw] * a[fn];
+                for (int ow=ws;ow<=we;++ow)
+                    if (ow*stride_+fw-padding_ >= 0 && ow*stride_+fw-padding_ < w)
+                        coefficients[c*w+ow*stride_] = coefficient;
+            }
+            auto plain = Encode(coefficients);
+            for (int row=0;row<rows;++row) {
+                const int ih = (hs + row)*stride_ + fh - padding_;
+                if (ih < ENCRYPTED_HEIGHT_START || ih > ENCRYPTED_HEIGHT_END) continue;
+                const int index = (ih - ENCRYPTED_HEIGHT_START) * inputBlocks + block;
+                auto product = CRYPTOCONTEXT->EvalMult(rotated[index][fw], plain);
+                if (RESCALE_REQUIRED) product = CRYPTOCONTEXT->Rescale(product);
+                accum[row] = accum[row] ? CRYPTOCONTEXT->EvalAdd(accum[row], product) : product;
+            }
+        }
+        // Sum exactly 'per' channels. A power-of-two sum would wrap through tail slots.
+        std::function<Ciphertext<DCRTPoly>(const Ciphertext<DCRTPoly>&, int)> reduce;
+        reduce = [&](const Ciphertext<DCRTPoly>& ct, int n) -> Ciphertext<DCRTPoly> {
+            if (n == 1) return ct;
+            auto half = reduce(ct, n / 2);
+            auto sum = CRYPTOCONTEXT->EvalAdd(half, CRYPTOCONTEXT->EvalRotate(half, (n / 2)*w));
+            if (n % 2) sum = CRYPTOCONTEXT->EvalAdd(sum, CRYPTOCONTEXT->EvalRotate(ct, (n - 1)*w));
+            return sum;
+        };
+        for (int row=0;row<rows;++row) {
+            auto reduced = reduce(accum[row], per);
+            if (stride_ == 1) accum[row] = CRYPTOCONTEXT->EvalMult(reduced, selector);
+            else {
+                Ciphertext<DCRTPoly> compact;
+                for (int ow=ws;ow<=we;++ow) {
+                    auto point = CRYPTOCONTEXT->EvalMult(reduced, compactSelectors[ow-ws]);
+                    if (ow) point = CRYPTOCONTEXT->EvalRotate(point, ow*(stride_-1));
+                    compact = compact ? CRYPTOCONTEXT->EvalAdd(compact, point) : point;
+                }
+                accum[row] = compact;
+            }
+            if (RESCALE_REQUIRED) accum[row] = CRYPTOCONTEXT->Rescale(accum[row]);
+            if (fn % outputPer) accum[row] = CRYPTOCONTEXT->EvalRotate(accum[row], -(fn % outputPer)*outputWidth);
+        }
+        // Only the final block additions are serialized; per-channel work is independent.
+        #ifdef _OPENMP
+        #pragma omp critical(sparse_conv_fast_merge)
+        #endif
+        for (int row=0;row<rows;++row) {
+            auto& target = y[row][fn / outputPer];
+            target = target ? CRYPTOCONTEXT->EvalAdd(target, accum[row]) : accum[row];
+        }
+    }
+    #ifdef _OPENMP
+    #pragma omp parallel for collapse(2)
+    #endif
+    for (int row=0;row<rows;++row) for (int block=0;block<blocks;++block) {
+        std::vector<double> publicValues(packing_slots_, 0);
+        for (int c=block*outputPer;c<std::min(co,(block+1)*outputPer);++c) for (int ow=ws;ow<=we;++ow) {
+            publicValues[(c%outputPer)*outputWidth+ow] = out[c][hs+row][ow];
+            out[c][hs+row][ow] = 0;
+        }
+        y[row][block] = CRYPTOCONTEXT->EvalAdd(y[row][block], Encode(publicValues));
+    }
+    ENCRYPTED_HEIGHT_START=hs; ENCRYPTED_HEIGHT_END=he;
+    ENCRYPTED_WIDTH_START=ws; ENCRYPTED_WIDTH_END=we;
 }

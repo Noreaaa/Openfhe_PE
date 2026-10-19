@@ -19,6 +19,8 @@
 #include "cnn/linear.hpp"
 #include "cnn/region_update.hpp"
 #include <chrono>
+#include <filesystem>
+#include <algorithm>
 
 
 #include <iostream>
@@ -47,10 +49,18 @@ int main(int argc, char *argv[]) {
     parser.add<int>("nums", 0, "number of images to be tested", false, 0);
     parser.add<std::string>("model", 'm', "model type: HCNN or ResNet-18", true, "ResNet-18");
     parser.add<std::string>("dataset", 'd', "dataset: CIFAR10, MNIST or ImageNet", false, "CIFAR10");
-    parser.add<int>("ringDim", 'r', "ring dimension for CKKS scheme", false, 64);
-    parser.add<int>("batch", 'b', "logical packing slots (0 selects ringDim/2)", false, 0);
+    parser.add<int>("ringDim", 'r', "ring dimension for CKKS scheme", false, 16384);
+    parser.add<int>("batch", 'b', "logical packing slots (0 selects ringDim/2)", false, 1024);
     parser.add<int>("act", 'a', "activation type 0 for scheme switching, 1 for polynomial approximation", false, 0);
 
+    parser.add("check-config", 0, "validate parameters and exit before generating contexts or keys");
+    parser.add("verify", 0, "compare each ResNet prefix against a plaintext reference (outside timed sections)");
+    parser.add<int>("layers", 0, "number of sequential ResNet convolutions (1..10)", false, 6);
+    parser.add<int>("depth", 0, "CKKS multiplicative depth (0 selects sufficient depth for the prefix)", false, 0);
+    parser.add<int>("encrypt-size", 0, "center square size in the 224x224 ResNet input", false, 10);
+    parser.add<std::string>("profile", 0, "write per-layer and cumulative prefix timings to CSV", false, "");
+    parser.add<std::string>("data-root", 0, "repository root containing datasets and python_model", false,
+        std::filesystem::exists("python_model") ? "." : "..");
     parser.parse_check(argc, argv);
     int height_start = parser.get<int>("top");
     int height_end = parser.get<int>("bottom");
@@ -60,6 +70,21 @@ int main(int argc, char *argv[]) {
     std::string MODEL_TYPE = parser.get<std::string>("model");
     std::string DATASET = parser.get<std::string>("dataset");
     int act_type = parser.get<int>("act");
+    const int convLayers=parser.get<int>("layers"), requestedDepth=parser.get<int>("depth");
+    if(convLayers<1 || convLayers>10 || requestedDepth<0) {
+        std::cerr<<"layers must be 1..10 and depth must be non-negative"<<std::endl; return 1;
+    }
+    if(MODEL_TYPE=="ResNet-18" && !parser.exist("top") && !parser.exist("bottom") &&
+       !parser.exist("left") && !parser.exist("right")) {
+        const int size=parser.get<int>("encrypt-size");
+        if(size<1 || size>224) { std::cerr<<"encrypt-size must be 1..224"<<std::endl; return 1; }
+        height_start=width_start=(224-size)/2;
+        height_end=width_end=height_start+size-1;
+    }
+    const std::string repository=parser.get<std::string>("data-root");
+    resnet18_path=repository+"/python_model/saved_models/ResNet-18/parameters/";
+    imagenet_image_path=repository+"/datasets/imagenet-mini/";
+
 
 
     ENCRYPTED_HEIGHT_START = height_start;
@@ -77,7 +102,20 @@ int main(int argc, char *argv[]) {
     }
     uint32_t numSlots = requestedSlots == 0 ? ringDim / 2 : requestedSlots;
     SetParamCKKS(static_cast<uint32_t>(ringDim), parameters, numSlots);
-    std::vector<uint32_t> levelBudget = {4, 3};
+    if(MODEL_TYPE=="ResNet-18" && act_type==0) {
+        const int minimumDepth=3*convLayers+4;
+        if(requestedDepth && requestedDepth<minimumDepth) {
+            std::cerr<<"Continuous Conv+scheme-switch ReLU prefix requires depth >= "<<minimumDepth
+                     <<" (no bootstrap/refresh in this path)"<<std::endl; return 1;
+        }
+        parameters.SetMultiplicativeDepth(requestedDepth ? requestedDepth : std::max(23,3*convLayers+6));
+    } else if(requestedDepth) parameters.SetMultiplicativeDepth(requestedDepth);
+    const bool needsBootstrap=MODEL_TYPE!="ResNet-18" || act_type!=0;
+    std::cout<<"RUN_CONFIG layers="<<convLayers<<" depth="<<parameters.GetMultiplicativeDepth()
+             <<" ring="<<ringDim<<" slots="<<numSlots<<" input_encrypted_h="<<height_start<<':'<<height_end
+             <<" input_encrypted_w="<<width_start<<':'<<width_end<<std::endl;
+    if(parser.exist("check-config")) return 0;
+    std::vector<uint32_t> levelBudget = {3, 3};
     std::vector<uint32_t> bsgsDim = {0, 0};
 
 
@@ -95,15 +133,16 @@ int main(int argc, char *argv[]) {
     cryptoContext->Enable(SCHEMESWITCH);
 
     ringDim = cryptoContext->GetRingDimension();
-    std::cout << "CKKS scheme is using ring dimension " << ringDim << std::endl << std::endl;
+    std::cout << "CKKS scheme is using ring dimension " << ringDim
+              << ", logical packing slots " << numSlots << std::endl << std::endl;
 
-    cryptoContext->EvalBootstrapSetup(levelBudget, bsgsDim, numSlots, 10);
+    if(needsBootstrap) cryptoContext->EvalBootstrapSetup(levelBudget, bsgsDim, numSlots, 10);
 
     auto keyPair = cryptoContext->KeyGen();
     cryptoContext->EvalMultKeyGen(keyPair.secretKey);
     cryptoContext->EvalSumKeyGen(keyPair.secretKey);
     // Generate bootstrapping keys.
-    cryptoContext->EvalBootstrapKeyGen(keyPair.secretKey, numSlots);
+    if(needsBootstrap) cryptoContext->EvalBootstrapKeyGen(keyPair.secretKey, numSlots);
 
     // set cryptocontext for FHEW
     lbcrypto::LWEPrivateKey privateKeyFHEW;
@@ -164,7 +203,7 @@ int main(int argc, char *argv[]) {
         InitHCNN(model, hcnn_path, numSlots, eps);
     }
     else if (MODEL_TYPE == "ResNet-18"){
-        InitResNet18(model, resnet18_path, imagenet_image_path, numSlots, eps, act_type, privateKeyFHEW, keyPair, height_start, height_end, width_start, width_end);
+        InitResNet18(model, resnet18_path, imagenet_image_path, numSlots, eps, act_type, privateKeyFHEW, keyPair, height_start, height_end, width_start, width_end, convLayers, parser.get<std::string>("profile"), parser.exist("verify"));
     }
     else if (MODEL_TYPE == "baseline_test"){
         InitBaselineTest(model, resnet18_path, imagenet_image_path, numSlots, test_nums, cryptoContext, keyPair, height_start, height_end, width_start, width_end);

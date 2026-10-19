@@ -1,0 +1,2 @@
+depth: 23
+RUN_CONFIG layers=10 depth=35 ring=16384 slots=1024 input_encrypted_h=72:151 input_encrypted_w=72:151

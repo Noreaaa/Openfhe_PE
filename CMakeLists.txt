@@ -1,15 +1,15 @@
-cmake_minimum_required(VERSION 3.5.1)
+cmake_minimum_required(VERSION 3.16)
 
 project(demo CXX)
 set(CMAKE_CXX_STANDARD 17)
 option(BUILD_STATIC "Set to ON to include static versions of the library" OFF)
 
-set(CMAKE_PREFIX_PATH "${CMAKE_PREFIX_PATH};${HOME}/local/openFHE")
-set(CMAKE_PREFIX_PATH "${CMAKE_PREFIX_PATH};${HOME}/local/cnpy")
+set(CMAKE_PREFIX_PATH "${CMAKE_PREFIX_PATH};$ENV{HOME}/local/openFHE")
+set(CMAKE_PREFIX_PATH "${CMAKE_PREFIX_PATH};$ENV{HOME}/local/cnpy")
 
 
-find_library(CNPY_LIB cnpy PATHS  /mnt/shared/gpfs/home/billdai2/local/cnpy/lib REQUIRED)
-find_path(CNPY_INCLUDE_DIR cnpy.h PATHS  /mnt/shared/gpfs/home/billdai2/local/cnpy/include REQUIRED)
+find_library(CNPY_LIB cnpy HINTS "$ENV{HOME}/local/cnpy/lib" REQUIRED)
+find_path(CNPY_INCLUDE_DIR cnpy.h HINTS "$ENV{HOME}/local/cnpy/include" REQUIRED)
 
 message(STATUS "CNPY_INCLUDE_DIR: ${CNPY_INCLUDE_DIR}")
 message(STATUS "CNPY_LIB: ${CNPY_LIB}")
@@ -47,7 +47,7 @@ include_directories(${OpenFHE_INCLUDE}/binfhe)
 
 link_directories(${OpenFHE_LIBDIR})
 link_directories(${OPENMP_LIBRARIES})
-link_directories(/mnt/shared/gpfs/home/billdai2/local/cnpy/lib)
+
 
 
 if(BUILD_STATIC)
@@ -93,3 +93,13 @@ target_compile_options(test PRIVATE
     -Wno-unused-variable   
     -Wno-error             
 )
+
+# Single-layer benchmark with the actual ResNet third convolution weights.
+add_executable(resnet_conv3_bench tests/sparse_packing/resnet_conv3_bench.cpp ${common_sources})
+target_link_libraries(resnet_conv3_bench PRIVATE cnn encryption ${CNPY_LIB} z OpenMP::OpenMP_CXX)
+target_include_directories(resnet_conv3_bench PRIVATE ${CMAKE_SOURCE_DIR}/src/include)
+
+# Real-image accuracy check against an independent long-double plaintext reference.
+add_executable(sparse_real_accuracy tests/sparse_packing/sparse_real_accuracy.cpp ${common_sources})
+target_link_libraries(sparse_real_accuracy PRIVATE cnn encryption ${CNPY_LIB} z OpenMP::OpenMP_CXX)
+target_include_directories(sparse_real_accuracy PRIVATE ${CMAKE_SOURCE_DIR}/src/include)

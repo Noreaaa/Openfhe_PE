@@ -59,7 +59,14 @@ public:
     using Layer::forward_C;
     void forward(types::vector2d<Ciphertext<DCRTPoly>>&, double3d&, types::vector2d<Ciphertext<DCRTPoly>>&, double3d&) override;
     void forward_C(types::vector2d<Ciphertext<DCRTPoly>>&, double3d&, types::vector2d<Ciphertext<DCRTPoly>>&, double3d&) override;
+    // Opt in after key setup. The fast path supports automatic rescaling and stride=1/2 with standard same padding.
+    void EnableFastPath(uint32_t input_width, bool generate_keys = true);
+    void forward_reference(types::vector2d<Ciphertext<DCRTPoly>>&, double3d&,
+                           types::vector2d<Ciphertext<DCRTPoly>>&, double3d&);
 private:
+    void forward_fast(types::vector2d<Ciphertext<DCRTPoly>>&, double3d&,
+                      types::vector2d<Ciphertext<DCRTPoly>>&, double3d&);
+    uint32_t fast_width_ = 0;
     Plaintext Encode(const std::vector<double>& values) const;
     void ValidateInput(const types::vector2d<Ciphertext<DCRTPoly>>& cts, const double3d& pts) const;
     Plaintext GenPlainFilter(int out_channel, int height, int output_width_idx, int input_w, int cts_idx, int channels_per_cts);

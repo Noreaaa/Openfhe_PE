@@ -1,0 +1,25 @@
+# Generated builds and Python caches
+/build*/
+__pycache__/
+*.py[cod]
+CMakeCache.txt
+CMakeFiles/
+Makefile
+cmake_install.cmake
+/tests/schemeswitch/test
+# Full datasets are local; retain the exact sweep input.
+/datasets/*
+!/datasets/imagenet-mini/
+/datasets/imagenet-mini/*
+!/datasets/imagenet-mini/ILSVRC2012_val_00000029.bin
+# Historical raw outputs are packaged in artifacts/legacy-results.tar.gz.
+/old_results/
+/test_results/*
+!/test_results/resnet_sweep_t32_d35_max80/
+!/test_results/README.md
+/S*.csv
+/S*.log
+*.tmp
+.runner.lock
+
+/artifacts/legacy-results.tar.gz

@@ -1,4 +1,8 @@
 #include "model.hpp"
+#include <fstream>
+#include <iomanip>
+#include <stdexcept>
+#include <sys/resource.h>
 
 using namespace lbcrypto;
 
@@ -83,128 +87,59 @@ void Network::predict_P(types::ciphertext1d x_cts, types::double3d x_pts){
 	
 }
 
-int Network::predict_P(types::vector2d<Ciphertext<DCRTPoly>> x_cts, types::double3d x_pts){
-	types::vector2d<Ciphertext<DCRTPoly>> y_cts;
-	types::double3d y_pts;
-	vector<double> x_pts_1d;
-	vector<double> y_pts_1d;
-
-	for (std::shared_ptr<Layer> layer : layers_) {
-		auto start = std::chrono::high_resolution_clock::now();
-		switch (layer->layer_type()) {
-		case LINEAR:
-			if(layer == layers_.back()){
-				layer->forward(x_pts_1d, y_pts_1d);
-			}
-			else{
-				layer->forward(x_cts, x_pts, y_pts_1d);
-			x_pts_1d = std::move(y_pts_1d);
-			}
-		break;
-		case CONV_2D:
-		case RELU_SS_ACTIVATION:
-			if (USE_COMPACT==true){
-				layer->forward_C(x_cts, x_pts, y_cts, y_pts);
-			}
-			else {
-				layer->forward(x_cts, x_pts, y_cts, y_pts);
-			}
-
-			x_cts.clear();
-			x_cts.reserve(y_cts.size());
-			for (auto& y_ct : y_cts) {
-			  x_cts.push_back(y_ct);
-			}
-			x_pts = std::move(y_pts);
-		break;
-		case SQUARE_ACTIVATION:
-		case AVG_POOLING:
-		case BOOTSTRAP:
-		case RELU_APPX_ACTIVATION:
-
-		layer->forward(x_cts, x_pts, y_cts, y_pts);
-
-		x_cts.clear();
-		x_cts.reserve(y_cts.size());
-		for (auto& y_ct : y_cts) {
-		  x_cts.push_back(y_ct);
-		}
-		x_pts = std::move(y_pts);
-		break;
-		default:
-		break;
-
-		auto end = std::chrono::high_resolution_clock::now();
-		std::chrono::duration<double, std::milli> elapsed = end - start;
-		std::cout << "Layer " << layer->layer_name() << " forward pass took " << elapsed.count() << " ms" << std::endl;
-		}
-	}
-
-	//#define DEBUG
-	#ifdef DEBUG
-	std::cout << "check cts:" << std::endl;
-    //for (int i = 0; i < static_cast<int>(y_cts.size()); i++){
-    //    std::cout << "encrypted row: " << i << std::endl;
-	//	int channel_cout = 0;
-    //    for (int j = 0; j < static_cast<int>(y_cts[i].size()); j++){
-    //        Plaintext plain;
-    //        CRYPTOCONTEXT->Decrypt(KEYPAIR.secretKey, y_cts[i][j], &plain);
-	//		std::vector<double> vals = plain->GetRealPackedValue();
-	//		for (int k = 0; k < static_cast<int>(vals.size()); k++){
-	//			if (channel_cout % 8 == 0){
-	//				std::cout << "channel[" << channel_cout / 8 << "]: ";
-	//			}
-	//			if (std::abs(vals[k]) < 1e-8){
-	//				std::cout << 0 << " ";
-	//			}
-	//			else {
-	//				std::cout << vals[k] << " ";
-	//			}
-	//			if (channel_cout % 8 == 7){
-	//				std::cout << std::endl;
-	//			}
-	//			channel_cout++;
-	//		}
-    //    }
-    //}
-
-	for (int i = 0; i < static_cast<int>(y_cts.size()); i++){
-        std::cout << "encrypted row: " << i << std::endl;
-        for (int j = 0; j < static_cast<int>(y_cts[i].size()); j++){
-            Plaintext plain;
-            CRYPTOCONTEXT->Decrypt(KEYPAIR.secretKey, y_cts[i][j], &plain);
-			std::vector<double> vals = plain->GetRealPackedValue();
-			for (int k = 0; k < static_cast<int>(vals.size()); k++){
-
-				if (std::abs(vals[k]) < 1e-8){
-					std::cout << 0 << " ";
-				}
-				else {
-					std::cout << vals[k] << " ";
-				}
-			}
-        }
-		std::cout << std::endl;
+int Network::predict_P(types::vector2d<Ciphertext<DCRTPoly>> x_cts, types::double3d x_pts,
+    const std::string& profileCsv) {
+    types::vector2d<Ciphertext<DCRTPoly>> y_cts;
+    types::double3d y_pts;
+    std::vector<double> x_flat,y_flat;
+    std::ofstream csv;
+    if(!profileCsv.empty()) {
+        csv.open(profileCsv);
+        if(!csv) throw std::runtime_error("Cannot open profile CSV: "+profileCsv);
+        csv<<"conv_layers,conv_ms,relu_ms,cumulative_conv_ms,cumulative_relu_ms,total_ms,channels,height,width,encrypted_h_start,encrypted_h_end,encrypted_w_start,encrypted_w_end,ciphertexts,level,remaining_towers,slots,peak_mib\n";
+        csv<<std::setprecision(12);
     }
-
-
-	//std::cout << "check pts:" << std::endl;
-	//print_3d(x_pts);
-
-	//return 0;
-	#endif
-
-	int max_type = -1;
-	double max = -1000000;
-	for (size_t i = 0; i < y_pts_1d.size(); i++){
-		std::cout << "y_pts_1d[" << i << "]: " << y_pts_1d[i] << std::endl;
-		if (y_pts_1d[i] > max){
-			max = y_pts_1d[i];
-			max_type = i;
-		}
-	}
-	std::cout << "predicted result: " << max_type << std::endl;
-
-	return max_type;
-	
+    int convCount=0;
+    double convMs=0,totalConv=0,totalRelu=0;
+    for(const auto& layer:layers_) {
+        auto start=std::chrono::steady_clock::now();
+        const auto type=layer->layer_type();
+        if(type==LINEAR) {
+            if(layer==layers_.back()) layer->forward(x_flat,y_flat);
+            else { layer->forward(x_cts,x_pts,y_flat); x_flat=std::move(y_flat); }
+        } else {
+            if(USE_COMPACT && (type==CONV_2D || type==RELU_SS_ACTIVATION))
+                layer->forward_C(x_cts,x_pts,y_cts,y_pts);
+            else layer->forward(x_cts,x_pts,y_cts,y_pts);
+            x_cts=std::move(y_cts); x_pts=std::move(y_pts);
+        }
+        const double ms=std::chrono::duration<double,std::milli>(std::chrono::steady_clock::now()-start).count();
+        std::cout<<"Layer "<<layer->layer_name()<<" forward pass took "<<ms<<" ms"<<std::endl;
+        if(type==CONV_2D) { ++convCount; convMs=ms; totalConv+=ms; }
+        if(type==RELU_SS_ACTIVATION || type==RELU_APPX_ACTIVATION) {
+            totalRelu+=ms;
+            rusage usage{}; getrusage(RUSAGE_SELF,&usage);
+            const double peak=usage.ru_maxrss/1024.0;
+            size_t count=0; for(const auto& row:x_cts) count+=row.size();
+            const auto ct=x_cts.empty() || x_cts[0].empty() ? Ciphertext<DCRTPoly>{} : x_cts[0][0];
+            const auto level=ct ? ct->GetLevel() : 0;
+            const auto towers=ct ? ct->GetElements()[0].GetNumOfElements() : 0;
+            std::cout<<"PREFIX layers="<<convCount<<" conv_ms="<<convMs<<" relu_ms="<<ms
+                     <<" cumulative_conv_ms="<<totalConv<<" cumulative_relu_ms="<<totalRelu
+                     <<" total_ms="<<totalConv+totalRelu<<" output="<<x_pts.size()<<'x'<<x_pts[0].size()<<'x'<<x_pts[0][0].size()
+                     <<" encrypted_h="<<ENCRYPTED_HEIGHT_START<<':'<<ENCRYPTED_HEIGHT_END
+                     <<" encrypted_w="<<ENCRYPTED_WIDTH_START<<':'<<ENCRYPTED_WIDTH_END
+                     <<" level="<<level<<" remaining_towers="<<towers<<" peak_mib="<<peak<<std::endl;
+            if(csv) {
+                csv<<convCount<<','<<convMs<<','<<ms<<','<<totalConv<<','<<totalRelu<<','<<totalConv+totalRelu<<','
+                   <<x_pts.size()<<','<<x_pts[0].size()<<','<<x_pts[0][0].size()<<','
+                   <<ENCRYPTED_HEIGHT_START<<','<<ENCRYPTED_HEIGHT_END<<','<<ENCRYPTED_WIDTH_START<<','<<ENCRYPTED_WIDTH_END<<','
+                   <<count<<','<<level<<','<<towers<<','<<(ct ? ct->GetSlots() : 0)<<','<<peak<<'\n';
+                csv.flush();
+            }
+            if(feature_observer_) feature_observer_(convCount,x_cts,x_pts);
+        }
+    }
+    if(y_flat.empty()) return -1; // This convolution prefix has no classification head.
+    return std::max_element(y_flat.begin(),y_flat.end())-y_flat.begin();
 }

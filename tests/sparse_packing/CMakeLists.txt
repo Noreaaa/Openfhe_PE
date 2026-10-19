@@ -38,7 +38,7 @@ target_link_libraries(sparse_packing_bench PRIVATE OpenMP::OpenMP_CXX)
 target_compile_definitions(sparse_packing_bench PRIVATE
     BENCH_OPENFHE_VERSION="${BASE_OPENFHE_VERSION}")
 
-add_executable(sparse_conv2d_test sparse_conv2d_test.cpp ../../src/cnn/sparse_conv2d.cpp ../../src/cnn/layer.cpp ../../src/utils/globals.cpp ../../src/utils/helper.cpp)
+add_executable(sparse_conv2d_test sparse_conv2d_test.cpp ../../src/cnn/sparse_conv2d.cpp ../../src/cnn/conv2d.cpp ../../src/cnn/layer.cpp ../../src/utils/globals.cpp ../../src/utils/helper.cpp)
 target_include_directories(sparse_conv2d_test PRIVATE ${OpenFHE_INCLUDE} ${OpenFHE_INCLUDE}/third-party/include ${OpenFHE_INCLUDE}/core ${OpenFHE_INCLUDE}/pke ${OpenFHE_INCLUDE}/binfhe)
 if(BUILD_STATIC)
  target_link_libraries(sparse_conv2d_test PRIVATE ${OpenFHE_STATIC_LIBRARIES})
@@ -48,3 +48,25 @@ endif()
 target_link_libraries(sparse_conv2d_test PRIVATE OpenMP::OpenMP_CXX)
 enable_testing()
 add_test(NAME sparse_conv2d_correctness COMMAND sparse_conv2d_test)
+
+set_tests_properties(sparse_conv2d_correctness PROPERTIES ENVIRONMENT "OMP_NUM_THREADS=2" TIMEOUT 180)
+
+# OpenFHE exports -Werror; legacy helper warnings must not block this test.
+target_compile_options(sparse_conv2d_test PRIVATE -Wno-error=unused-variable -Wno-error=sign-compare)
+
+add_executable(sparse_activation_test sparse_activation_test.cpp
+    ../../src/cnn/sparse_activation.cpp ../../src/cnn/sparse_conv2d.cpp
+    ../../src/cnn/layer.cpp ../../src/utils/globals.cpp ../../src/utils/helper.cpp
+    ../../src/encryption/setparam.cpp)
+target_include_directories(sparse_activation_test PRIVATE ${OpenFHE_INCLUDE}
+    ${OpenFHE_INCLUDE}/third-party/include ${OpenFHE_INCLUDE}/core
+    ${OpenFHE_INCLUDE}/pke ${OpenFHE_INCLUDE}/binfhe)
+if(BUILD_STATIC)
+    target_link_libraries(sparse_activation_test PRIVATE ${OpenFHE_STATIC_LIBRARIES})
+else()
+    target_link_libraries(sparse_activation_test PRIVATE ${OpenFHE_SHARED_LIBRARIES})
+endif()
+target_link_libraries(sparse_activation_test PRIVATE OpenMP::OpenMP_CXX)
+target_compile_options(sparse_activation_test PRIVATE -Wno-error=unused-variable -Wno-error=sign-compare)
+add_test(NAME sparse_activation_correctness COMMAND sparse_activation_test)
+set_tests_properties(sparse_activation_correctness PROPERTIES ENVIRONMENT "OMP_NUM_THREADS=2" TIMEOUT 300)
