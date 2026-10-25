@@ -1,0 +1,9 @@
+# Local generated builds, datasets and Python caches
+/build*/
+/benchmarks/
+/datasets/
+__pycache__/
+*.py[cod]
+*.tmp
+runner.lock
+/experiments/**/build*/

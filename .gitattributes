@@ -1,0 +1,2 @@
+# Preserve raw measurements and historical source snapshots verbatim.
+experiments/host_snapshot_20261026/** -text -whitespace

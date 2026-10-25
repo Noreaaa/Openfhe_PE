@@ -1,0 +1,28 @@
+CONFIG variant=encrypted ring=16384 slots=1024 depth=20 threads=96
+depth: 23
+SETUP context_ms=73.233193
+SETUP ckks_keys_ms=347.337455
+SETUP switching_keys_ms=3915.248818
+SETUP precompute_ms=247.597057 rss_mib=4433.9921875 peak_mib=4433.9921875
+TRIAL index=0 total_ms=4396.906787 amplify_ms=3.980764 forward_ms=1431.572483 sign_ms=417.139932 reverse_ms=2499.81498 complement_ms=3.158892 ciphertext_mult_ms=40.098905 rss_mib=4440.63671875 peak_mib=4625.65625 output_level=12 towers=9
+CHECK trial=0 c=0 w=510 actual=2.61044626854e-05 expected=0
+CHECK trial=0 c=0 w=511 actual=0.600006923457 expected=0.6
+CHECK trial=0 c=1 w=510 actual=-4.9017160405e-06 expected=0
+CHECK trial=0 c=1 w=511 actual=1.19999888943 expected=1.2
+CHECK trial=0 c=2 w=510 actual=0.000434407231107 expected=0
+CHECK trial=0 c=2 w=511 actual=0.200019166607 expected=0.2
+TRIAL index=1 total_ms=4402.306746 amplify_ms=3.244814 forward_ms=1483.513325 sign_ms=391.748157 reverse_ms=2477.730329 complement_ms=3.760013 ciphertext_mult_ms=41.188818 rss_mib=4438.54296875 peak_mib=4625.65625 output_level=12 towers=9
+CHECK trial=1 c=0 w=510 actual=2.72687754833e-05 expected=0
+CHECK trial=1 c=0 w=511 actual=0.600008608916 expected=0.6
+CHECK trial=1 c=1 w=510 actual=-6.68999269118e-06 expected=0
+CHECK trial=1 c=1 w=511 actual=1.19999888781 expected=1.2
+CHECK trial=1 c=2 w=510 actual=0.000415094656185 expected=0
+CHECK trial=1 c=2 w=511 actual=0.199968086959 expected=0.2
+TRIAL index=2 total_ms=4240.456377 amplify_ms=9.572887 forward_ms=1325.082022 sign_ms=358.460077 reverse_ms=2501.54182 complement_ms=3.645989 ciphertext_mult_ms=41.141142 rss_mib=4438.4921875 peak_mib=4644.19140625 output_level=12 towers=9
+CHECK trial=2 c=0 w=510 actual=2.38036476133e-05 expected=0
+CHECK trial=2 c=0 w=511 actual=0.600006720137 expected=0.6
+CHECK trial=2 c=1 w=510 actual=-6.0928992351e-06 expected=0
+CHECK trial=2 c=1 w=511 actual=1.1999979713 expected=1.2
+CHECK trial=2 c=2 w=510 actual=0.000421535700295 expected=0
+CHECK trial=2 c=2 w=511 actual=0.199985168431 expected=0.2
+PASS max_abs_error=0.000434407231107 final_peak_mib=4644.19140625

@@ -1,0 +1,24 @@
+--- /root/Openfhe_PE/src/cnn/conv2d.cpp	2026-10-22 21:56:53.422230929 +0800
++++ /root/benchmarks/main_baseline_six_ring16384_20261025/source/conv2d_bounds_fixed.cpp	2026-10-25 22:38:52.835135204 +0800
+@@ -1,5 +1,6 @@
+ 
+ #include "conv2d.hpp"
++#include <stdexcept>
+ #include <utility>
+ #include <cassert>
+ #include <cstdlib>
+@@ -75,11 +76,13 @@
+         
+             for (int kh = 0; kh < kernel_size; kh++) {
+                 for (int kw = 0; kw < kernel_size; kw++) {
+-                    std::vector<double> filter_vec(input_height * input_width, 0);
++                    std::vector<double> filter_vec(batch_size_, 0); // VALID_INDEX_MAP retains the original slot pitch.
+                     for (size_t i = 0; i < anchor_map.size(); i++) {
+                         int pos_h = anchor_map[i].first + kh;
+                         int pos_w = anchor_map[i].second + kw;
+                         int index = VALID_INDEX_MAP[pos_h][pos_w];
++                        if(index<0 || static_cast<uint32_t>(index)>=batch_size_)
++                            throw std::out_of_range("Conv2d_C retained slot index exceeds ciphertext slots");
+                         filter_vec[index] = filters_[oc][ic][kh][kw];
+                     }
+                     filter_vecs[kh][kw] = CRYPTOCONTEXT->MakeCKKSPackedPlaintext(filter_vec);

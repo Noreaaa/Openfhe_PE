@@ -1,0 +1,43 @@
+{
+  "command": [
+    "/root/benchmarks/main_baseline_six_ring16384_20261025/build/baseline_six",
+    "--model",
+    "baseline_test",
+    "--ringDim",
+    "16384",
+    "--batch",
+    "8192",
+    "--act",
+    "1",
+    "--top",
+    "0",
+    "--bottom",
+    "55",
+    "--left",
+    "0",
+    "--right",
+    "55",
+    "--nums",
+    "64",
+    "--baseline-layers",
+    "6"
+  ],
+  "source_branch": "main",
+  "source_commit": "08e56ef2eeb3083e335a95bb4127529bc378f4b1",
+  "ring": 16384,
+  "slots": 8192,
+  "depth": 23,
+  "scale_bits": 30,
+  "first_bits": 40,
+  "digits": 3,
+  "threads": 96,
+  "stages": 6,
+  "channels": 64,
+  "input_width": 56,
+  "bootstrap_setup_budget": [
+    4,
+    3
+  ],
+  "both_key_families": true,
+  "binary_sha256": "96b88ea7a20ce7f24e37798da8a5d44b087f03c7c4ee8976461e4a64ec2ad9c2"
+}

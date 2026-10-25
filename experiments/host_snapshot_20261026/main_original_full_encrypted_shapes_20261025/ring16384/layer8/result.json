@@ -1,0 +1,61 @@
+{
+  "ring": 16384,
+  "layer": 8,
+  "channels": 128,
+  "input_width": 28,
+  "output_width": 26,
+  "status": "success",
+  "exit_code": 0,
+  "finished_utc": "2026-10-25T13:52:36.506907+00:00",
+  "conv_s": 481.364,
+  "activation_s": 45.029300000000006,
+  "prediction_s": 528.521,
+  "average_relative_loss": 566.46,
+  "wall_s": 546.72,
+  "peak_gib": 34.78909683227539,
+  "phase_memory": {
+    "key_setup": {
+      "mean_gib": 6.7652140733075194,
+      "peak_gib": 15.83349609375,
+      "sampled_seconds": 10.023041951004416
+    },
+    "input_preparation": {
+      "mean_gib": 18.990337115941166,
+      "peak_gib": 19.372173309326172,
+      "sampled_seconds": 5.5215780849976
+    },
+    "server_conv": {
+      "mean_gib": 23.42090550445506,
+      "peak_gib": 23.997703552246094,
+      "sampled_seconds": 480.88710683399404
+    },
+    "server_relu": {
+      "mean_gib": 31.5172094318113,
+      "peak_gib": 34.76392364501953,
+      "sampled_seconds": 44.65502074699907
+    },
+    "verification": {
+      "mean_gib": 27.19101275482854,
+      "peak_gib": 27.953617095947266,
+      "sampled_seconds": 2.0109204109976417
+    }
+  },
+  "phase_events": [
+    {
+      "elapsed_s": 11.026145725998504,
+      "phase": "input_preparation"
+    },
+    {
+      "elapsed_s": 17.049523470996064,
+      "phase": "server_conv"
+    },
+    {
+      "elapsed_s": 498.4382445270021,
+      "phase": "server_relu"
+    },
+    {
+      "elapsed_s": 543.594677203997,
+      "phase": "verification"
+    }
+  ]
+}

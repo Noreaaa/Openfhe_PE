@@ -1,0 +1,12 @@
+{
+  "status": "cancelled_by_user",
+  "cancelled_utc": "2026-10-25T13:55:38.248193+00:00",
+  "terminated_pids": [
+    1286684,
+    1292117
+  ],
+  "interrupted_ring": 16384,
+  "interrupted_layer": 12,
+  "interrupted_phase": "server_conv",
+  "note": "Interrupted case is incomplete and not a valid complete performance result; no automatic restart."
+}

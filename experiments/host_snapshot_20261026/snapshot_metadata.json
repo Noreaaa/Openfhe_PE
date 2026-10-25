@@ -1,0 +1,14 @@
+{
+  "snapshot_utc": "2026-10-25T16:06:20.666642+00:00",
+  "source_commit": "08e56ef2eeb3083e335a95bb4127529bc378f4b1",
+  "feature_results_commit": "018d59259d1478dd1859c17d4e4670007d0d3224",
+  "original_location": "/root/benchmarks",
+  "copied_files": 87,
+  "copied_bytes": 35248275,
+  "platform": "Linux-5.15.0-198-generic-x86_64-with-glibc2.35",
+  "cpu_model": "Montage Jintide(R) C6348",
+  "logical_cpus": 96,
+  "memory": "MemTotal:       198034592 kB",
+  "openfhe_version": "1.2.4",
+  "note": "Original report/log contents preserved. Generated build trees omitted; standalone probes retained. No experiments are active."
+}

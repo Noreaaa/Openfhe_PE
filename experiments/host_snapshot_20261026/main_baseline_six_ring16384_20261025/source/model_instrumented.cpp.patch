@@ -1,0 +1,27 @@
+--- /root/Openfhe_PE/src/cnn/model.cpp	2026-10-25 21:32:41.128297173 +0800
++++ /root/benchmarks/main_baseline_six_ring16384_20261025/source/model_instrumented.cpp	2026-10-25 22:00:17.006101770 +0800
+@@ -1,4 +1,7 @@
+ #include "model.hpp"
++#include <sys/resource.h>
++#include <unistd.h>
++#include <fstream>
+ 
+ using namespace lbcrypto;
+ 
+@@ -19,10 +22,15 @@
+   
+ 	for (int i = 0; i < static_cast<int>(layers_.size()); i++){
+ 		auto start = std::chrono::high_resolution_clock::now();
+-    	layers_[i]->forward(x_cts, y_cts);
++    	std::cout<<"BASELINE_BEGIN stage="<<i/2+1<<" operator="<<(i%2?"activation":"convolution")<<std::endl;
++        layers_[i]->forward(x_cts, y_cts);
+ 		auto end = std::chrono::high_resolution_clock::now();
+ 		std::chrono::duration<double, std::milli> elapsed = end - start;
+ 		std::cout << "Layer " << i << " forward pass took " << elapsed.count() << " ms" << std::endl;
++        std::ifstream statm("/proc/self/statm");long pages=0,resident=0;statm>>pages>>resident;rusage usage{};getrusage(RUSAGE_SELF,&usage);
++        const auto ct=y_cts.empty()?Ciphertext<DCRTPoly>{}:y_cts[0];
++        std::cout<<"BASELINE_OPERATOR stage="<<i/2+1<<" operator="<<(i%2?"activation":"convolution")<<" ms="<<elapsed.count()<<" ciphertexts="<<y_cts.size()<<" level="<<(ct?ct->GetLevel():0)<<" towers="<<(ct?ct->GetElements()[0].GetNumOfElements():0)<<" noise_degree="<<(ct?ct->GetNoiseScaleDeg():0)<<" rss_gib="<<resident*double(sysconf(_SC_PAGESIZE))/1073741824.<<" peak_gib="<<usage.ru_maxrss/1048576.<<std::endl;
++
+ 
+ 		x_cts.clear();
+ 		x_cts.reserve(y_cts.size());

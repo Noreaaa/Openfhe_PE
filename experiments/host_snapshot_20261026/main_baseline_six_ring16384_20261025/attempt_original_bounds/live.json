@@ -1,0 +1,33 @@
+{
+  "status": "failed",
+  "exit_code": 134,
+  "finished_utc": "2026-10-25T14:05:15.257206+00:00",
+  "completed_operators": 2,
+  "last_stage": 2,
+  "last_phase": "server_conv",
+  "wall_s": 164.43,
+  "whole_process_peak_gib": 31.424659729003906,
+  "error_lines": [],
+  "phase_memory": {
+    "key_setup": {
+      "mean_gib": 6.701753852421,
+      "peak_gib": 15.355037689208984,
+      "sampled_seconds": 10.023447824998584
+    },
+    "input_preparation": {
+      "mean_gib": 20.026721716393148,
+      "peak_gib": 21.430465698242188,
+      "sampled_seconds": 5.0196802689970355
+    },
+    "server_conv": {
+      "mean_gib": 23.97979261358422,
+      "peak_gib": 24.310745239257812,
+      "sampled_seconds": 125.41928015200392
+    },
+    "server_relu": {
+      "mean_gib": 29.35770823121276,
+      "peak_gib": 31.392845153808594,
+      "sampled_seconds": 20.58572694400209
+    }
+  }
+}

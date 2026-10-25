@@ -1,0 +1,35 @@
+CONFIG variant=encrypted ring=16384 slots=1024 depth=20 scale_bits=50 first_bits=60 threads=96
+depth: 23
+SETUP context_ms=86.540218
+SETUP ckks_keys_ms=437.272043
+SETUP switching_keys_ms=4102.67953
+SETUP precompute_ms=378.021745 rss_mib=5177.48046875 peak_mib=5177.48046875
+TRIAL index=0 total_ms=5074.437686 amplify_ms=3.034807 forward_ms=1900.492059 sign_ms=338.247805 reverse_ms=2791.502044 complement_ms=1.637011 ciphertext_mult_ms=38.079342 rss_mib=5167.73046875 peak_mib=5378.38671875 output_level=12 towers=9
+CHECK trial=0 c=0 w=510 actual=4.3324664514e-09 expected=0
+CHECK trial=0 c=0 w=511 actual=0.599999999916 expected=0.6
+CHECK trial=0 c=1 w=510 actual=4.96001034538e-11 expected=0
+CHECK trial=0 c=1 w=511 actual=1.2000000002 expected=1.2
+CHECK trial=0 c=2 w=510 actual=-2.35301792692e-07 expected=0
+CHECK trial=0 c=2 w=511 actual=0.199998941108 expected=0.2
+TRIAL index=1 total_ms=4725.425896 amplify_ms=3.812664 forward_ms=1746.431912 sign_ms=320.49304 reverse_ms=2611.952395 complement_ms=1.88045 ciphertext_mult_ms=40.113232 rss_mib=5168.85546875 peak_mib=5378.38671875 output_level=12 towers=9
+CHECK trial=1 c=0 w=510 actual=4.21248739992e-09 expected=0
+CHECK trial=1 c=0 w=511 actual=0.59999999994 expected=0.6
+CHECK trial=1 c=1 w=510 actual=1.86282141131e-10 expected=0
+CHECK trial=1 c=1 w=511 actual=1.19999999994 expected=1.2
+CHECK trial=1 c=2 w=510 actual=-2.3530030359e-07 expected=0
+CHECK trial=1 c=2 w=511 actual=0.19999894111 expected=0.2
+TRIAL index=2 total_ms=4900.215404 amplify_ms=3.110298 forward_ms=1786.085125 sign_ms=343.276753 reverse_ms=2725.916537 complement_ms=2.299732 ciphertext_mult_ms=38.472397 rss_mib=5168.84375 peak_mib=5378.38671875 output_level=12 towers=9
+CHECK trial=2 c=0 w=510 actual=4.32840291017e-09 expected=0
+CHECK trial=2 c=0 w=511 actual=0.599999999848 expected=0.6
+CHECK trial=2 c=1 w=510 actual=1.1098174394e-11 expected=0
+CHECK trial=2 c=1 w=511 actual=1.1999999999 expected=1.2
+CHECK trial=2 c=2 w=510 actual=-2.35301777106e-07 expected=0
+CHECK trial=2 c=2 w=511 actual=0.199998941109 expected=0.2
+PRIMITIVE name=EvalAdd_ct_ct median_ms=1.043012 min_ms=1.01589 max_ms=2.146319
+PRIMITIVE name=EvalRotate_1 median_ms=29.195949 min_ms=28.917965 max_ms=33.959111
+PRIMITIVE name=EvalMult_scalar median_ms=0.573145 min_ms=0.538552 max_ms=0.931718
+PRIMITIVE name=EvalMult_ct_pt median_ms=1.214333 min_ms=1.161736 max_ms=1.744915
+PRIMITIVE name=EvalMult_ct_ct median_ms=34.096002 min_ms=33.61599 max_ms=36.759999
+PRIMITIVE name=EvalSub_scalar_ct median_ms=1.225092 min_ms=1.163881 max_ms=1.548198
+PRIMITIVE name=Rescale median_ms=0.424494 min_ms=0.343898 max_ms=0.813769
+PASS max_abs_error=1.05889164115e-06 final_peak_mib=5378.38671875

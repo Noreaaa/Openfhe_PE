@@ -1,0 +1,4 @@
+Command terminated by signal 6
+wall_seconds=164.43
+peak_rss_kib=32951144
+exit_code=0

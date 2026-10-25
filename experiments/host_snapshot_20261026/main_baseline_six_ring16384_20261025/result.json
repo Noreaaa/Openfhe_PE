@@ -1,0 +1,37 @@
+{
+  "status": "failed",
+  "exit_code": 134,
+  "finished_utc": "2026-10-25T14:48:13.941457+00:00",
+  "completed_operators": 9,
+  "last_stage": 5,
+  "last_phase": "server_relu",
+  "wall_s": 482.24,
+  "whole_process_peak_gib": 31.41958999633789,
+  "error_lines": [
+    "terminate called after throwing an instance of 'lbcrypto::OpenFHEException'",
+    "terminate called after throwing an instance of '  what():  /root/deps/openfhe-1.2.4/src/core/include/lattice/hal/default/dcrtpoly-impl.h:l.695:DropLastElement(): DropLastElement: Removing last element of DCRTPoly renders it invalid.",
+    "what():  /root/deps/openfhe-1.2.4/src/core/include/lattice/hal/default/dcrtpoly-impl.h:l.695:DropLastElement(): DropLastElement: Removing last element of DCRTPoly renders it invalid."
+  ],
+  "phase_memory": {
+    "key_setup": {
+      "mean_gib": 6.975954065596755,
+      "peak_gib": 16.729103088378906,
+      "sampled_seconds": 10.5254888069976
+    },
+    "input_preparation": {
+      "mean_gib": 20.23018739592303,
+      "peak_gib": 21.558006286621094,
+      "sampled_seconds": 4.518708253999648
+    },
+    "server_conv": {
+      "mean_gib": 28.03370447805538,
+      "peak_gib": 29.688892364501953,
+      "sampled_seconds": 392.93732944899966
+    },
+    "server_relu": {
+      "mean_gib": 29.790975073433668,
+      "peak_gib": 31.40225601196289,
+      "sampled_seconds": 67.29443855799036
+    }
+  }
+}

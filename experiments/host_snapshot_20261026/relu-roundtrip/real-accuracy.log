@@ -1,0 +1,30 @@
+Loaded Conv2d weights from /root/Openfhe_PE/python_model/saved_models/ResNet-18/parameters/conv1_weight.npy
+Weight size: 64x3x7x7
+Loaded Bias from /root/Openfhe_PE/python_model/saved_models/ResNet-18/parameters/bn1_weight.npy
+Loaded Bias from /root/Openfhe_PE/python_model/saved_models/ResNet-18/parameters/bn1_bias.npy
+Loaded Bias from /root/Openfhe_PE/python_model/saved_models/ResNet-18/parameters/bn1_running_mean.npy
+Loaded Bias from /root/Openfhe_PE/python_model/saved_models/ResNet-18/parameters/bn1_running_var.npy
+Loaded Conv2d weights from /root/Openfhe_PE/python_model/saved_models/ResNet-18/parameters/maxpool_0_weight.npy
+Weight size: 64x64x3x3
+Loaded Bias from /root/Openfhe_PE/python_model/saved_models/ResNet-18/parameters/maxpool_1_weight.npy
+Loaded Bias from /root/Openfhe_PE/python_model/saved_models/ResNet-18/parameters/maxpool_1_bias.npy
+Loaded Bias from /root/Openfhe_PE/python_model/saved_models/ResNet-18/parameters/maxpool_1_running_mean.npy
+Loaded Bias from /root/Openfhe_PE/python_model/saved_models/ResNet-18/parameters/maxpool_1_running_var.npy
+Loaded Conv2d weights from /root/Openfhe_PE/python_model/saved_models/ResNet-18/parameters/layer1_0_conv1_weight.npy
+Weight size: 64x64x3x3
+Loaded Bias from /root/Openfhe_PE/python_model/saved_models/ResNet-18/parameters/layer1_0_bn1_weight.npy
+Loaded Bias from /root/Openfhe_PE/python_model/saved_models/ResNet-18/parameters/layer1_0_bn1_bias.npy
+Loaded Bias from /root/Openfhe_PE/python_model/saved_models/ResNet-18/parameters/layer1_0_bn1_running_mean.npy
+Loaded Bias from /root/Openfhe_PE/python_model/saved_models/ResNet-18/parameters/layer1_0_bn1_running_var.npy
+CONFIG ring=16384 slots=1024 depth=20 input_region=[26:30,26:30] tolerance=0.001
+conv_bn_vs_reference region=all count=200704 max_abs=2.28887465e-11 mae=4.71662306e-14 rmse=5.00713055e-13 relative_l2=1.03431800e-12 above_1e-3=0 worst=(2,27,29)
+conv_bn_vs_reference region=encrypted count=3136 max_abs=2.28887465e-11 mae=3.00882821e-12 rmse=4.00570387e-12 relative_l2=6.73598291e-12 above_1e-3=0 worst=(2,27,29)
+conv_bn_vs_reference region=public count=197568 max_abs=5.77315973e-15 mae=1.55723011e-16 rmse=2.68669299e-16 relative_l2=5.57243109e-16 above_1e-3=0 worst=(0,20,28)
+relu_vs_reference region=all count=200704 max_abs=4.46403774e-04 mae=9.17584043e-09 rmse=1.01485747e-06 relative_l2=4.58267252e-06 above_1e-3=0 worst=(46,31,31)
+relu_vs_reference region=encrypted count=3136 max_abs=4.46403774e-04 mae=5.87253784e-07 rmse=8.11885973e-06 relative_l2=3.44038049e-05 above_1e-3=0 worst=(46,31,31)
+relu_vs_reference region=public count=197568 max_abs=2.22044605e-15 mae=4.80250038e-17 rmse=1.01805916e-16 relative_l2=4.60208346e-16 above_1e-3=0 worst=(43,21,25)
+relu_vs_decrypted_conv region=all count=200704 max_abs=4.46403774e-04 mae=9.17584096e-09 rmse=1.01485747e-06 relative_l2=4.58267252e-06 above_1e-3=0 worst=(46,31,31)
+relu_vs_decrypted_conv region=encrypted count=3136 max_abs=4.46403774e-04 mae=5.87253821e-07 rmse=8.11885973e-06 relative_l2=3.44038049e-05 above_1e-3=0 worst=(46,31,31)
+relu_vs_decrypted_conv region=public count=197568 max_abs=0.00000000e+00 mae=0.00000000e+00 rmse=0.00000000e+00 relative_l2=0.00000000e+00 above_1e-3=0 worst=(0,0,0)
+SWITCH explicit_slots=1024 converted_values=28672 signs=3136
+PASS reports="/root/benchmarks/relu-roundtrip/real-accuracy"

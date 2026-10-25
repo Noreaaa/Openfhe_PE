@@ -1,0 +1,26 @@
+{
+  "started_utc": "2026-10-25T10:37:34.391041+00:00",
+  "runner_pid": 1213211,
+  "rings": [
+    16384,
+    32768
+  ],
+  "slots": "N/2",
+  "depth": 30,
+  "scale_bits": 30,
+  "first_bits": 40,
+  "digits": 6,
+  "threads": 96,
+  "fully_encrypted": true,
+  "input_level": 0,
+  "input_degree": 1,
+  "layers": [
+    3,
+    8,
+    12,
+    16
+  ],
+  "implementation": "channel-wise shared baseline convolution; contiguous per-channel HxW; full feature encryption",
+  "repeats": 1,
+  "binary_sha256": "e89ce0e799e5b9efb12b70af12faae0825d65b1bfd2b8a3e1c357ef4afc9873a"
+}

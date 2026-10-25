@@ -1,0 +1,25 @@
+{
+  "command": [
+    "/root/benchmarks/main_original_full_encrypted_shapes_20261025/build/test",
+    "--model",
+    "baseline_test",
+    "--ringDim",
+    "16384",
+    "--batch",
+    "8192",
+    "--act",
+    "1",
+    "--top",
+    "0",
+    "--bottom",
+    "27",
+    "--left",
+    "0",
+    "--right",
+    "27",
+    "--nums",
+    "128"
+  ],
+  "cwd": "/root/Openfhe_PE/build",
+  "started_utc": "2026-10-25T13:43:29.380943+00:00"
+}

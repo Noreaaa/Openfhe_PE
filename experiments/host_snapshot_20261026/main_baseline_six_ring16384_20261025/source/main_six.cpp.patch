@@ -1,0 +1,41 @@
+--- /root/Openfhe_PE/src/main.cpp	2026-10-25 21:32:41.128297173 +0800
++++ /root/benchmarks/main_baseline_six_ring16384_20261025/source/main_six.cpp	2026-10-25 21:59:29.205586601 +0800
+@@ -48,6 +48,7 @@
+     parser.add<int>("ringDim", 'r', "ring dimension for CKKS scheme", false, 64);
+     parser.add<int>("batch", 'b', "batch size for cts", false, 64);
+     parser.add<int>("act", 'a', "activation type 0 for scheme switching, 1 for polynomial approximation", false, 0);
++    parser.add<int>("baseline-layers", 0, "number of consecutive original baseline stages", false, 6);
+ 
+     parser.parse_check(argc, argv);
+     int height_start = parser.get<int>("top");
+@@ -375,17 +376,25 @@
+ 
+         std::vector<Ciphertext<DCRTPoly>> x_ctxt = Encrypt_baseline(input_3d, numSlots, test_height, test_channels, CRYPTOCONTEXT, keyPair);
+ 
+-        model.add_layer(std::make_shared<Conv2d_C>(CONV_2D_C, "conv1", filter_4d_1, stride, test_height, test_height, numSlots));
+-        //model.add_layer(std::make_shared<Relu_ss>(RELU_SS_ACTIVATION, std::string("relu1"), privateKeyFHEW, test_height*test_height));
+-        model.add_layer(std::make_shared<Relu_appx>(RELU_APPX_ACTIVATION, std::string("relu1")));
++        const int baselineLayers=parser.get<int>("baseline-layers");
++        if(baselineLayers<1 || test_height-2*baselineLayers<1)throw std::invalid_argument("invalid baseline layer count for input height");
++        std::vector<types::double4d> baselineFilters;
++        for(int stage=0;stage<baselineLayers;++stage){
++            if(stage)Gen_test_vector4d(filter_4d_1,test_channels,test_channels,kernel_size,kernel_size);
++            baselineFilters.push_back(filter_4d_1);
++            const int currentHeight=test_height-2*stage;
++            model.add_layer(std::make_shared<Conv2d_C>(CONV_2D_C,"conv"+std::to_string(stage+1),filter_4d_1,stride,currentHeight,currentHeight,numSlots));
++            model.add_layer(std::make_shared<Relu_appx>(RELU_APPX_ACTIVATION,"relu"+std::to_string(stage+1)));
++        }
++        std::cout<<"BASELINE_SIX_CONFIG layers="<<baselineLayers<<" channels="<<test_channels<<" input_height="<<test_height<<" final_height="<<test_height-2*baselineLayers<<std::endl;
+         update_index_maps(test_height, test_width, stride, 3, true);
+         auto start = std::chrono::high_resolution_clock::now();
+         types::double3d result =model.predict(x_ctxt);
+         auto end = std::chrono::high_resolution_clock::now();
+         std::cout << "prediction time: " << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << "ms" << std::endl;
+ 
+-        types::double3d golden_res = GoldenConv2d(input_3d, filter_4d_1, bias_1, stride, 0);
+-        golden_Relu(golden_res);
++        types::double3d golden_res=input_3d;
++        for(const auto& weights:baselineFilters){golden_res=GoldenConv2d(golden_res,weights,bias_1,stride,0);golden_Relu(golden_res);}
+ 
+         std::cout << "golden result:" << std::endl;
+         print_3d(golden_res);

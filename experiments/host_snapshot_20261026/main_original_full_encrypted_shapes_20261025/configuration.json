@@ -1,0 +1,49 @@
+{
+  "branch": "main",
+  "source_commit": "08e56ef2eeb3083e335a95bb4127529bc378f4b1",
+  "started_utc": "2026-10-25T13:40:41.185690+00:00",
+  "runner_pid": 1286684,
+  "rings": [
+    16384,
+    32768
+  ],
+  "shapes": [
+    [
+      3,
+      64,
+      56
+    ],
+    [
+      8,
+      128,
+      28
+    ],
+    [
+      12,
+      256,
+      14
+    ],
+    [
+      16,
+      512,
+      7
+    ]
+  ],
+  "slots": "N/2",
+  "depth": 23,
+  "scale_bits": 30,
+  "first_bits": 40,
+  "digits": 3,
+  "bootstrap_setup_budget": [
+    4,
+    3
+  ],
+  "depth_computation_budget": [
+    3,
+    3
+  ],
+  "both_bootstrap_and_scheme_switch_keys": true,
+  "threads": 96,
+  "entry": "baseline_test, original unmodified main",
+  "binary_sha256": "f65ea0eb8d519e208526bc9d2b7a404e3458142aec79a86b381870bfbf1be6ef"
+}
