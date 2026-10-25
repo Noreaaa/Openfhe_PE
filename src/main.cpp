@@ -1,3 +1,4 @@
+#include "utils/experiment_phase.hpp"
 #define PROFILE
 #include "cmdline.h"
 #include "openfhe.h"
@@ -50,13 +51,20 @@ int main(int argc, char *argv[]) {
     parser.add<std::string>("model", 'm', "model type: HCNN or ResNet-18", true, "ResNet-18");
     parser.add<std::string>("dataset", 'd', "dataset: CIFAR10, MNIST or ImageNet", false, "CIFAR10");
     parser.add<int>("ringDim", 'r', "ring dimension for CKKS scheme", false, 16384);
-    parser.add<int>("batch", 'b', "logical packing slots (0 selects ringDim/2)", false, 1024);
+    parser.add<int>("batch", 'b', "logical packing slots (0 selects ringDim/2)", false, 2048);
     parser.add<int>("act", 'a', "activation type 0 for scheme switching, 1 for polynomial approximation", false, 0);
 
     parser.add("check-config", 0, "validate parameters and exit before generating contexts or keys");
+    parser.add("client-first-layer", 0, "run first ResNet Conv+BN+ReLU on client before encrypting features");
+    parser.add("experimental-depth", 0, "allow an explicit depth below the conservative non-bootstrap ResNet margin");
     parser.add("verify", 0, "compare each ResNet prefix against a plaintext reference (outside timed sections)");
     parser.add<int>("layers", 0, "number of sequential ResNet convolutions (1..10)", false, 6);
     parser.add<int>("depth", 0, "CKKS multiplicative depth (0 selects sufficient depth for the prefix)", false, 0);
+    parser.add<int>("bootstrap-after", 0, "insert CKKS bootstrap after this Conv+ReLU stage (0 disables)", false, 0);
+    parser.add<int>("levels-after-bootstrap", 0, "usable-level budget plus bootstrap reserve; mutually exclusive with depth", false, 0);
+    parser.add<int>("scale-bits", 0, "CKKS scale modulus bits", false, 40);
+    parser.add<int>("first-bits", 0, "CKKS first modulus bits", false, 50);
+    parser.add<int>("conv-scratch-mib", 0, "optional convolution scratch estimate in MiB (0 preserves maximum concurrency)", false, 0);
     parser.add<int>("encrypt-size", 0, "center square size in the 224x224 ResNet input", false, 10);
     parser.add<std::string>("profile", 0, "write per-layer and cumulative prefix timings to CSV", false, "");
     parser.add<std::string>("data-root", 0, "repository root containing datasets and python_model", false,
@@ -102,26 +110,55 @@ int main(int argc, char *argv[]) {
     }
     uint32_t numSlots = requestedSlots == 0 ? ringDim / 2 : requestedSlots;
     SetParamCKKS(static_cast<uint32_t>(ringDim), parameters, numSlots);
-    if(MODEL_TYPE=="ResNet-18" && act_type==0) {
-        const int minimumDepth=3*convLayers+4;
-        if(requestedDepth && requestedDepth<minimumDepth) {
-            std::cerr<<"Continuous Conv+scheme-switch ReLU prefix requires depth >= "<<minimumDepth
-                     <<" (no bootstrap/refresh in this path)"<<std::endl; return 1;
-        }
-        parameters.SetMultiplicativeDepth(requestedDepth ? requestedDepth : std::max(23,3*convLayers+6));
-    } else if(requestedDepth) parameters.SetMultiplicativeDepth(requestedDepth);
-    const bool needsBootstrap=MODEL_TYPE!="ResNet-18" || act_type!=0;
-    std::cout<<"RUN_CONFIG layers="<<convLayers<<" depth="<<parameters.GetMultiplicativeDepth()
-             <<" ring="<<ringDim<<" slots="<<numSlots<<" input_encrypted_h="<<height_start<<':'<<height_end
-             <<" input_encrypted_w="<<width_start<<':'<<width_end<<std::endl;
-    if(parser.exist("check-config")) return 0;
+    const int bootstrapAfter=parser.get<int>("bootstrap-after");
+    const int postBootstrapLevels=parser.get<int>("levels-after-bootstrap");
+    const int scaleBits=parser.get<int>("scale-bits"), firstBits=parser.get<int>("first-bits");
+    const int convScratchMiB=parser.get<int>("conv-scratch-mib");
+    const bool clientFirstLayer=parser.exist("client-first-layer");
+    if(clientFirstLayer && (MODEL_TYPE!="ResNet-18" || act_type!=0 || convLayers<2 || bootstrapAfter==1)) {
+        std::cerr<<"client-first-layer requires ResNet scheme switching, at least 2 total layers, and server-side bootstrap position"<<std::endl;return 1;
+    }
+    const int serverConvLayers=convLayers-(clientFirstLayer?1:0);
+    if(convScratchMiB<0 || bootstrapAfter<0 || bootstrapAfter>=convLayers || postBootstrapLevels<0 ||
+       (postBootstrapLevels && (requestedDepth || !bootstrapAfter)) ||
+       (bootstrapAfter && (MODEL_TYPE!="ResNet-18" || act_type!=0)) ||
+       scaleBits<20 || scaleBits>59 || firstBits<scaleBits || firstBits>60) {
+        std::cerr<<"Invalid bootstrap/depth/scale configuration"<<std::endl; return 1;
+    }
+    parameters.SetScalingModSize(scaleBits); parameters.SetFirstModSize(firstBits);
     std::vector<uint32_t> levelBudget = {3, 3};
     std::vector<uint32_t> bsgsDim = {0, 0};
+    const auto bootstrapReserve=FHECKKSRNS::GetBootstrapDepth(levelBudget,UNIFORM_TERNARY);
+    if(MODEL_TYPE=="ResNet-18" && act_type==0) {
+        const int minimumDepth=bootstrapAfter ? std::max(static_cast<int>(bootstrapReserve)+10,3*bootstrapAfter+14)
+                                              : std::max(20,3*serverConvLayers+14);
+        const int totalDepth=postBootstrapLevels ? postBootstrapLevels+bootstrapReserve :
+            (requestedDepth ? requestedDepth : (bootstrapAfter ? minimumDepth+2 : std::max(23,3*serverConvLayers+16)));
+        const int experimentalMinimum=std::max(20,3*serverConvLayers+9);
+        const bool experimentalDepth=parser.exist("experimental-depth") && requestedDepth>0 && !bootstrapAfter && totalDepth>=experimentalMinimum;
+        if(totalDepth<minimumDepth && !experimentalDepth) {
+            std::cerr<<"CONFIG_REJECTED requested_total_depth="<<totalDepth<<" minimum_total_depth="<<minimumDepth
+                     <<" bootstrap_reserve="<<(bootstrapAfter?bootstrapReserve:0)
+                     <<"; use --levels-after-bootstrap 14 to reserve bootstrap levels separately"<<std::endl; return 1;
+        }
+        if(totalDepth<minimumDepth)std::cout<<"EXPERIMENTAL_DEPTH requested="<<totalDepth<<" conservative_minimum="<<minimumDepth<<" experimental_minimum="<<experimentalMinimum<<std::endl;
+        parameters.SetMultiplicativeDepth(totalDepth);
+    } else if(requestedDepth) parameters.SetMultiplicativeDepth(requestedDepth);
+    const bool needsBootstrap=bootstrapAfter || MODEL_TYPE!="ResNet-18" || act_type!=0;
+    std::cout<<"RUN_CONFIG layers="<<convLayers<<" depth="<<parameters.GetMultiplicativeDepth()
+             <<" ring="<<ringDim<<" slots="<<numSlots<<" scale_bits="<<scaleBits<<" first_bits="<<firstBits
+             <<" client_first_layer="<<clientFirstLayer<<" server_conv_layers="<<serverConvLayers
+             <<" conv_scratch_mib="<<convScratchMiB<<" num_large_digits="<<parameters.GetNumLargeDigits()<<" bootstrap_after="<<bootstrapAfter<<" levels_after_bootstrap="<<postBootstrapLevels
+             <<" bootstrap_reserve="<<(bootstrapAfter?bootstrapReserve:0)
+             <<" input_encrypted_h="<<height_start<<':'<<height_end
+             <<" input_encrypted_w="<<width_start<<':'<<width_end<<std::endl;
+    if(parser.exist("check-config")) return 0;
 
 
     
 
     // set cryptocontext for CKKS
+    WriteExperimentPhase(parser.get<std::string>("profile"),"key_setup");
     CryptoContext<DCRTPoly> cryptoContext = GenCryptoContext(parameters);
 
     // Enable features that you wish to use. Note, we must enable FHE to use bootstrapping.
@@ -136,7 +173,7 @@ int main(int argc, char *argv[]) {
     std::cout << "CKKS scheme is using ring dimension " << ringDim
               << ", logical packing slots " << numSlots << std::endl << std::endl;
 
-    if(needsBootstrap) cryptoContext->EvalBootstrapSetup(levelBudget, bsgsDim, numSlots, 10);
+    if(needsBootstrap) cryptoContext->EvalBootstrapSetup(levelBudget, bsgsDim, numSlots, std::max(10, firstBits-scaleBits));
 
     auto keyPair = cryptoContext->KeyGen();
     cryptoContext->EvalMultKeyGen(keyPair.secretKey);
@@ -203,7 +240,7 @@ int main(int argc, char *argv[]) {
         InitHCNN(model, hcnn_path, numSlots, eps);
     }
     else if (MODEL_TYPE == "ResNet-18"){
-        InitResNet18(model, resnet18_path, imagenet_image_path, numSlots, eps, act_type, privateKeyFHEW, keyPair, height_start, height_end, width_start, width_end, convLayers, parser.get<std::string>("profile"), parser.exist("verify"));
+        InitResNet18(model, resnet18_path, imagenet_image_path, numSlots, eps, act_type, privateKeyFHEW, keyPair, height_start, height_end, width_start, width_end, convLayers, parser.get<std::string>("profile"), parser.exist("verify"), bootstrapAfter, static_cast<uint32_t>(convScratchMiB),clientFirstLayer);
     }
     else if (MODEL_TYPE == "baseline_test"){
         InitBaselineTest(model, resnet18_path, imagenet_image_path, numSlots, test_nums, cryptoContext, keyPair, height_start, height_end, width_start, width_end);
@@ -219,7 +256,7 @@ int main(int argc, char *argv[]) {
     struct rusage usage;
     getrusage(RUSAGE_SELF, &usage);
     double peak_gb = usage.ru_maxrss / 1024.0 / 1024.0;  // KB -> GB
-    std::cout << "Peak memory: " << peak_gb << " GB" << std::endl;
+    std::cout << "Peak memory: " << peak_gb << " GiB (whole process)" << std::endl;
 
     return 0;
     

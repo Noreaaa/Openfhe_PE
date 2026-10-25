@@ -74,9 +74,9 @@ def stop(process):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--binary", type=Path, default=ROOT/"build/test")
-    parser.add_argument("--output", type=Path, default=ROOT/"test_results/resnet_sweep_t16")
-    parser.add_argument("--depth", type=int, default=36, help="same depth for all cases")
-    parser.add_argument("--threads", type=int, default=16, help="OpenMP thread and CPU affinity limit")
+    parser.add_argument("--output", type=Path, default=ROOT/"test_results/resnet_sweep_max")
+    parser.add_argument("--depth", type=int, default=46, help="same depth for all cases")
+    parser.add_argument("--threads", type=int, default=len(os.sched_getaffinity(0)), help="OpenMP thread and CPU affinity limit (default: all available CPUs)")
     parser.add_argument("--max-area", type=int, default=100, help="largest square side, multiple of 10")
     parser.add_argument("--rerun", action="store_true")
     parser.add_argument("--dry-run", action="store_true")

@@ -1,0 +1,5 @@
+depth: 23
+CHANNELWISE_CONFIG mode=smoke ring=2048 slots=1024 depth=36 scale_bits=30 first_bits=40 digits=6 threads=96 bootstrap=none bootstrap_reserve=0 last_layer=8
+SMOKE_CONV pass=0 max_abs=4.20803e-06
+SMOKE_CONV pass=1 max_abs=2.24822e-06
+SMOKE_PASSED approximation_max_abs=1.1181e-05

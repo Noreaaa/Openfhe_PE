@@ -1,0 +1,27 @@
+depth: 23
+CONFIG ring=16384 slots=1024 depth=20 scale_bits=50 first_bits=60 threads=96 reverse_numCtxts=1024 warmup=1 repeats=5 ciphertexts=1
+WARMUP round=0 active=6 reverse_inputs=1024 sign_ms=171.770712 reverse_ms=1406.849296 complement_ms=0.887051 error=5.88272554114e-07 peak_mib=5374.4140625
+WARMUP round=0 active=64 reverse_inputs=1024 sign_ms=362.400417 reverse_ms=1276.368056 complement_ms=0.898013 error=1.47067437731e-05 peak_mib=5400.67578125
+WARMUP round=0 active=256 reverse_inputs=1024 sign_ms=1033.216677 reverse_ms=1325.794475 complement_ms=1.190312 error=1.47114623034e-05 peak_mib=5495.85546875
+WARMUP round=0 active=1024 reverse_inputs=1024 sign_ms=3312.581452 reverse_ms=1247.832101 complement_ms=0.851023 error=1.47092329613e-05 peak_mib=5495.85546875
+TRIAL round=1 active=1024 reverse_inputs=1024 sign_ms=3864.854707 reverse_ms=1221.426454 complement_ms=0.782427 error=1.4705534064e-05 peak_mib=5495.85546875
+TRIAL round=1 active=256 reverse_inputs=1024 sign_ms=928.425098 reverse_ms=1230.138987 complement_ms=0.750096 error=1.47101206644e-05 peak_mib=5495.85546875
+TRIAL round=1 active=64 reverse_inputs=1024 sign_ms=313.986772 reverse_ms=1216.99048 complement_ms=2.667889 error=1.47067218714e-05 peak_mib=5495.85546875
+TRIAL round=1 active=6 reverse_inputs=1024 sign_ms=186.7335 reverse_ms=1231.452329 complement_ms=0.895121 error=5.88291589998e-07 peak_mib=5495.85546875
+TRIAL round=2 active=6 reverse_inputs=1024 sign_ms=165.059128 reverse_ms=1256.253905 complement_ms=0.970758 error=5.88273601498e-07 peak_mib=5495.85546875
+TRIAL round=2 active=64 reverse_inputs=1024 sign_ms=298.738909 reverse_ms=1245.469232 complement_ms=1.026746 error=1.47062768175e-05 peak_mib=5495.85546875
+TRIAL round=2 active=256 reverse_inputs=1024 sign_ms=916.94923 reverse_ms=1272.970498 complement_ms=0.913502 error=1.47098068898e-05 peak_mib=5495.85546875
+TRIAL round=2 active=1024 reverse_inputs=1024 sign_ms=3552.941204 reverse_ms=1229.887536 complement_ms=0.948605 error=1.47077396566e-05 peak_mib=5495.85546875
+TRIAL round=3 active=1024 reverse_inputs=1024 sign_ms=3293.986403 reverse_ms=1287.146009 complement_ms=0.987809 error=1.47067426379e-05 peak_mib=5523.89453125
+TRIAL round=3 active=256 reverse_inputs=1024 sign_ms=969.589347 reverse_ms=1225.78269 complement_ms=0.815206 error=1.47097037495e-05 peak_mib=5523.89453125
+TRIAL round=3 active=64 reverse_inputs=1024 sign_ms=343.844813 reverse_ms=1226.492577 complement_ms=0.747035 error=1.47064521493e-05 peak_mib=5523.89453125
+TRIAL round=3 active=6 reverse_inputs=1024 sign_ms=167.834831 reverse_ms=1254.666953 complement_ms=0.954876 error=5.88284582611e-07 peak_mib=5523.89453125
+TRIAL round=4 active=6 reverse_inputs=1024 sign_ms=186.096713 reverse_ms=1223.620402 complement_ms=0.828992 error=5.88277587281e-07 peak_mib=5523.89453125
+TRIAL round=4 active=64 reverse_inputs=1024 sign_ms=290.830415 reverse_ms=1252.092449 complement_ms=1.13202 error=1.47065452058e-05 peak_mib=5523.89453125
+TRIAL round=4 active=256 reverse_inputs=1024 sign_ms=946.989792 reverse_ms=1260.692811 complement_ms=0.906185 error=1.47097745333e-05 peak_mib=5523.89453125
+TRIAL round=4 active=1024 reverse_inputs=1024 sign_ms=3305.696553 reverse_ms=1217.838322 complement_ms=0.812401 error=1.47096970939e-05 peak_mib=5523.89453125
+TRIAL round=5 active=1024 reverse_inputs=1024 sign_ms=3289.01003 reverse_ms=1226.776573 complement_ms=0.83377 error=1.47093299568e-05 peak_mib=5523.89453125
+TRIAL round=5 active=256 reverse_inputs=1024 sign_ms=981.148332 reverse_ms=1224.338242 complement_ms=0.854344 error=1.47093361508e-05 peak_mib=5523.89453125
+TRIAL round=5 active=64 reverse_inputs=1024 sign_ms=324.243657 reverse_ms=1225.055816 complement_ms=0.739772 error=1.4706319877e-05 peak_mib=5523.89453125
+TRIAL round=5 active=6 reverse_inputs=1024 sign_ms=175.940075 reverse_ms=1239.545108 complement_ms=0.845297 error=5.88303074034e-07 peak_mib=5523.89453125
+PASS max_abs_error=1.47114623034e-05

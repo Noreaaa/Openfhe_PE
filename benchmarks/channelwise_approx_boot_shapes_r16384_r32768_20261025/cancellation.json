@@ -1,0 +1,12 @@
+{
+  "status": "cancelled_by_user",
+  "cancelled_utc": "2026-10-25T12:59:34.753090+00:00",
+  "terminated_pids": [
+    1262979,
+    1275434
+  ],
+  "interrupted_ring": 16384,
+  "interrupted_layer": 12,
+  "interrupted_phase": "server_conv",
+  "note": "User requested cancellation before Git upload. Incomplete case is not a valid performance result."
+}

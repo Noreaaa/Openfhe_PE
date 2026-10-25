@@ -1,0 +1,2 @@
+layer,conv_ms,activation_ms,cumulative_ms,channels,height,width,ciphertexts,level,remaining_towers,normalization_bound,conv_max_abs,conv_rmse,activation_max_abs,activation_rmse,vs_relu_max_abs,vs_relu_rmse
+2,128179.819007,11446.901235,139626.720242,64,56,56,64,4,53,12.0298705409,0.000559188712477,2.1136152496e-05,0.00330768431429,0.000216789358804,0.277017873921,0.170989854172

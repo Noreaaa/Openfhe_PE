@@ -1,0 +1,12 @@
+{
+  "campaign_pid": 3580811,
+  "started_utc": "2026-10-22T20:17:20.355263+00:00",
+  "scheduler_updated_utc": "2026-10-23T04:49:23.083602+00:00",
+  "phases": [
+    32768,
+    16384
+  ],
+  "planned_cases": 16,
+  "binary_sha256": "98915580ab95bc79bf0f9788d2abadbf78a3c1e8109fe34003c6b3dbb384fb64",
+  "runner_sha256": "d3d97d0a4cb7702fa139e626ad0ba118873f7621bb00ea69188ec9b22f19aefd"
+}

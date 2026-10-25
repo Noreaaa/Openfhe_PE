@@ -51,7 +51,7 @@ int main(int argc,char** argv) {
         if(input.size()!=64 || input[0].size()!=56 || input[0][0].size()!=56)
             throw std::runtime_error("unexpected third-layer input shape");
         const uint32_t ring = argc>2 ? std::stoul(argv[2]) : 16384;
-        constexpr uint32_t slots=1024,depth=10;
+        constexpr uint32_t slots=1024,depth=20;
         const bool optimized = ring == 16384 && (argc<=3 || std::string(argv[3]) != "reference");
         if(ring!=2048 && ring!=16384) throw std::invalid_argument("ring must be 2048 or 16384");
         CCParams<CryptoContextCKKSRNS> params;

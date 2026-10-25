@@ -1,0 +1,13 @@
+{
+  "command": [
+    "/root/Openfhe_PE/benchmarks/legacy_pfhe_conv_shapes_r16384_r32768_20261025/legacy_conv_shape_bench",
+    "/root/Openfhe_PE",
+    "3",
+    "16384",
+    "8192",
+    "30",
+    "10",
+    "/root/Openfhe_PE/benchmarks/legacy_pfhe_conv_shapes_r16384_r32768_20261025/ring16384/layer3/measurement.csv"
+  ],
+  "started_utc": "2026-10-25T09:16:00.852698+00:00"
+}

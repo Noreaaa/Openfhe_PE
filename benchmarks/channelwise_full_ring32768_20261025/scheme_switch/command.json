@@ -1,0 +1,11 @@
+{
+  "command": [
+    "/root/Openfhe_PE/benchmarks/channelwise_full_ring32768_20261025/channelwise_prefix_bench",
+    "/root/Openfhe_PE",
+    "scheme_switch",
+    "/root/Openfhe_PE/benchmarks/channelwise_full_ring32768_20261025/scheme_switch/layers.csv",
+    "8",
+    "40"
+  ],
+  "started_utc": "2026-10-24T18:27:36.956050+00:00"
+}

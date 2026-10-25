@@ -1,0 +1,38 @@
+[
+  {
+    "layer": 2,
+    "area": 40.0,
+    "input_level": 0.0,
+    "conv_s": 182.622,
+    "max_abs": 0.000606445,
+    "rmse": 2.67702e-05,
+    "output_level": 1.0,
+    "towers": 40.0,
+    "peak_gib": 24.8945,
+    "version": "before"
+  },
+  {
+    "layer": 2,
+    "area": 40.0,
+    "input_level": 0.0,
+    "conv_s": 119.979,
+    "max_abs": 0.000556144,
+    "rmse": 2.61695e-05,
+    "output_level": 1.0,
+    "towers": 40.0,
+    "peak_gib": 25.783,
+    "version": "after"
+  },
+  {
+    "layer": 3,
+    "area": 40.0,
+    "input_level": 12.0,
+    "conv_s": 65.8165,
+    "max_abs": 8.0792e-05,
+    "rmse": 3.65403e-06,
+    "output_level": 13.0,
+    "towers": 28.0,
+    "peak_gib": 15.5024,
+    "version": "before"
+  }
+]

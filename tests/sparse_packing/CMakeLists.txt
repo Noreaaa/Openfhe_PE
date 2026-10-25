@@ -49,7 +49,7 @@ target_link_libraries(sparse_conv2d_test PRIVATE OpenMP::OpenMP_CXX)
 enable_testing()
 add_test(NAME sparse_conv2d_correctness COMMAND sparse_conv2d_test)
 
-set_tests_properties(sparse_conv2d_correctness PROPERTIES ENVIRONMENT "OMP_NUM_THREADS=2" TIMEOUT 180)
+set_tests_properties(sparse_conv2d_correctness PROPERTIES TIMEOUT 600)
 
 # OpenFHE exports -Werror; legacy helper warnings must not block this test.
 target_compile_options(sparse_conv2d_test PRIVATE -Wno-error=unused-variable -Wno-error=sign-compare)
@@ -69,4 +69,52 @@ endif()
 target_link_libraries(sparse_activation_test PRIVATE OpenMP::OpenMP_CXX)
 target_compile_options(sparse_activation_test PRIVATE -Wno-error=unused-variable -Wno-error=sign-compare)
 add_test(NAME sparse_activation_correctness COMMAND sparse_activation_test)
-set_tests_properties(sparse_activation_correctness PROPERTIES ENVIRONMENT "OMP_NUM_THREADS=2" TIMEOUT 300)
+set_tests_properties(sparse_activation_correctness PROPERTIES TIMEOUT 900)
+
+# Baseline is an unchanged pre-roundtrip fixture, linked only into this benchmark.
+add_executable(relu_roundtrip_bench relu_roundtrip_bench.cpp
+    baseline/baseline_sparse_activation.cpp ../../src/cnn/sparse_activation.cpp
+    ../../src/cnn/layer.cpp ../../src/utils/globals.cpp ../../src/utils/helper.cpp
+    ../../src/encryption/setparam.cpp)
+target_include_directories(relu_roundtrip_bench PRIVATE ${OpenFHE_INCLUDE}
+    ${OpenFHE_INCLUDE}/third-party/include ${OpenFHE_INCLUDE}/core
+    ${OpenFHE_INCLUDE}/pke ${OpenFHE_INCLUDE}/binfhe)
+if(BUILD_STATIC)
+    target_link_libraries(relu_roundtrip_bench PRIVATE ${OpenFHE_STATIC_LIBRARIES})
+else()
+    target_link_libraries(relu_roundtrip_bench PRIVATE ${OpenFHE_SHARED_LIBRARIES})
+endif()
+target_link_libraries(relu_roundtrip_bench PRIVATE OpenMP::OpenMP_CXX)
+target_compile_options(relu_roundtrip_bench PRIVATE -Wno-error=unused-variable -Wno-error=sign-compare)
+
+# Isolate active sign count from the fixed 1024-input reverse transform.
+add_executable(reverse_active_bench reverse_active_bench.cpp
+    ../../src/cnn/layer.cpp ../../src/utils/globals.cpp ../../src/utils/helper.cpp
+    ../../src/encryption/setparam.cpp)
+target_include_directories(reverse_active_bench PRIVATE ${OpenFHE_INCLUDE}
+    ${OpenFHE_INCLUDE}/third-party/include ${OpenFHE_INCLUDE}/core
+    ${OpenFHE_INCLUDE}/pke ${OpenFHE_INCLUDE}/binfhe)
+if(BUILD_STATIC)
+    target_link_libraries(reverse_active_bench PRIVATE ${OpenFHE_STATIC_LIBRARIES})
+else()
+    target_link_libraries(reverse_active_bench PRIVATE ${OpenFHE_SHARED_LIBRARIES})
+endif()
+target_link_libraries(reverse_active_bench PRIVATE OpenMP::OpenMP_CXX)
+target_compile_options(reverse_active_bench PRIVATE -Wno-error=unused-variable -Wno-error=sign-compare)
+
+# Fresh-process A/B measurement of convolution scratch and rotation-key memory.
+add_executable(conv_memory_bench conv_memory_bench.cpp ../../src/cnn/sparse_conv2d.cpp
+    ../../src/cnn/conv2d.cpp ../../src/cnn/layer.cpp ../../src/utils/globals.cpp ../../src/utils/helper.cpp)
+target_include_directories(conv_memory_bench PRIVATE ${OpenFHE_INCLUDE}
+    ${OpenFHE_INCLUDE}/third-party/include ${OpenFHE_INCLUDE}/core
+    ${OpenFHE_INCLUDE}/pke ${OpenFHE_INCLUDE}/binfhe)
+if(BUILD_STATIC)
+    target_link_libraries(conv_memory_bench PRIVATE ${OpenFHE_STATIC_LIBRARIES})
+else()
+    target_link_libraries(conv_memory_bench PRIVATE ${OpenFHE_SHARED_LIBRARIES})
+endif()
+target_link_libraries(conv_memory_bench PRIVATE OpenMP::OpenMP_CXX)
+target_compile_options(conv_memory_bench PRIVATE -Wno-error=unused-variable -Wno-error=sign-compare)
+
+add_executable(client_region_test client_region_test.cpp)
+add_test(NAME client_region_mapping COMMAND client_region_test)

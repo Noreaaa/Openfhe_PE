@@ -1,0 +1,6 @@
+depth: 23
+CHANNELWISE_CONFIG mode=bootstrap_probe ring=32768 slots=16384 depth=30 scale_bits=59 first_bits=60 digits=6 threads=96 bootstrap=after_every_activation bootstrap_reserve=20 last_layer=2
+PROBE_DEPLETED level=29 towers=2 degree=1 rmse=1.43853e-13
+BOOTSTRAP_PROBE pass=0 max_abs=0.00196024 rmse=8.00377e-05 level=20 towers=11 elapsed_ms=12009.2
+PROBE_DEPLETED level=29 towers=2 degree=1 rmse=6.81721e-05
+BOOTSTRAP_PROBE pass=1 max_abs=0.00377003 rmse=0.000136002 level=20 towers=11 elapsed_ms=11457.9

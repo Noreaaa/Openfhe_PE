@@ -1,0 +1,13 @@
+{
+  "ring": 2048,
+  "slots": 1024,
+  "depth": 40,
+  "scale_bits": 30,
+  "first_bits": 40,
+  "digits": 6,
+  "threads": 96,
+  "area": 10,
+  "client_layers": 1,
+  "total_layers": 8,
+  "binary_sha256": "1c15df3759236b91b92769ed08858bdbeca1f445574cf33e0061576f5deeee51"
+}

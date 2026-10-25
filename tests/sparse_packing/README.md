@@ -83,7 +83,7 @@ three large digits by default (`--digits 3`), matching `SetParamCKKS` in
 The ring dimension is explicitly set by `--ring`. These are experimental
 parameters, without a 128-bit security requirement.
 
-Defaults follow main.cpp: depth is computed as
+The forward-only microbenchmark retains the historical 30/40-bit settings (the current CNN roundtrip uses 50/60 bits). Its depth is computed as
 `3 + FHECKKSRNS::GetBootstrapDepth({3, 3}, UNIFORM_TERNARY)`, with 30-bit scale,
 40-bit first modulus and FLEXIBLEAUTO on 64-bit builds. On native 128-bit builds,
 use 78/89 bits and FIXEDAUTO (the intended settings of main.cpp's 128-bit branch).
@@ -103,3 +103,106 @@ are included. Do not compare these numbers to the complete activation time.
 
 Smaller S may need more ciphertexts for a fixed CNN workload. Evaluate total
 layer time including repacking before adopting it in the actual CNN.
+
+
+## Minimal encrypted-ReLU comparison
+
+`relu_roundtrip_bench` compares the unchanged old implementation (stored only in
+`baseline/`) with the current sparse ReLU. Run each command in its own process,
+serially, to obtain independent peak-memory measurements:
+
+```bash
+mkdir -p /root/benchmarks/relu-roundtrip
+/usr/bin/time -v ./build-sparse/relu_roundtrip_bench baseline 10 30
+/usr/bin/time -v ./build-sparse/relu_roundtrip_bench baseline 20 50
+/usr/bin/time -v ./build-sparse/relu_roundtrip_bench encrypted 20 50
+```
+
+Arguments are variant, multiplicative depth, and scale bits; the first modulus is
+scale bits + 10. All variants use ring dimension 16384, 1024 logical slots, and all
+available OpenMP CPUs. The input has three channels, width 512, one encrypted row,
+and two encrypted positions per channel (two ciphertext blocks, six active
+values). It includes positive, negative, and zero values, slot 1023, and a partial
+last block. Each process measures three forwards, verifies every output slot and
+the public tensor with a `1e-3` absolute tolerance, and then measures five calls
+per CKKS primitive. Validation decryption is outside the forward timers.
+
+`TRIAL` reports pipeline stage wall times, RSS, and process high-water RSS.
+`PRIMITIVE` reports single-call medians for fresh level-0 ciphertexts; those times
+are not directly interchangeable with the final product at a deeper level.
+Baseline stage timers group amplification with forward switching, sign with
+secret-key decryption, and encoding with plaintext multiplication, preserving the
+original timing boundaries. The baseline fixture is never linked into production
+targets. GNU time includes setup, validation, and primitive probes; the per-trial
+high-water marks are also reported. This tiny workload establishes correctness and
+local operation costs, rather than full-model throughput or a 96-thread speedup.
+
+
+## Active sign count versus fixed reverse-transform size
+
+`reverse_active_bench` holds ring=16384, slots=1024, depth=20, scale/first
+modulus=50/60 bits, and all available CPUs fixed. It calls the production
+`EncryptedReluMask` with 6, 64, 256, or 1024 active positions. Every reverse
+conversion still receives 1024 FHEW ciphertexts, exactly as in production;
+inactive positions reuse an existing encrypted sign. Forward switching is done
+once before timing. One warmup per case precedes five measured rounds, with
+case order reversed on alternate rounds. Sign computation and FHEW-to-CKKS
+conversion are timed separately. Decryption checks all mask slots outside the
+timed region. This isolates active-value count at a fixed API transform size;
+it does not measure changing `numCtxts`, logical slots, or ring dimension.
+
+```bash
+cmake --build build-sparse --target reverse_active_bench -j "$(nproc)"
+OMP_NUM_THREADS="$(nproc)" OMP_THREAD_LIMIT="$(nproc)" \
+  OMP_DYNAMIC=FALSE OMP_MAX_ACTIVE_LEVELS=1 ./build-sparse/reverse_active_bench
+```
+
+Measurements and raw logs: [active-value experiment](../../benchmarks/reverse_active_20261023/README.md).
+
+## Convolution memory experiments
+
+Production defaults preserve execution speed: direct rotation keys and unrestricted
+output-channel concurrency (`--conv-scratch-mib 0`). Existing rotation keys are
+reused rather than regenerated. The logical slot default is 2048.
+
+The signed power-of-two rotation basis and scratch-limited policies were measured
+but rejected as production defaults because they increased forward latency.
+They remain accessible only through explicit API arguments and the standalone
+`conv_memory_bench optimized [scratch_mib]` experiment. The baseline measurement
+uses `conv_memory_bench baseline`. See the [historical measurement report](../../benchmarks/conv_memory_optimization_20261023/README.md).
+
+The cancelled sweep remains cancelled.
+
+## Sparse convolution rotation optimization
+
+The fast path reduces `min(input_channels, channels_per_ciphertext)` occupied
+channel positions and shares baby rotations during stride-2 compaction. The
+compaction still uses one ciphertext/plaintext multiplication level and retains
+the same row/channel output layout. Direct keys and maximum channel concurrency
+remain the defaults. `CONV_PROFILE` separates public arithmetic, preparation,
+encrypted work and output insertion timings.
+
+The wide-region correctness fixture covers nonzero-start compaction, odd channel
+counts, padding and chained convolutions. The root-build target
+`sparse_conv_opt_bench ROOT LAYER AREA INPUT_LEVEL` checks real ResNet weights
+against plaintext Conv+BN at a specified input level. Frozen before/after
+executables and measurements are kept under
+`benchmarks/sparse_conv_optimization_20261025/`; the benchmark runner is
+`scripts/benchmark_sparse_conv_optimization.py`. Prior full-prefix results remain
+historical measurements of their saved binaries.
+
+
+## Working-level plaintext encoding
+
+The sparse fast path encodes kernel plaintexts at the effective multiplication
+level, accounting for an outstanding automatic rescale. Selection/compaction
+plaintexts use the next multiplication level; public-value additions use the
+output ciphertext level. The reference path retains its default encoding.
+Packing, parallelism and multiplicative-level consumption are unchanged.
+
+The wide-region correctness fixture starts at level 4 with noise-scale degree 2
+and checks both numerical output and level consumption through two convolutions.
+The real-weight benchmark accepts an optional input noise-scale degree:
+`sparse_conv_opt_bench ROOT LAYER AREA INPUT_LEVEL [INPUT_NOISE_DEGREE]`.
+The matched before/after observation is archived in
+`benchmarks/sparse_conv_level_encoding_20261025/`.

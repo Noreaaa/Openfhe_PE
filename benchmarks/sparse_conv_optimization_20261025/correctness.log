@@ -1,0 +1,8 @@
+Internal ctest changing into directory: /root/Openfhe_PE/build-sparse
+Test project /root/Openfhe_PE/build-sparse
+    Start 1: sparse_conv2d_correctness
+1/1 Test #1: sparse_conv2d_correctness ........   Passed   16.05 sec
+
+100% tests passed, 0 tests failed out of 1
+
+Total Test time (real) =  16.05 sec

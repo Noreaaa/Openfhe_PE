@@ -5,6 +5,11 @@
 #include <cmath>
 #include <set>
 #include <functional>
+#include <cstdint>
+#include <chrono>
+#ifdef _OPENMP
+#include <omp.h>
+#endif
 
 SparseConv2d::SparseConv2d(PLayerType layer_type, std::string layer_name, uint32_t ring_dim, uint32_t packing_slots, types::double3d filters, std::vector<double> biases, int stride, int padding)
     : Layer(layer_type, std::move(layer_name)),
@@ -392,8 +397,8 @@ void SparseConv2dBN_P::forward_C(types::vector2d<Ciphertext<DCRTPoly>>&, double3
     throw std::logic_error("SparseConv2dBN_P::forward_C is not implemented");
 }
 
-Plaintext SparseConv2dBN_P::Encode(const std::vector<double>& values) const {
-    return CRYPTOCONTEXT->MakeCKKSPackedPlaintext(values, 1, 0, nullptr, packing_slots_);
+Plaintext SparseConv2dBN_P::Encode(const std::vector<double>& values, uint32_t level) const {
+    return CRYPTOCONTEXT->MakeCKKSPackedPlaintext(values, 1, level, nullptr, packing_slots_);
 }
 
 void SparseConv2dBN_P::ValidateInput(const types::vector2d<Ciphertext<DCRTPoly>>& cts,
@@ -443,7 +448,30 @@ void SparseConv2dBN_P::ValidateInput(const types::vector2d<Ciphertext<DCRTPoly>>
 }
 
 
-void SparseConv2dBN_P::EnableFastPath(uint32_t width, bool generate_keys) {
+int32_t SparseConv2dBN_P::NormalizeRotation(int32_t index) const {
+    const auto slots = static_cast<int32_t>(packing_slots_);
+    index %= slots;
+    if (index > slots / 2) index -= slots;
+    if (index < -slots / 2) index += slots;
+    return index;
+}
+
+Ciphertext<DCRTPoly> SparseConv2dBN_P::Rotate(const Ciphertext<DCRTPoly>& ct, int32_t index) const {
+    if (!compact_rotation_keys_)
+        return index ? CRYPTOCONTEXT->EvalRotate(ct, index) : ct;
+    index = NormalizeRotation(index);
+    auto result = ct;
+    const int sign = index < 0 ? -1 : 1;
+    uint32_t remaining = static_cast<uint32_t>(std::abs(index));
+    for (uint32_t step = 1; remaining; step <<= 1, remaining >>= 1)
+        if (remaining & 1) result = CRYPTOCONTEXT->EvalRotate(result, sign * static_cast<int32_t>(step));
+    return result;
+}
+
+void SparseConv2dBN_P::EnableFastPath(uint32_t width, bool generate_keys,
+                                     bool compact_rotation_keys, uint32_t scratch_budget_mib) {
+    compact_rotation_keys_ = compact_rotation_keys;
+    scratch_budget_mib_ = scratch_budget_mib;
     if (!width || width > packing_slots_ || filters_.empty() || filters_[0].empty() ||
         filters_[0][0].empty() || filters_[0][0][0].empty())
         throw std::invalid_argument("fast convolution: invalid width or filters");
@@ -460,12 +488,32 @@ void SparseConv2dBN_P::EnableFastPath(uint32_t width, bool generate_keys) {
             indices.insert(-c * outputWidth);
         if (stride_ > 1) for (int ow=1;ow<outputWidth;++ow)
             indices.insert(ow*(stride_-1));
-        for (int n = per; n > 1; n /= 2) {
+        for (int n = std::min(per, static_cast<int>(filters_[0].size())); n > 1; n /= 2) {
             indices.insert((n / 2) * width);
             if (n % 2) indices.insert((n - 1) * width);
         }
-        if (!indices.empty()) CRYPTOCONTEXT->EvalRotateKeyGen(KEYPAIR.secretKey,
-            std::vector<int32_t>(indices.begin(), indices.end()));
+        if (compact_rotation_keys_) {
+            std::set<int32_t> basis;
+            for (auto index : indices) {
+                index = NormalizeRotation(index);
+                const int sign = index < 0 ? -1 : 1;
+                uint32_t remaining = static_cast<uint32_t>(std::abs(index));
+                for (uint32_t step = 1; remaining; step <<= 1, remaining >>= 1)
+                    if (remaining & 1) basis.insert(sign * static_cast<int32_t>(step));
+            }
+            indices = std::move(basis);
+        }
+        // Reuse keys already supplied by another convolution or scheme switching.
+        const auto& allKeys = CRYPTOCONTEXT->GetAllEvalAutomorphismKeys();
+        const auto existing = allKeys.find(KEYPAIR.secretKey->GetKeyTag());
+        std::vector<int32_t> missing;
+        for (auto index : indices)
+            if (existing == allKeys.end() ||
+                !existing->second->count(CRYPTOCONTEXT->FindAutomorphismIndex(index)))
+                missing.push_back(index);
+        if (!missing.empty()) CRYPTOCONTEXT->EvalRotateKeyGen(KEYPAIR.secretKey, missing);
+        std::cout << "CONV_ROTATION_KEYS width=" << width << " compact=" << compact_rotation_keys_
+                  << " required=" << indices.size() << " generated=" << missing.size() << std::endl;
     }
     fast_width_ = width;
 }
@@ -481,6 +529,7 @@ void SparseConv2dBN_P::forward(types::vector2d<Ciphertext<DCRTPoly>>& x, double3
 
 void SparseConv2dBN_P::forward_fast(types::vector2d<Ciphertext<DCRTPoly>>& x, double3d& pts,
     types::vector2d<Ciphertext<DCRTPoly>>& y, double3d& out) {
+    const auto profileStart = std::chrono::steady_clock::now();
     const int ci = pts.size(), h = pts[0].size(), w = pts[0][0].size();
     const int co = filters_.size(), kh = filters_[0][0].size(), kw = filters_[0][0][0].size();
     const int ohCount = (h + 2 * padding_ - kh) / stride_ + 1;
@@ -521,6 +570,7 @@ void SparseConv2dBN_P::forward_fast(types::vector2d<Ciphertext<DCRTPoly>>& x, do
         }
         out[fn][oh][ow] = sum * a[fn] + b[fn];
     }
+    const auto publicFinished = std::chrono::steady_clock::now();
     // Reuse spatial rotations for all output channels and output rows.
     types::vector2d<Ciphertext<DCRTPoly>> rotated(x.size() * inputBlocks,
         std::vector<Ciphertext<DCRTPoly>>(kw));
@@ -531,20 +581,67 @@ void SparseConv2dBN_P::forward_fast(types::vector2d<Ciphertext<DCRTPoly>>& x, do
         const int fw = task % kw;
         const size_t index = task / kw;
         auto ct = x[index / inputBlocks][index % inputBlocks];
-        rotated[index][fw] = fw == padding_ ? ct : CRYPTOCONTEXT->EvalRotate(ct, fw - padding_);
+        rotated[index][fw] = fw == padding_ ? ct : Rotate(ct, fw - padding_);
     }
+    // Automatic CKKS multiplication first rescales a degree-2 ciphertext.
+    // Encode filters at that effective multiplication level; products have
+    // degree 2, so the following selector multiplication rescales once more.
+    // Minimum levels remain compatible with all rows if their states differ.
+    const auto cryptoParams = std::dynamic_pointer_cast<CryptoParametersCKKSRNS>(CRYPTOCONTEXT->GetCryptoParameters());
+    const auto scaling = cryptoParams->GetScalingTechnique();
+    const bool automaticRescale = scaling != FIXEDMANUAL && scaling != NORESCALE;
+    uint32_t filterLevel = static_cast<uint32_t>(x.front().front()->GetLevel());
+    if (automaticRescale && x.front().front()->GetNoiseScaleDeg()==2) ++filterLevel;
+    for (const auto& row : x) for (const auto& ct : row) {
+        const uint32_t effectiveLevel = ct->GetLevel() +
+            (automaticRescale && ct->GetNoiseScaleDeg()==2 ? 1 : 0);
+        filterLevel = std::min(filterLevel,effectiveLevel);
+    }
+    const uint32_t selectorLevel = filterLevel + (automaticRescale ? 1 : 0);
     std::vector<double> select(packing_slots_, 0);
     for (int ow=ws;ow<=we;++ow) select[ow*stride_] = 1;
-    auto selector = Encode(select);
+    auto selector = Encode(select,selectorLevel);
+    // One-level baby-step/giant-step compaction. For j=g+b, rotate the
+    // source by b*(stride-1), select at j+g*(stride-1), then rotate the group
+    // by g*(stride-1). The source is at stride*j and the result lands at j.
+    // This preserves the old scale/level budget while sharing baby rotations.
+    int compactBaby = 1;
+    const int compactWidth = we-ws+1;
+    if (stride_ > 1) {
+        int best = compactWidth;
+        for (int b=1;b<=compactWidth;++b) {
+            const int cost = b-1+(compactWidth+b-1)/b-(ws==0 ? 1 : 0);
+            if (cost < best) { best=cost; compactBaby=b; }
+        }
+    }
     std::vector<Plaintext> compactSelectors;
-    if (stride_ > 1) for (int ow=ws;ow<=we;++ow) {
+    if (stride_ > 1) for (int i=0;i<compactWidth;++i) {
+        const int giant = ws+(i/compactBaby)*compactBaby;
         std::vector<double> one(packing_slots_, 0);
-        one[ow*stride_] = 1;
-        compactSelectors.push_back(Encode(one));
+        one[ws+i+giant*(stride_-1)] = 1;
+        compactSelectors.push_back(Encode(one,selectorLevel));
     }
     y.assign(rows, std::vector<Ciphertext<DCRTPoly>>(blocks));
+    // Budget per-channel accumulators and key-switch temporaries. This is a
+    // scratch estimate, not a cap on keys, outputs, or whole-process RSS.
+    int channelWorkers = 1;
     #ifdef _OPENMP
-    #pragma omp parallel for schedule(dynamic, 1)
+    channelWorkers = std::min(co, omp_get_max_threads());
+    #endif
+    if (scratch_budget_mib_) {
+        const auto& sample = x.front().front();
+        const uint64_t ctBytes = static_cast<uint64_t>(ring_dim_) *
+            sample->GetElements()[0].GetNumOfElements() * sizeof(uint64_t) * sample->GetElements().size();
+        const uint64_t perWorker = ctBytes * (static_cast<uint64_t>(rows) + 8);
+        const uint64_t budget = static_cast<uint64_t>(scratch_budget_mib_) * 1024 * 1024;
+        channelWorkers = static_cast<int>(std::min<uint64_t>(channelWorkers,
+            std::max<uint64_t>(1, budget / std::max<uint64_t>(1, perWorker))));
+    }
+    std::cout << "CONV_MEMORY rows=" << rows << " channel_workers=" << channelWorkers
+              << " scratch_budget_mib=" << scratch_budget_mib_ << std::endl;
+    const auto encryptedStart = std::chrono::steady_clock::now();
+    #ifdef _OPENMP
+    #pragma omp parallel for schedule(dynamic, 1) num_threads(channelWorkers)
     #endif
     for (int fn=0;fn<co;++fn) {
         std::vector<Ciphertext<DCRTPoly>> accum(rows);
@@ -556,39 +653,52 @@ void SparseConv2dBN_P::forward_fast(types::vector2d<Ciphertext<DCRTPoly>>& x, do
                     if (ow*stride_+fw-padding_ >= 0 && ow*stride_+fw-padding_ < w)
                         coefficients[c*w+ow*stride_] = coefficient;
             }
-            auto plain = Encode(coefficients);
+            auto plain = Encode(coefficients,filterLevel);
             for (int row=0;row<rows;++row) {
                 const int ih = (hs + row)*stride_ + fh - padding_;
                 if (ih < ENCRYPTED_HEIGHT_START || ih > ENCRYPTED_HEIGHT_END) continue;
                 const int index = (ih - ENCRYPTED_HEIGHT_START) * inputBlocks + block;
                 auto product = CRYPTOCONTEXT->EvalMult(rotated[index][fw], plain);
                 if (RESCALE_REQUIRED) product = CRYPTOCONTEXT->Rescale(product);
-                accum[row] = accum[row] ? CRYPTOCONTEXT->EvalAdd(accum[row], product) : product;
+                if (accum[row]) CRYPTOCONTEXT->EvalAddInPlace(accum[row], product);
+                else accum[row] = std::move(product);
             }
         }
-        // Sum exactly 'per' channels. A power-of-two sum would wrap through tail slots.
+        // Blocks share channel positions, so sum at most min(per, ci).
+        // Empty channel positions need no rotations. Keep the recursive input
+        // immutable: half aliases ct at the base case.
         std::function<Ciphertext<DCRTPoly>(const Ciphertext<DCRTPoly>&, int)> reduce;
         reduce = [&](const Ciphertext<DCRTPoly>& ct, int n) -> Ciphertext<DCRTPoly> {
             if (n == 1) return ct;
             auto half = reduce(ct, n / 2);
-            auto sum = CRYPTOCONTEXT->EvalAdd(half, CRYPTOCONTEXT->EvalRotate(half, (n / 2)*w));
-            if (n % 2) sum = CRYPTOCONTEXT->EvalAdd(sum, CRYPTOCONTEXT->EvalRotate(ct, (n - 1)*w));
+            auto sum = CRYPTOCONTEXT->EvalAdd(half, Rotate(half, (n / 2)*w));
+            if (n % 2) CRYPTOCONTEXT->EvalAddInPlace(sum, Rotate(ct, (n - 1)*w));
             return sum;
         };
         for (int row=0;row<rows;++row) {
-            auto reduced = reduce(accum[row], per);
+            auto reduced = reduce(accum[row], std::min(per, ci));
             if (stride_ == 1) accum[row] = CRYPTOCONTEXT->EvalMult(reduced, selector);
             else {
+                std::vector<Ciphertext<DCRTPoly>> babies(compactBaby);
+                babies[0]=reduced;
+                for (int b=1;b<compactBaby;++b) babies[b]=Rotate(reduced,b*(stride_-1));
                 Ciphertext<DCRTPoly> compact;
-                for (int ow=ws;ow<=we;++ow) {
-                    auto point = CRYPTOCONTEXT->EvalMult(reduced, compactSelectors[ow-ws]);
-                    if (ow) point = CRYPTOCONTEXT->EvalRotate(point, ow*(stride_-1));
-                    compact = compact ? CRYPTOCONTEXT->EvalAdd(compact, point) : point;
+                for (int first=0;first<compactWidth;first+=compactBaby) {
+                    Ciphertext<DCRTPoly> group;
+                    for (int b=0;b<compactBaby && first+b<compactWidth;++b) {
+                        auto point=CRYPTOCONTEXT->EvalMult(babies[b],compactSelectors[first+b]);
+                        if (group) CRYPTOCONTEXT->EvalAddInPlace(group,point);
+                        else group=std::move(point);
+                    }
+                    const int giant=ws+first;
+                    if (giant) group=Rotate(group,giant*(stride_-1));
+                    if (compact) CRYPTOCONTEXT->EvalAddInPlace(compact,group);
+                    else compact=std::move(group);
                 }
-                accum[row] = compact;
+                accum[row] = std::move(compact);
             }
             if (RESCALE_REQUIRED) accum[row] = CRYPTOCONTEXT->Rescale(accum[row]);
-            if (fn % outputPer) accum[row] = CRYPTOCONTEXT->EvalRotate(accum[row], -(fn % outputPer)*outputWidth);
+            if (fn % outputPer) accum[row] = Rotate(accum[row], -(fn % outputPer)*outputWidth);
         }
         // Only the final block additions are serialized; per-channel work is independent.
         #ifdef _OPENMP
@@ -596,9 +706,11 @@ void SparseConv2dBN_P::forward_fast(types::vector2d<Ciphertext<DCRTPoly>>& x, do
         #endif
         for (int row=0;row<rows;++row) {
             auto& target = y[row][fn / outputPer];
-            target = target ? CRYPTOCONTEXT->EvalAdd(target, accum[row]) : accum[row];
+            if (target) CRYPTOCONTEXT->EvalAddInPlace(target, accum[row]);
+            else target = accum[row];
         }
     }
+    const auto encryptedFinished = std::chrono::steady_clock::now();
     #ifdef _OPENMP
     #pragma omp parallel for collapse(2)
     #endif
@@ -608,8 +720,18 @@ void SparseConv2dBN_P::forward_fast(types::vector2d<Ciphertext<DCRTPoly>>& x, do
             publicValues[(c%outputPer)*outputWidth+ow] = out[c][hs+row][ow];
             out[c][hs+row][ow] = 0;
         }
-        y[row][block] = CRYPTOCONTEXT->EvalAdd(y[row][block], Encode(publicValues));
+        y[row][block] = CRYPTOCONTEXT->EvalAdd(y[row][block], Encode(publicValues,y[row][block]->GetLevel()));
     }
     ENCRYPTED_HEIGHT_START=hs; ENCRYPTED_HEIGHT_END=he;
     ENCRYPTED_WIDTH_START=ws; ENCRYPTED_WIDTH_END=we;
+    const auto outputFinished = std::chrono::steady_clock::now();
+    auto milliseconds=[](auto a,auto b){return std::chrono::duration<double,std::milli>(b-a).count();};
+    std::cout << "CONV_PROFILE public_ms=" << milliseconds(profileStart,publicFinished)
+              << " prepare_ms=" << milliseconds(publicFinished,encryptedStart)
+              << " encrypted_ms=" << milliseconds(encryptedStart,encryptedFinished)
+              << " output_ms=" << milliseconds(encryptedFinished,outputFinished)
+              << " reduction_channels=" << std::min(per,ci)
+              << " compact_baby=" << compactBaby
+              << " filter_encode_level=" << filterLevel
+              << " selector_encode_level=" << selectorLevel << std::endl;
 }

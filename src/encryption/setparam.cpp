@@ -43,11 +43,11 @@ void SetParamCKKS(uint32_t RingDim, CCParams<CryptoContextCKKSRNS>& parameters,
     parameters.SetRingDim(RingDim);
 
     /*  A3) Key switching parameters.
-    * By default, we use HYBRID key switching with a digit size of 3.
-    * Choosing a larger digit size can reduce complexity, but the size of keys will increase.
+    * Use six HYBRID decomposition digits for the current experiment.
+    * More digits reduce the auxiliary modulus at the cost of additional key-switch work.
     * Note that you can leave these lines of code out completely, since these are the default values.
     */
-    parameters.SetNumLargeDigits(3);
+    parameters.SetNumLargeDigits(6);
     //parameters.SetKeySwitchTechnique(HYBRID);
 
     /*  A4) Scaling parameters.
@@ -63,8 +63,8 @@ void SetParamCKKS(uint32_t RingDim, CCParams<CryptoContextCKKSRNS>& parameters,
 #else
     // All modes are supported for 64-bit CKKS bootstrapping.
     ScalingTechnique rescaleTech = FLEXIBLEAUTO;
-    usint scaleModSize               = 30;
-    usint firstMod               = 40;
+    usint scaleModSize               = 40;
+    usint firstMod               = 50;
 #endif
 
     parameters.SetScalingModSize(scaleModSize);

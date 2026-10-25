@@ -1,0 +1,4 @@
+CONV_ROTATION_KEYS width=32 compact=1 required=16 generated=16
+MEMORY_KEYS mode=optimized keys=16 coefficient_mib=2160 rss_mib=3644.01 peak_mib=3644.01 key_s=1.08648 threads=96
+CONV_MEMORY rows=5 channel_workers=30 scratch_budget_mib=8192
+MEMORY_RESULT mode=optimized conv_s=110.614 forward_peak_mib=12345.7 process_peak_mib=12345.7 max_abs=1.03489e-05

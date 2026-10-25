@@ -1,0 +1,29 @@
+{
+  "runner_pid": 2271796,
+  "started_utc": "2026-10-23T11:10:08.787543+00:00",
+  "ring": 16384,
+  "fallback_ring": null,
+  "scale_bits": 30,
+  "first_bits": 40,
+  "digits": 6,
+  "depth": 40,
+  "threads": 96,
+  "conv_scratch_mib": 0,
+  "slots": 2048,
+  "areas": [
+    10,
+    20,
+    30,
+    40,
+    50,
+    60,
+    70,
+    80
+  ],
+  "layers": [
+    8
+  ],
+  "repeats": 1,
+  "cases": 8,
+  "binary_sha256": "98915580ab95bc79bf0f9788d2abadbf78a3c1e8109fe34003c6b3dbb384fb64"
+}

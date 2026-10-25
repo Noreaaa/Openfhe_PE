@@ -1,0 +1,13 @@
+{
+  "status": "running",
+  "mode": "approximation_bootstrap",
+  "model_pid": 63135,
+  "runner_pid": 63133,
+  "utc": "2026-10-25T05:10:06.070209+00:00",
+  "elapsed_s": 3630.973275136,
+  "phase": "server_bootstrap",
+  "layer": 6,
+  "rss_gib": 20.09698486328125,
+  "process_peak_gib": 30.563297271728516,
+  "threads": 10
+}

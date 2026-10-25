@@ -1,0 +1,23 @@
+depth: 23
+CHANNELWISE_CONFIG mode=approximation ring=32768 slots=16384 depth=56 scale_bits=30 first_bits=40 digits=6 threads=96 bootstrap=none last_layer=8
+Loaded Conv2d weights from /root/Openfhe_PE/python_model/saved_models/ResNet-18/parameters/conv1_weight.npy
+Weight size: 64x3x7x7
+Loaded Bias from /root/Openfhe_PE/python_model/saved_models/ResNet-18/parameters/bn1_weight.npy
+Loaded Bias from /root/Openfhe_PE/python_model/saved_models/ResNet-18/parameters/bn1_bias.npy
+Loaded Bias from /root/Openfhe_PE/python_model/saved_models/ResNet-18/parameters/bn1_running_mean.npy
+Loaded Bias from /root/Openfhe_PE/python_model/saved_models/ResNet-18/parameters/bn1_running_var.npy
+CLIENT_FIRST ms=118.489
+ENCRYPTION ms=2046.26 ciphertexts=64
+Loaded Conv2d weights from /root/Openfhe_PE/python_model/saved_models/ResNet-18/parameters/maxpool_0_weight.npy
+Weight size: 64x64x3x3
+Loaded Bias from /root/Openfhe_PE/python_model/saved_models/ResNet-18/parameters/maxpool_1_weight.npy
+Loaded Bias from /root/Openfhe_PE/python_model/saved_models/ResNet-18/parameters/maxpool_1_bias.npy
+Loaded Bias from /root/Openfhe_PE/python_model/saved_models/ResNet-18/parameters/maxpool_1_running_mean.npy
+Loaded Bias from /root/Openfhe_PE/python_model/saved_models/ResNet-18/parameters/maxpool_1_running_var.npy
+LAYER_FINISHED layer=2 conv_ms=128180 activation_ms=11446.9 max_abs=0.00330768 vs_relu_rmse=0.17099 level=4
+Loaded Conv2d weights from /root/Openfhe_PE/python_model/saved_models/ResNet-18/parameters/layer1_0_conv1_weight.npy
+Weight size: 64x64x3x3
+Loaded Bias from /root/Openfhe_PE/python_model/saved_models/ResNet-18/parameters/layer1_0_bn1_weight.npy
+Loaded Bias from /root/Openfhe_PE/python_model/saved_models/ResNet-18/parameters/layer1_0_bn1_bias.npy
+Loaded Bias from /root/Openfhe_PE/python_model/saved_models/ResNet-18/parameters/layer1_0_bn1_running_mean.npy
+Loaded Bias from /root/Openfhe_PE/python_model/saved_models/ResNet-18/parameters/layer1_0_bn1_running_var.npy

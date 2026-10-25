@@ -1,0 +1,9 @@
+CONV_ROTATION_KEYS width=32 compact=0 required=53 generated=53
+MEMORY_KEYS mode=baseline keys=53 coefficient_mib=7155 rss_mib=11434.1 peak_mib=11434.1 key_s=2.87757 threads=96
+ALLOCATOR phase=after_keys rss_mib=11434.1 heap_inuse_mib=7401.54 heap_free_mib=4027.95 mmap_live_mib=1.00391 arena_mib=11429.5
+CONV_MEMORY rows=5 channel_workers=32 scratch_budget_mib=0
+ALLOCATOR phase=after_forward_return rss_mib=17214.6 heap_inuse_mib=7502.22 heap_free_mib=9700.59 mmap_live_mib=1.00391 arena_mib=17202.8
+MEMORY_RESULT mode=baseline conv_s=47.429 forward_peak_mib=19486.1 process_peak_mib=19486.1 max_abs=8.34008e-06
+ALLOCATOR phase=before_diagnostic_trim rss_mib=13677.2 heap_inuse_mib=7501.55 heap_free_mib=6164.62 mmap_live_mib=1.00391 arena_mib=13666.2
+DIAGNOSTIC_TRIM released=1
+ALLOCATOR phase=after_diagnostic_trim rss_mib=7526.44 heap_inuse_mib=7501.55 heap_free_mib=6164.49 mmap_live_mib=1.00391 arena_mib=13666

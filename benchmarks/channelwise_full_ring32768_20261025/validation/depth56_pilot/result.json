@@ -1,0 +1,49 @@
+{
+  "mode": "approximation",
+  "status": "stopped_for_depth_adjustment",
+  "exit_code": -15,
+  "completed_layers": 1,
+  "finished_utc": "2026-10-24T18:12:06.343565+00:00",
+  "wall_s": 188.68904215598013,
+  "whole_process_peak_gib": 0.0,
+  "server_mean_gib": 28.124772903311197,
+  "server_peak_gib": 33.2450065612793,
+  "layers": {
+    "2": {
+      "mean_gib": 27.921767728492384,
+      "peak_gib": 33.2450065612793,
+      "sampled_seconds": 138.53647151699988
+    },
+    "3": {
+      "mean_gib": 29.162589986477144,
+      "peak_gib": 30.164756774902344,
+      "sampled_seconds": 27.098822206025943
+    },
+    "4": {
+      "mean_gib": 0,
+      "peak_gib": 0,
+      "sampled_seconds": 0
+    },
+    "5": {
+      "mean_gib": 0,
+      "peak_gib": 0,
+      "sampled_seconds": 0
+    },
+    "6": {
+      "mean_gib": 0,
+      "peak_gib": 0,
+      "sampled_seconds": 0
+    },
+    "7": {
+      "mean_gib": 0,
+      "peak_gib": 0,
+      "sampled_seconds": 0
+    },
+    "8": {
+      "mean_gib": 0,
+      "peak_gib": 0,
+      "sampled_seconds": 0
+    }
+  },
+  "reason": "Layer 2 passed; measured 4 consumed levels. Stop intentionally to run formal approximation baseline at depth 36 instead of 56."
+}

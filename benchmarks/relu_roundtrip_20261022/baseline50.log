@@ -1,0 +1,35 @@
+CONFIG variant=baseline ring=16384 slots=1024 depth=20 scale_bits=50 first_bits=60 threads=96
+depth: 23
+SETUP context_ms=86.770187
+SETUP ckks_keys_ms=440.36501
+SETUP switching_keys_ms=4242.929679
+SETUP precompute_ms=423.152597 rss_mib=5178.2890625 peak_mib=5178.2890625
+TRIAL index=0 total_ms=2471.05969 amplify_and_forward_ms=2232.592486 sign_and_decrypt_ms=215.960255 encode_and_plain_mult_ms=22.318096 rss_mib=5187.1640625 peak_mib=5438.9609375 output_level=0 towers=21
+CHECK trial=0 c=0 w=510 actual=-5.71128917753e-13 expected=0
+CHECK trial=0 c=0 w=511 actual=0.600000000001 expected=0.6
+CHECK trial=0 c=1 w=510 actual=6.20961758186e-12 expected=0
+CHECK trial=0 c=1 w=511 actual=1.20000000001 expected=1.2
+CHECK trial=0 c=2 w=510 actual=-1.36394145172e-13 expected=0
+CHECK trial=0 c=2 w=511 actual=0.200000000001 expected=0.2
+TRIAL index=1 total_ms=2576.681185 amplify_and_forward_ms=2338.246497 sign_and_decrypt_ms=218.482945 encode_and_plain_mult_ms=19.603099 rss_mib=5313.18359375 peak_mib=5441.22265625 output_level=0 towers=21
+CHECK trial=1 c=0 w=510 actual=-1.69195785602e-13 expected=0
+CHECK trial=1 c=0 w=511 actual=0.6 expected=0.6
+CHECK trial=1 c=1 w=510 actual=6.27393827919e-12 expected=0
+CHECK trial=1 c=1 w=511 actual=1.20000000002 expected=1.2
+CHECK trial=1 c=2 w=510 actual=-4.82962852741e-13 expected=0
+CHECK trial=1 c=2 w=511 actual=0.200000000003 expected=0.2
+TRIAL index=2 total_ms=2448.273576 amplify_and_forward_ms=2274.905004 sign_and_decrypt_ms=155.528319 encode_and_plain_mult_ms=17.562327 rss_mib=5313.171875 peak_mib=5441.22265625 output_level=0 towers=21
+CHECK trial=2 c=0 w=510 actual=4.05881148988e-13 expected=0
+CHECK trial=2 c=0 w=511 actual=0.6 expected=0.6
+CHECK trial=2 c=1 w=510 actual=6.49692935757e-12 expected=0
+CHECK trial=2 c=1 w=511 actual=1.20000000001 expected=1.2
+CHECK trial=2 c=2 w=510 actual=-2.34168506498e-13 expected=0
+CHECK trial=2 c=2 w=511 actual=0.200000000002 expected=0.2
+PRIMITIVE name=EvalAdd_ct_ct median_ms=1.050403 min_ms=1.0382 max_ms=1.418482
+PRIMITIVE name=EvalRotate_1 median_ms=26.440556 min_ms=26.407631 max_ms=30.616435
+PRIMITIVE name=EvalMult_scalar median_ms=0.584538 min_ms=0.57186 max_ms=0.712531
+PRIMITIVE name=EvalMult_ct_pt median_ms=1.212862 min_ms=1.195347 max_ms=1.566525
+PRIMITIVE name=EvalMult_ct_ct median_ms=31.197305 min_ms=31.105629 max_ms=31.457061
+PRIMITIVE name=EvalSub_scalar_ct median_ms=1.247169 min_ms=1.188594 max_ms=1.479
+PRIMITIVE name=Rescale median_ms=0.355337 min_ms=0.341365 max_ms=0.647538
+PASS max_abs_error=1.50661705334e-11 final_peak_mib=5441.22265625

@@ -1,0 +1,12 @@
+{
+  "command": [
+    "/root/Openfhe_PE/benchmarks/channelwise_conv_shapes_r16384_r32768_20261025/channelwise_conv_shape_bench",
+    "/root/Openfhe_PE",
+    "3",
+    "32768",
+    "16384",
+    "30",
+    "/root/Openfhe_PE/benchmarks/channelwise_conv_shapes_r16384_r32768_20261025/ring32768/layer3/measurement.csv"
+  ],
+  "started_utc": "2026-10-25T11:43:39.894230+00:00"
+}

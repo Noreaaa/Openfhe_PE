@@ -1,0 +1,9 @@
+{
+  "repeat": 1,
+  "area": 10,
+  "target_layers": 8,
+  "ring": 32768,
+  "attempt_dir": "/root/Openfhe_PE/benchmarks/resnet_repeated_30_40_d6_depth40_20261023/repeat1/area10/layers8/ring32768",
+  "started_utc": "2026-10-22T19:31:10.077180+00:00",
+  "adopted": true
+}

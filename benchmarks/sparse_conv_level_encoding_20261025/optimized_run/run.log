@@ -1,0 +1,47 @@
+Loaded Conv2d weights from /root/Openfhe_PE/python_model/saved_models/ResNet-18/parameters/conv1_weight.npy
+Weight size: 64x3x7x7
+Loaded Bias from /root/Openfhe_PE/python_model/saved_models/ResNet-18/parameters/bn1_weight.npy
+Loaded Bias from /root/Openfhe_PE/python_model/saved_models/ResNet-18/parameters/bn1_bias.npy
+Loaded Bias from /root/Openfhe_PE/python_model/saved_models/ResNet-18/parameters/bn1_running_mean.npy
+Loaded Bias from /root/Openfhe_PE/python_model/saved_models/ResNet-18/parameters/bn1_running_var.npy
+Loaded Conv2d weights from /root/Openfhe_PE/python_model/saved_models/ResNet-18/parameters/maxpool_0_weight.npy
+Weight size: 64x64x3x3
+Loaded Bias from /root/Openfhe_PE/python_model/saved_models/ResNet-18/parameters/maxpool_1_weight.npy
+Loaded Bias from /root/Openfhe_PE/python_model/saved_models/ResNet-18/parameters/maxpool_1_bias.npy
+Loaded Bias from /root/Openfhe_PE/python_model/saved_models/ResNet-18/parameters/maxpool_1_running_mean.npy
+Loaded Bias from /root/Openfhe_PE/python_model/saved_models/ResNet-18/parameters/maxpool_1_running_var.npy
+Loaded Conv2d weights from /root/Openfhe_PE/python_model/saved_models/ResNet-18/parameters/layer1_0_conv1_weight.npy
+Weight size: 64x64x3x3
+Loaded Bias from /root/Openfhe_PE/python_model/saved_models/ResNet-18/parameters/layer1_0_bn1_weight.npy
+Loaded Bias from /root/Openfhe_PE/python_model/saved_models/ResNet-18/parameters/layer1_0_bn1_bias.npy
+Loaded Bias from /root/Openfhe_PE/python_model/saved_models/ResNet-18/parameters/layer1_0_bn1_running_mean.npy
+Loaded Bias from /root/Openfhe_PE/python_model/saved_models/ResNet-18/parameters/layer1_0_bn1_running_var.npy
+Loaded Conv2d weights from /root/Openfhe_PE/python_model/saved_models/ResNet-18/parameters/layer1_0_conv2_weight.npy
+Weight size: 64x64x3x3
+Loaded Bias from /root/Openfhe_PE/python_model/saved_models/ResNet-18/parameters/layer1_0_bn2_weight.npy
+Loaded Bias from /root/Openfhe_PE/python_model/saved_models/ResNet-18/parameters/layer1_0_bn2_bias.npy
+Loaded Bias from /root/Openfhe_PE/python_model/saved_models/ResNet-18/parameters/layer1_0_bn2_running_mean.npy
+Loaded Bias from /root/Openfhe_PE/python_model/saved_models/ResNet-18/parameters/layer1_0_bn2_running_var.npy
+Loaded Conv2d weights from /root/Openfhe_PE/python_model/saved_models/ResNet-18/parameters/layer1_1_conv1_weight.npy
+Weight size: 64x64x3x3
+Loaded Bias from /root/Openfhe_PE/python_model/saved_models/ResNet-18/parameters/layer1_1_bn1_weight.npy
+Loaded Bias from /root/Openfhe_PE/python_model/saved_models/ResNet-18/parameters/layer1_1_bn1_bias.npy
+Loaded Bias from /root/Openfhe_PE/python_model/saved_models/ResNet-18/parameters/layer1_1_bn1_running_mean.npy
+Loaded Bias from /root/Openfhe_PE/python_model/saved_models/ResNet-18/parameters/layer1_1_bn1_running_var.npy
+Loaded Conv2d weights from /root/Openfhe_PE/python_model/saved_models/ResNet-18/parameters/layer1_1_conv2_weight.npy
+Weight size: 64x64x3x3
+Loaded Bias from /root/Openfhe_PE/python_model/saved_models/ResNet-18/parameters/layer1_1_bn2_weight.npy
+Loaded Bias from /root/Openfhe_PE/python_model/saved_models/ResNet-18/parameters/layer1_1_bn2_bias.npy
+Loaded Bias from /root/Openfhe_PE/python_model/saved_models/ResNet-18/parameters/layer1_1_bn2_running_mean.npy
+Loaded Bias from /root/Openfhe_PE/python_model/saved_models/ResNet-18/parameters/layer1_1_bn2_running_var.npy
+Loaded Conv2d weights from /root/Openfhe_PE/python_model/saved_models/ResNet-18/parameters/layer2_0_conv1_weight.npy
+Weight size: 128x64x3x3
+Loaded Bias from /root/Openfhe_PE/python_model/saved_models/ResNet-18/parameters/layer2_0_bn1_weight.npy
+Loaded Bias from /root/Openfhe_PE/python_model/saved_models/ResNet-18/parameters/layer2_0_bn1_bias.npy
+Loaded Bias from /root/Openfhe_PE/python_model/saved_models/ResNet-18/parameters/layer2_0_bn1_running_mean.npy
+Loaded Bias from /root/Openfhe_PE/python_model/saved_models/ResNet-18/parameters/layer2_0_bn1_running_var.npy
+depth: 23
+CONV_ROTATION_KEYS width=56 compact=0 required=161 generated=161
+CONV_MEMORY rows=7 channel_workers=96 scratch_budget_mib=0
+CONV_PROFILE public_ms=11.237 prepare_ms=120.324 encrypted_ms=28979 output_ms=23.1578 reduction_channels=64 compact_baby=2 filter_encode_level=25 selector_encode_level=26
+OPT_BENCH layer=7 area=10 input_level=24 input_noise_degree=2 conv_s=29.1399 max_abs=5.98636e-05 rmse=3.01561e-06 output_level=26 towers=15 peak_gib=16.4775

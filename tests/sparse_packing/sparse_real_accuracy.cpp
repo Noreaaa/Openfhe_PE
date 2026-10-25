@@ -12,7 +12,7 @@
 #include <stdexcept>
 
 namespace {
-constexpr int ring = 16384, slots = 1024, depth = 10;
+constexpr int ring = 16384, slots = 1024, depth = 20;
 constexpr double epsilon = 1e-5, tolerance = 1e-3;
 struct BN { std::vector<double> gamma, beta, mean, var; };
 BN loadBN(const std::string& root, const std::string& prefix) {
@@ -145,7 +145,7 @@ int main(int argc,char** argv) {
         CCParams<CryptoContextCKKSRNS> p;
         p.SetSecurityLevel(HEStd_NotSet); p.SetRingDim(ring); p.SetBatchSize(slots);
         p.SetSecretKeyDist(UNIFORM_TERNARY); p.SetNumLargeDigits(3);
-        p.SetScalingTechnique(FLEXIBLEAUTO); p.SetScalingModSize(30); p.SetFirstModSize(40);
+        p.SetScalingTechnique(FLEXIBLEAUTO); p.SetScalingModSize(50); p.SetFirstModSize(60);
         p.SetMultiplicativeDepth(depth);
         CRYPTOCONTEXT=GenCryptoContext(p);
         for(auto f:{PKE,KEYSWITCH,LEVELEDSHE,ADVANCEDSHE,SCHEMESWITCH}) CRYPTOCONTEXT->Enable(f);
@@ -175,7 +175,7 @@ int main(int argc,char** argv) {
             bn.gamma,bn.beta,bn.mean,bn.var,epsilon,std::vector<double>(64,0),CONV_2D_BN);
         conv.EnableFastPath(width);
         sparse_activation activation(RELU_SS_ACTIVATION,"real_accuracy_relu3",fheKey,ring,slots);
-        std::cout<<"CONFIG ring=16384 slots=1024 depth=10 input_region=[26:30,26:30] tolerance="<<tolerance<<std::endl;
+        std::cout<<"CONFIG ring=16384 slots=1024 depth=20 input_region=[26:30,26:30] tolerance="<<tolerance<<std::endl;
         double3d convPublic,reluPublic;
         conv.forward(encryptedInput,input,convCts,convPublic);
         if(ENCRYPTED_HEIGHT_START!=25 || ENCRYPTED_HEIGHT_END!=31 || ENCRYPTED_WIDTH_START!=25 || ENCRYPTED_WIDTH_END!=31)

@@ -1,0 +1,104 @@
+{
+  "ring": 16384,
+  "slots": 1024,
+  "depth": 20,
+  "scale_bits": 50,
+  "first_bits": 60,
+  "threads": 96,
+  "reverse_numCtxts": 1024,
+  "warmup_per_case": 1,
+  "measured_trials_per_case": 5,
+  "case_order": "alternating ascending/descending",
+  "summaries": {
+    "6": {
+      "sign_ms": {
+        "median": 175.940075,
+        "min": 165.059128,
+        "max": 186.7335
+      },
+      "reverse_ms": {
+        "median": 1239.545108,
+        "min": 1223.620402,
+        "max": 1256.253905
+      },
+      "complement_ms": {
+        "median": 0.895121,
+        "min": 0.828992,
+        "max": 0.970758
+      },
+      "error": {
+        "median": 5.88284582611e-07,
+        "min": 5.88273601498e-07,
+        "max": 5.88303074034e-07
+      }
+    },
+    "64": {
+      "sign_ms": {
+        "median": 313.986772,
+        "min": 290.830415,
+        "max": 343.844813
+      },
+      "reverse_ms": {
+        "median": 1226.492577,
+        "min": 1216.99048,
+        "max": 1252.092449
+      },
+      "complement_ms": {
+        "median": 1.026746,
+        "min": 0.739772,
+        "max": 2.667889
+      },
+      "error": {
+        "median": 1.47064521493e-05,
+        "min": 1.47062768175e-05,
+        "max": 1.47067218714e-05
+      }
+    },
+    "256": {
+      "sign_ms": {
+        "median": 946.989792,
+        "min": 916.94923,
+        "max": 981.148332
+      },
+      "reverse_ms": {
+        "median": 1230.138987,
+        "min": 1224.338242,
+        "max": 1272.970498
+      },
+      "complement_ms": {
+        "median": 0.854344,
+        "min": 0.750096,
+        "max": 0.913502
+      },
+      "error": {
+        "median": 1.47097745333e-05,
+        "min": 1.47093361508e-05,
+        "max": 1.47101206644e-05
+      }
+    },
+    "1024": {
+      "sign_ms": {
+        "median": 3305.696553,
+        "min": 3289.01003,
+        "max": 3864.854707
+      },
+      "reverse_ms": {
+        "median": 1226.776573,
+        "min": 1217.838322,
+        "max": 1287.146009
+      },
+      "complement_ms": {
+        "median": 0.83377,
+        "min": 0.782427,
+        "max": 0.987809
+      },
+      "error": {
+        "median": 1.47077396566e-05,
+        "min": 1.4705534064e-05,
+        "max": 1.47096970939e-05
+      }
+    }
+  },
+  "reverse_1024_over_6_ratio": 0.9896990154552731,
+  "sign_1024_over_6_ratio": 18.788764032299067
+}

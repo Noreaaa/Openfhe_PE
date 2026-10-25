@@ -1,0 +1,24 @@
+{
+  "started_utc": "2026-10-25T07:11:50.410159+00:00",
+  "runner_pid": 2588486,
+  "ring": 4096,
+  "slots": 2048,
+  "depth": 30,
+  "scale_bits": 30,
+  "first_bits": 40,
+  "digits": 6,
+  "threads": 96,
+  "areas": [
+    10,
+    20,
+    30,
+    40
+  ],
+  "region_position": "top_left_corner",
+  "region_coordinates": "[0, area-1] \u00d7 [0, area-1], inclusive",
+  "layers": 6,
+  "repeats": 1,
+  "client_first_layer": false,
+  "activation": "encrypted sign -> FHEW-to-CKKS -> ciphertext mask multiplication",
+  "binary_sha256": "839f729858270457a0cc89d93b1b99a257e416001d5cc80e37bcdacccc384dac"
+}

@@ -1,3 +1,13 @@
+#include <omp.h>
+namespace {
+// Use all CPUs available to this process; disable nested OpenMP teams.
+const bool parallel_configured = [] {
+    omp_set_dynamic(0);
+    omp_set_max_active_levels(1);
+    omp_set_num_threads(omp_get_num_procs());
+    return true;
+}();
+}
 #include "globals.hpp"
 
 using std::size_t;

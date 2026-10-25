@@ -1,0 +1,99 @@
+Loaded Conv2d weights from /root/Openfhe_PE/python_model/saved_models/ResNet-18/parameters/conv1_weight.npy
+Weight size: 64x3x7x7
+Loaded Bias from /root/Openfhe_PE/python_model/saved_models/ResNet-18/parameters/bn1_weight.npy
+Loaded Bias from /root/Openfhe_PE/python_model/saved_models/ResNet-18/parameters/bn1_bias.npy
+Loaded Bias from /root/Openfhe_PE/python_model/saved_models/ResNet-18/parameters/bn1_running_mean.npy
+Loaded Bias from /root/Openfhe_PE/python_model/saved_models/ResNet-18/parameters/bn1_running_var.npy
+Loaded Conv2d weights from /root/Openfhe_PE/python_model/saved_models/ResNet-18/parameters/maxpool_0_weight.npy
+Weight size: 64x64x3x3
+Loaded Bias from /root/Openfhe_PE/python_model/saved_models/ResNet-18/parameters/maxpool_1_weight.npy
+Loaded Bias from /root/Openfhe_PE/python_model/saved_models/ResNet-18/parameters/maxpool_1_bias.npy
+Loaded Bias from /root/Openfhe_PE/python_model/saved_models/ResNet-18/parameters/maxpool_1_running_mean.npy
+Loaded Bias from /root/Openfhe_PE/python_model/saved_models/ResNet-18/parameters/maxpool_1_running_var.npy
+Loaded Conv2d weights from /root/Openfhe_PE/python_model/saved_models/ResNet-18/parameters/layer1_0_conv1_weight.npy
+Weight size: 64x64x3x3
+Loaded Bias from /root/Openfhe_PE/python_model/saved_models/ResNet-18/parameters/layer1_0_bn1_weight.npy
+Loaded Bias from /root/Openfhe_PE/python_model/saved_models/ResNet-18/parameters/layer1_0_bn1_bias.npy
+Loaded Bias from /root/Openfhe_PE/python_model/saved_models/ResNet-18/parameters/layer1_0_bn1_running_mean.npy
+Loaded Bias from /root/Openfhe_PE/python_model/saved_models/ResNet-18/parameters/layer1_0_bn1_running_var.npy
+Loaded Conv2d weights from /root/Openfhe_PE/python_model/saved_models/ResNet-18/parameters/layer1_0_conv2_weight.npy
+Weight size: 64x64x3x3
+Loaded Bias from /root/Openfhe_PE/python_model/saved_models/ResNet-18/parameters/layer1_0_bn2_weight.npy
+Loaded Bias from /root/Openfhe_PE/python_model/saved_models/ResNet-18/parameters/layer1_0_bn2_bias.npy
+Loaded Bias from /root/Openfhe_PE/python_model/saved_models/ResNet-18/parameters/layer1_0_bn2_running_mean.npy
+Loaded Bias from /root/Openfhe_PE/python_model/saved_models/ResNet-18/parameters/layer1_0_bn2_running_var.npy
+Loaded Conv2d weights from /root/Openfhe_PE/python_model/saved_models/ResNet-18/parameters/layer1_1_conv1_weight.npy
+Weight size: 64x64x3x3
+Loaded Bias from /root/Openfhe_PE/python_model/saved_models/ResNet-18/parameters/layer1_1_bn1_weight.npy
+Loaded Bias from /root/Openfhe_PE/python_model/saved_models/ResNet-18/parameters/layer1_1_bn1_bias.npy
+Loaded Bias from /root/Openfhe_PE/python_model/saved_models/ResNet-18/parameters/layer1_1_bn1_running_mean.npy
+Loaded Bias from /root/Openfhe_PE/python_model/saved_models/ResNet-18/parameters/layer1_1_bn1_running_var.npy
+Loaded Conv2d weights from /root/Openfhe_PE/python_model/saved_models/ResNet-18/parameters/layer1_1_conv2_weight.npy
+Weight size: 64x64x3x3
+Loaded Bias from /root/Openfhe_PE/python_model/saved_models/ResNet-18/parameters/layer1_1_bn2_weight.npy
+Loaded Bias from /root/Openfhe_PE/python_model/saved_models/ResNet-18/parameters/layer1_1_bn2_bias.npy
+Loaded Bias from /root/Openfhe_PE/python_model/saved_models/ResNet-18/parameters/layer1_1_bn2_running_mean.npy
+Loaded Bias from /root/Openfhe_PE/python_model/saved_models/ResNet-18/parameters/layer1_1_bn2_running_var.npy
+Loaded Conv2d weights from /root/Openfhe_PE/python_model/saved_models/ResNet-18/parameters/layer2_0_conv1_weight.npy
+Weight size: 128x64x3x3
+Loaded Bias from /root/Openfhe_PE/python_model/saved_models/ResNet-18/parameters/layer2_0_bn1_weight.npy
+Loaded Bias from /root/Openfhe_PE/python_model/saved_models/ResNet-18/parameters/layer2_0_bn1_bias.npy
+Loaded Bias from /root/Openfhe_PE/python_model/saved_models/ResNet-18/parameters/layer2_0_bn1_running_mean.npy
+Loaded Bias from /root/Openfhe_PE/python_model/saved_models/ResNet-18/parameters/layer2_0_bn1_running_var.npy
+Loaded Conv2d weights from /root/Openfhe_PE/python_model/saved_models/ResNet-18/parameters/layer2_0_conv2_weight.npy
+Weight size: 128x128x3x3
+Loaded Bias from /root/Openfhe_PE/python_model/saved_models/ResNet-18/parameters/layer2_0_bn2_weight.npy
+Loaded Bias from /root/Openfhe_PE/python_model/saved_models/ResNet-18/parameters/layer2_0_bn2_bias.npy
+Loaded Bias from /root/Openfhe_PE/python_model/saved_models/ResNet-18/parameters/layer2_0_bn2_running_mean.npy
+Loaded Bias from /root/Openfhe_PE/python_model/saved_models/ResNet-18/parameters/layer2_0_bn2_running_var.npy
+Loaded Conv2d weights from /root/Openfhe_PE/python_model/saved_models/ResNet-18/parameters/layer2_1_conv1_weight.npy
+Weight size: 128x128x3x3
+Loaded Bias from /root/Openfhe_PE/python_model/saved_models/ResNet-18/parameters/layer2_1_bn1_weight.npy
+Loaded Bias from /root/Openfhe_PE/python_model/saved_models/ResNet-18/parameters/layer2_1_bn1_bias.npy
+Loaded Bias from /root/Openfhe_PE/python_model/saved_models/ResNet-18/parameters/layer2_1_bn1_running_mean.npy
+Loaded Bias from /root/Openfhe_PE/python_model/saved_models/ResNet-18/parameters/layer2_1_bn1_running_var.npy
+Loaded Conv2d weights from /root/Openfhe_PE/python_model/saved_models/ResNet-18/parameters/layer2_1_conv2_weight.npy
+Weight size: 128x128x3x3
+Loaded Bias from /root/Openfhe_PE/python_model/saved_models/ResNet-18/parameters/layer2_1_bn2_weight.npy
+Loaded Bias from /root/Openfhe_PE/python_model/saved_models/ResNet-18/parameters/layer2_1_bn2_bias.npy
+Loaded Bias from /root/Openfhe_PE/python_model/saved_models/ResNet-18/parameters/layer2_1_bn2_running_mean.npy
+Loaded Bias from /root/Openfhe_PE/python_model/saved_models/ResNet-18/parameters/layer2_1_bn2_running_var.npy
+Loaded Conv2d weights from /root/Openfhe_PE/python_model/saved_models/ResNet-18/parameters/layer3_0_conv1_weight.npy
+Weight size: 256x128x3x3
+Loaded Bias from /root/Openfhe_PE/python_model/saved_models/ResNet-18/parameters/layer3_0_bn1_weight.npy
+Loaded Bias from /root/Openfhe_PE/python_model/saved_models/ResNet-18/parameters/layer3_0_bn1_bias.npy
+Loaded Bias from /root/Openfhe_PE/python_model/saved_models/ResNet-18/parameters/layer3_0_bn1_running_mean.npy
+Loaded Bias from /root/Openfhe_PE/python_model/saved_models/ResNet-18/parameters/layer3_0_bn1_running_var.npy
+Loaded Conv2d weights from /root/Openfhe_PE/python_model/saved_models/ResNet-18/parameters/layer3_0_conv2_weight.npy
+Weight size: 256x256x3x3
+Loaded Bias from /root/Openfhe_PE/python_model/saved_models/ResNet-18/parameters/layer3_0_bn2_weight.npy
+Loaded Bias from /root/Openfhe_PE/python_model/saved_models/ResNet-18/parameters/layer3_0_bn2_bias.npy
+Loaded Bias from /root/Openfhe_PE/python_model/saved_models/ResNet-18/parameters/layer3_0_bn2_running_mean.npy
+Loaded Bias from /root/Openfhe_PE/python_model/saved_models/ResNet-18/parameters/layer3_0_bn2_running_var.npy
+Loaded Conv2d weights from /root/Openfhe_PE/python_model/saved_models/ResNet-18/parameters/layer3_1_conv1_weight.npy
+Weight size: 256x256x3x3
+Loaded Bias from /root/Openfhe_PE/python_model/saved_models/ResNet-18/parameters/layer3_1_bn1_weight.npy
+Loaded Bias from /root/Openfhe_PE/python_model/saved_models/ResNet-18/parameters/layer3_1_bn1_bias.npy
+Loaded Bias from /root/Openfhe_PE/python_model/saved_models/ResNet-18/parameters/layer3_1_bn1_running_mean.npy
+Loaded Bias from /root/Openfhe_PE/python_model/saved_models/ResNet-18/parameters/layer3_1_bn1_running_var.npy
+Loaded Conv2d weights from /root/Openfhe_PE/python_model/saved_models/ResNet-18/parameters/layer3_1_conv2_weight.npy
+Weight size: 256x256x3x3
+Loaded Bias from /root/Openfhe_PE/python_model/saved_models/ResNet-18/parameters/layer3_1_bn2_weight.npy
+Loaded Bias from /root/Openfhe_PE/python_model/saved_models/ResNet-18/parameters/layer3_1_bn2_bias.npy
+Loaded Bias from /root/Openfhe_PE/python_model/saved_models/ResNet-18/parameters/layer3_1_bn2_running_mean.npy
+Loaded Bias from /root/Openfhe_PE/python_model/saved_models/ResNet-18/parameters/layer3_1_bn2_running_var.npy
+Loaded Conv2d weights from /root/Openfhe_PE/python_model/saved_models/ResNet-18/parameters/layer4_0_conv1_weight.npy
+Weight size: 512x256x3x3
+Loaded Bias from /root/Openfhe_PE/python_model/saved_models/ResNet-18/parameters/layer4_0_bn1_weight.npy
+Loaded Bias from /root/Openfhe_PE/python_model/saved_models/ResNet-18/parameters/layer4_0_bn1_bias.npy
+Loaded Bias from /root/Openfhe_PE/python_model/saved_models/ResNet-18/parameters/layer4_0_bn1_running_mean.npy
+Loaded Bias from /root/Openfhe_PE/python_model/saved_models/ResNet-18/parameters/layer4_0_bn1_running_var.npy
+Loaded Conv2d weights from /root/Openfhe_PE/python_model/saved_models/ResNet-18/parameters/layer4_0_conv2_weight.npy
+Weight size: 512x512x3x3
+Loaded Bias from /root/Openfhe_PE/python_model/saved_models/ResNet-18/parameters/layer4_0_bn2_weight.npy
+Loaded Bias from /root/Openfhe_PE/python_model/saved_models/ResNet-18/parameters/layer4_0_bn2_bias.npy
+Loaded Bias from /root/Openfhe_PE/python_model/saved_models/ResNet-18/parameters/layer4_0_bn2_running_mean.npy
+Loaded Bias from /root/Openfhe_PE/python_model/saved_models/ResNet-18/parameters/layer4_0_bn2_running_var.npy
+SHAPE_CONFIG layer=16 weight=layer4_0_conv2 input=512x7x7 output_channels=512 kernel=3 stride=1 padding=1 ring=16384 slots=8192 depth=30 input_level=0 input_degree=1 fully_encrypted=1 packing=contiguous_per_channel
+depth: 23
+SHAPE_RESULT layer=16 ring=16384 conv_s=2916.83 peak_gib=40.7609 max_abs=0.00935678 rmse=0.000629459

@@ -1,0 +1,70 @@
+{
+  "status": "finished",
+  "result": {
+    "area": 10,
+    "status": "success",
+    "exit_code": 0,
+    "finished_utc": "2026-10-24T10:53:02.686501+00:00",
+    "attempt_dir": "/root/Openfhe_PE/benchmarks/resnet_client_first_ring2048_slots1024_area10_20261024/area10",
+    "wall_s": 411.14,
+    "server_forward_s": 405.810573957,
+    "client_first_s": 0.116182653,
+    "encryption_s": 0.550323032,
+    "client_plus_forward_s": 406.477079642,
+    "server_sampled_mean_gib": 2.0324468755617224,
+    "server_sampled_peak_gib": 2.920257568359375,
+    "server_sampled_seconds": 403.5965458309511,
+    "whole_process_peak_gib": 2.9482574462890625,
+    "uploaded_ciphertexts": 64,
+    "payload_coefficient_bytes": 85983232,
+    "max_abs_error": 0.00584266,
+    "max_relative_rmse": 8.68041e-06,
+    "structure_ok": true,
+    "geometry_ok": true,
+    "accuracy_ok": true,
+    "accuracy_checks": [
+      {
+        "layer": 2,
+        "max_abs": 0.00584266,
+        "rmse": 1.97862e-05,
+        "reference_max_abs": 10.9362
+      },
+      {
+        "layer": 3,
+        "max_abs": 0.00190489,
+        "rmse": 1.03493e-05,
+        "reference_max_abs": 2.2921
+      },
+      {
+        "layer": 4,
+        "max_abs": 0.00274567,
+        "rmse": 1.83085e-05,
+        "reference_max_abs": 3.02285
+      },
+      {
+        "layer": 5,
+        "max_abs": 0.000966488,
+        "rmse": 8.68041e-06,
+        "reference_max_abs": 0.804828
+      },
+      {
+        "layer": 6,
+        "max_abs": 0.000963661,
+        "rmse": 2.02436e-05,
+        "reference_max_abs": 2.49647
+      },
+      {
+        "layer": 7,
+        "max_abs": 0.000520843,
+        "rmse": 8.4845e-06,
+        "reference_max_abs": 0.691668
+      },
+      {
+        "layer": 8,
+        "max_abs": 0.000743716,
+        "rmse": 1.25118e-05,
+        "reference_max_abs": 2.14257
+      }
+    ]
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "status": "cancelled_by_user",
+  "cancelled_utc": "2026-10-25T05:30:39.935577+00:00",
+  "terminated_pids": [
+    2428340,
+    2431301,
+    2431302
+  ],
+  "completed_measurements": [
+    {
+      "layer": 2,
+      "version": "before"
+    },
+    {
+      "layer": 2,
+      "version": "after"
+    },
+    {
+      "layer": 3,
+      "version": "before"
+    }
+  ],
+  "note": "Interrupted layer3 after measurement is invalid; no automatic restart. Code changes and completed measurements retained."
+}

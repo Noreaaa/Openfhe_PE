@@ -1,0 +1,4 @@
+{
+  "status": "invalid",
+  "reason": "Public LevelReduce did not force depletion under FLEXIBLEAUTO; refresh could be skipped."
+}

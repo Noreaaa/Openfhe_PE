@@ -1,0 +1,27 @@
+{
+  "started_utc": "2026-10-25T04:09:35.095173+00:00",
+  "runner_pid": 63133,
+  "ring": 32768,
+  "slots": 16384,
+  "depth": 30,
+  "bootstrap_budget": [
+    3,
+    3
+  ],
+  "bootstrap_reserve": 20,
+  "scale_bits": 59,
+  "first_bits": 60,
+  "digits": 6,
+  "threads": 96,
+  "bootstrap_after": [
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8
+  ],
+  "refresh_count": 576,
+  "binary_sha256": "438baa52f16844a2b0d05f91944ec3159d35ebf451f42db96a3312bd3fcbd36e"
+}

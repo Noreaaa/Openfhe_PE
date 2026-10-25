@@ -11,7 +11,7 @@ int main() {
             const auto ring = config.first, slots = config.second;
             CCParams<CryptoContextCKKSRNS> p;
             p.SetSecurityLevel(HEStd_NotSet); p.SetRingDim(ring);
-            p.SetBatchSize(slots); p.SetMultiplicativeDepth(6);
+            p.SetBatchSize(slots); p.SetMultiplicativeDepth(slots==1024 ? 12 : 6);
             p.SetScalingModSize(40); p.SetFirstModSize(50);
             CRYPTOCONTEXT = GenCryptoContext(p);
             for (auto feature : {PKE, KEYSWITCH, LEVELEDSHE, ADVANCEDSHE}) CRYPTOCONTEXT->Enable(feature);
@@ -20,24 +20,28 @@ int main() {
             CRYPTOCONTEXT->EvalSumKeyGen(KEYPAIR.secretKey);
             for (int stride : {1, 2}) for (int kernel : {1, 3, 7}) {
                 const int padding = kernel / 2;
-                const int channels = 5, height = 4, width = 5, outputs = 4;
+                const int channels = slots==1024 ? 7 : 5, height = slots==1024 ? 9 : 4, width = slots==1024 ? 31 : 5, outputs = 4;
+                const int encWs=slots==1024 ? 7 : 1, encWe=slots==1024 ? 22 : 3;
                 double3d original(channels, types::double2d(height, std::vector<double>(width)));
                 for (int c=0;c<channels;++c) for(int h=0;h<height;++h) for(int w=0;w<width;++w)
                     original[c][h][w] = (c*20+h*5+w-30)*0.01;
                 auto pts = original;
                 ENCRYPTED_HEIGHT_START=1; ENCRYPTED_HEIGHT_END=2;
-                ENCRYPTED_WIDTH_START=1; ENCRYPTED_WIDTH_END=3;
+                ENCRYPTED_WIDTH_START=encWs; ENCRYPTED_WIDTH_END=encWe;
                 RESCALE_REQUIRED=false;
                 types::vector2d<Ciphertext<DCRTPoly>> cts(2), result;
                 int per=slots/width;
                 for(int h=1;h<=2;++h) for(int start=0;start<channels;start+=per) {
                     std::vector<double> values(slots,0);
-                    for(int c=start;c<std::min(channels,start+per);++c) for(int w=1;w<=3;++w) {
+                    for(int c=start;c<std::min(channels,start+per);++c) for(int w=encWs;w<=encWe;++w) {
                         values[(c-start)*width+w]=pts[c][h][w]; pts[c][h][w]=0;
                     }
                     cts[h-1].push_back(CRYPTOCONTEXT->Encrypt(KEYPAIR.publicKey,
-                        CRYPTOCONTEXT->MakeCKKSPackedPlaintext(values,1,0,nullptr,slots)));
+                        CRYPTOCONTEXT->MakeCKKSPackedPlaintext(values,1,slots==1024 ? 4 : 0,nullptr,slots)));
                 }
+                // Exercise nonzero levels and pending automatic rescaling.
+                if(slots==1024)for(auto& row:cts)for(auto& ct:row)
+                    ct=CRYPTOCONTEXT->EvalMult(ct,1.0);
                 types::double4d weights(outputs, double3d(channels, types::double2d(kernel,std::vector<double>(kernel))));
                 for(int o=0;o<outputs;++o) for(int c=0;c<channels;++c) for(int h=0;h<kernel;++h) for(int w=0;w<kernel;++w)
                     weights[o][c][h][w]=(o+c+h-w+1)*0.02;
@@ -46,7 +50,11 @@ int main() {
                 SparseConv2dBN_P layer(CONV_2D,"test",ring,slots,weights,stride,padding,gamma,beta,mean,var,1e-5,bias,CONV_2D_BN);
                 layer.EnableFastPath(width);
                 double3d y;
+                const auto expectedFirstLevel=cts[0][0]->GetLevel()+
+                    (cts[0][0]->GetNoiseScaleDeg()==2 ? 1 : 0)+1;
                 layer.forward(cts,pts,result,y);
+                if(result[0][0]->GetLevel()!=expectedFirstLevel)
+                    throw std::runtime_error("unexpected first convolution level consumption");
                 // Keep packed output and public entries separate for the next layer.
                 auto chainedCts = result; auto chainedPts = y;
                 auto reconstruct = [&](const types::vector2d<Ciphertext<DCRTPoly>>& encrypted, double3d publicValues) {
@@ -65,7 +73,7 @@ int main() {
                 };
                 if (slots == 512) {
                     ENCRYPTED_HEIGHT_START=1; ENCRYPTED_HEIGHT_END=2;
-                    ENCRYPTED_WIDTH_START=1; ENCRYPTED_WIDTH_END=3;
+                    ENCRYPTED_WIDTH_START=encWs; ENCRYPTED_WIDTH_END=encWe;
                     Conv2dBN_P oldLayer(CONV_2D, "legacy", weights, stride, padding, slots,
                         gamma, beta, mean, var, 1e-5, bias, CONV_2D_BN);
                     types::vector2d<Ciphertext<DCRTPoly>> oldResult; double3d oldY;
@@ -111,6 +119,8 @@ int main() {
                 GoldenBN(expectedSecond, gamma, beta, mean, var, 1e-5);
                 types::vector2d<Ciphertext<DCRTPoly>> secondCts; double3d secondPts;
                 second.forward(chainedCts, chainedPts, secondCts, secondPts);
+                if(secondCts[0][0]->GetLevel()!=expectedFirstLevel+2)
+                    throw std::runtime_error("unexpected chained convolution level consumption");
                 auto actualSecond = reconstruct(secondCts, secondPts);
                 double chainError = 0;
                 for (int c=0;c<outputs;++c) for(size_t h=0;h<actualSecond[c].size();++h)

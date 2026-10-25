@@ -1,0 +1,4 @@
+depth: 23
+CHANNELWISE_CONFIG mode=bootstrap_probe ring=32768 slots=16384 depth=30 scale_bits=30 first_bits=40 digits=6 threads=96 bootstrap=after_every_activation bootstrap_reserve=20 last_layer=2
+BOOTSTRAP_PROBE pass=0 max_abs=0.633504 rmse=0.326901 level=20 towers=11 elapsed_ms=11098.6
+EXPERIMENT_ERROR bootstrap probe accuracy or remaining-budget check failed

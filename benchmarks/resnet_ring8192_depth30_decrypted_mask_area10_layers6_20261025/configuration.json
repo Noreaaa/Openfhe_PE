@@ -1,0 +1,18 @@
+{
+  "started_utc": "2026-10-25T06:08:20.033139+00:00",
+  "runner_pid": 3429125,
+  "ring": 8192,
+  "slots": 4096,
+  "depth": 30,
+  "scale_bits": 30,
+  "first_bits": 40,
+  "digits": 6,
+  "threads": 96,
+  "area": 10,
+  "layers": 6,
+  "client_first_layer": false,
+  "bootstrap": false,
+  "activation": "CKKS -> FHEW sign -> sign decryption -> plaintext mask multiplication",
+  "convolution": "current optimized sparse fast path",
+  "binary_sha256": "5895df13774a7b7bcebce0e368ab9427dd41d5db6698812e71929491b000d43e"
+}

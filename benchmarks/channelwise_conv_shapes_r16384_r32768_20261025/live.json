@@ -1,0 +1,37 @@
+{
+  "status": "failed",
+  "result": {
+    "ring": 32768,
+    "layer": 8,
+    "status": "failed",
+    "exit_code": 1,
+    "finished_utc": "2026-10-25T12:13:01.345258+00:00",
+    "wall_s": 1537.97,
+    "operator_mean_gib": 23.425030107518083,
+    "operator_peak_gib": 24.120616912841797,
+    "whole_process_peak_gib": 24.135974884033203,
+    "measurement": {
+      "layer": "8",
+      "ring": "32768",
+      "slots": "16384",
+      "depth": "30",
+      "input_channels": "128",
+      "input_height": "28",
+      "input_width": "28",
+      "output_channels": "128",
+      "output_height": "28",
+      "output_width": "28",
+      "kernel": "3",
+      "stride": "1",
+      "encrypted_height": "28",
+      "encrypted_width": "28",
+      "conv_ms": "1525373.64844",
+      "ciphertexts": "128",
+      "output_level": "0",
+      "towers": "31",
+      "max_abs": "0.0297415951751",
+      "rmse": "0.000321777608469",
+      "whole_peak_gib": "24.135974884"
+    }
+  }
+}

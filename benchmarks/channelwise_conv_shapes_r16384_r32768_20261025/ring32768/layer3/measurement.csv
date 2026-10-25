@@ -1,0 +1,2 @@
+layer,ring,slots,depth,input_channels,input_height,input_width,output_channels,output_height,output_width,kernel,stride,encrypted_height,encrypted_width,conv_ms,ciphertexts,output_level,towers,max_abs,rmse,whole_peak_gib
+3,32768,16384,30,64,56,56,64,56,56,3,1,56,56,216573.963208,64,0,31,0.00707819578945,4.33700543218e-05,14.7954444885

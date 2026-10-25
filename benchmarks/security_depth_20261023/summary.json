@@ -1,0 +1,101 @@
+{
+  "openfhe": "1.2.4",
+  "security": "HEStd_128_classic",
+  "secret": "UNIFORM_TERNARY",
+  "scaling": "FLEXIBLEAUTO",
+  "key_switch": "HYBRID",
+  "num_large_digits": 3,
+  "slots": 1024,
+  "results": [
+    {
+      "ring": 16384.0,
+      "scale": 30.0,
+      "first": 40.0,
+      "depth": 8.0,
+      "logQ": 279.999,
+      "logP": 120.0,
+      "logQP": 399.999,
+      "rejected_depth": 9
+    },
+    {
+      "ring": 16384.0,
+      "scale": 40.0,
+      "first": 50.0,
+      "depth": 5.0,
+      "logQ": 250.0,
+      "logP": 120.0,
+      "logQP": 370.0,
+      "rejected_depth": 6
+    },
+    {
+      "ring": 16384.0,
+      "scale": 50.0,
+      "first": 60.0,
+      "depth": 5.0,
+      "logQ": 310.0,
+      "logP": 120.0,
+      "logQP": 430.0,
+      "rejected_depth": 6
+    },
+    {
+      "ring": 32768.0,
+      "scale": 30.0,
+      "first": 40.0,
+      "depth": 20.0,
+      "logQ": 639.875,
+      "logP": 240.0,
+      "logQP": 879.875,
+      "rejected_depth": 21
+    },
+    {
+      "ring": 32768.0,
+      "scale": 40.0,
+      "first": 50.0,
+      "depth": 14.0,
+      "logQ": 610.0,
+      "logP": 240.0,
+      "logQP": 850.0,
+      "rejected_depth": 15
+    },
+    {
+      "ring": 32768.0,
+      "scale": 50.0,
+      "first": 60.0,
+      "depth": 11.0,
+      "logQ": 610.0,
+      "logP": 240.0,
+      "logQP": 850.0,
+      "rejected_depth": 12
+    },
+    {
+      "ring": 65536.0,
+      "scale": 30.0,
+      "first": 40.0,
+      "depth": 40.0,
+      "logQ": 1241.56,
+      "logP": 480.0,
+      "logQP": 1721.56,
+      "rejected_depth": 41
+    },
+    {
+      "ring": 65536.0,
+      "scale": 40.0,
+      "first": 50.0,
+      "depth": 30.0,
+      "logQ": 1250.0,
+      "logP": 480.0,
+      "logQP": 1730.0,
+      "rejected_depth": 31
+    },
+    {
+      "ring": 65536.0,
+      "scale": 50.0,
+      "first": 60.0,
+      "depth": 24.0,
+      "logQ": 1260.0,
+      "logP": 480.0,
+      "logQP": 1740.0,
+      "rejected_depth": 25
+    }
+  ]
+}

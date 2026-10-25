@@ -1,0 +1,162 @@
+FAIL digits=3 ring=32768 scale=30 first=40 depth=1 reason=/root/deps/openfhe-1.2.4/src/pke/lib/schemerns/rns-cryptoparameters.cpp:l.83:PrecomputeCRTTables(): HYBRID key switching parameters: Can't appropriately distribute 2 towers into 3 digits. Please select different number of digits.
+PASS digits=3 ring=32768 scale=30 first=40 depth=2 logQ=99.9998 logP=60 logQP=160
+FAIL digits=3 ring=32768 scale=30 first=40 depth=3 reason=/root/deps/openfhe-1.2.4/src/pke/lib/schemerns/rns-cryptoparameters.cpp:l.408:EstimateLogP(): HYBRID key switching parameters: Can't appropriately distribute 4 towers into 3 digits. Please select different number of digits.
+PASS digits=3 ring=32768 scale=30 first=40 depth=4 logQ=160.001 logP=120 logQP=280.001
+PASS digits=3 ring=32768 scale=30 first=40 depth=5 logQ=189.998 logP=120 logQP=309.998
+PASS digits=3 ring=32768 scale=30 first=40 depth=6 logQ=219.992 logP=120 logQP=339.992
+PASS digits=3 ring=32768 scale=30 first=40 depth=7 logQ=249.992 logP=120 logQP=369.992
+PASS digits=3 ring=32768 scale=30 first=40 depth=8 logQ=279.985 logP=120 logQP=399.985
+PASS digits=3 ring=32768 scale=30 first=40 depth=9 logQ=309.993 logP=180 logQP=489.993
+PASS digits=3 ring=32768 scale=30 first=40 depth=10 logQ=339.991 logP=180 logQP=519.991
+PASS digits=3 ring=32768 scale=30 first=40 depth=11 logQ=370 logP=180 logQP=550
+PASS digits=3 ring=32768 scale=30 first=40 depth=12 logQ=399.99 logP=180 logQP=579.99
+PASS digits=3 ring=32768 scale=30 first=40 depth=13 logQ=430 logP=180 logQP=610
+PASS digits=3 ring=32768 scale=30 first=40 depth=14 logQ=459.979 logP=180 logQP=639.979
+PASS digits=3 ring=32768 scale=30 first=40 depth=15 logQ=489.961 logP=240 logQP=729.961
+PASS digits=3 ring=32768 scale=30 first=40 depth=16 logQ=519.943 logP=240 logQP=759.943
+PASS digits=3 ring=32768 scale=30 first=40 depth=17 logQ=549.925 logP=240 logQP=789.925
+PASS digits=3 ring=32768 scale=30 first=40 depth=18 logQ=579.902 logP=240 logQP=819.902
+PASS digits=3 ring=32768 scale=30 first=40 depth=19 logQ=609.889 logP=240 logQP=849.889
+PASS digits=3 ring=32768 scale=30 first=40 depth=20 logQ=639.875 logP=240 logQP=879.875
+FAIL digits=3 ring=32768 scale=30 first=40 depth=21 reason=/root/deps/openfhe-1.2.4/src/pke/lib/scheme/ckksrns/ckksrns-parametergeneration.cpp:l.113:ParamsGenCKKSRNS(): The specified ring dimension (32768) does not comply with HE standards recommendation (65536).
+FAIL digits=4 ring=32768 scale=30 first=40 depth=1 reason=/root/deps/openfhe-1.2.4/src/pke/lib/schemerns/rns-cryptoparameters.cpp:l.83:PrecomputeCRTTables(): HYBRID key switching parameters: Can't appropriately distribute 2 towers into 4 digits. Please select different number of digits.
+FAIL digits=4 ring=32768 scale=30 first=40 depth=2 reason=/root/deps/openfhe-1.2.4/src/pke/lib/schemerns/rns-cryptoparameters.cpp:l.83:PrecomputeCRTTables(): HYBRID key switching parameters: Can't appropriately distribute 3 towers into 4 digits. Please select different number of digits.
+PASS digits=4 ring=32768 scale=30 first=40 depth=3 logQ=130.005 logP=60 logQP=190.005
+FAIL digits=4 ring=32768 scale=30 first=40 depth=4 reason=/root/deps/openfhe-1.2.4/src/pke/lib/schemerns/rns-cryptoparameters.cpp:l.408:EstimateLogP(): HYBRID key switching parameters: Can't appropriately distribute 5 towers into 4 digits. Please select different number of digits.
+FAIL digits=4 ring=32768 scale=30 first=40 depth=5 reason=/root/deps/openfhe-1.2.4/src/pke/lib/schemerns/rns-cryptoparameters.cpp:l.408:EstimateLogP(): HYBRID key switching parameters: Can't appropriately distribute 6 towers into 4 digits. Please select different number of digits.
+PASS digits=4 ring=32768 scale=30 first=40 depth=6 logQ=219.992 logP=120 logQP=339.992
+PASS digits=4 ring=32768 scale=30 first=40 depth=7 logQ=249.992 logP=120 logQP=369.992
+FAIL digits=4 ring=32768 scale=30 first=40 depth=8 reason=/root/deps/openfhe-1.2.4/src/pke/lib/schemerns/rns-cryptoparameters.cpp:l.408:EstimateLogP(): HYBRID key switching parameters: Can't appropriately distribute 9 towers into 4 digits. Please select different number of digits.
+PASS digits=4 ring=32768 scale=30 first=40 depth=9 logQ=309.993 logP=120 logQP=429.993
+PASS digits=4 ring=32768 scale=30 first=40 depth=10 logQ=339.991 logP=120 logQP=459.991
+PASS digits=4 ring=32768 scale=30 first=40 depth=11 logQ=370 logP=120 logQP=490
+PASS digits=4 ring=32768 scale=30 first=40 depth=12 logQ=399.99 logP=180 logQP=579.99
+PASS digits=4 ring=32768 scale=30 first=40 depth=13 logQ=430 logP=180 logQP=610
+PASS digits=4 ring=32768 scale=30 first=40 depth=14 logQ=459.979 logP=180 logQP=639.979
+PASS digits=4 ring=32768 scale=30 first=40 depth=15 logQ=489.961 logP=180 logQP=669.961
+PASS digits=4 ring=32768 scale=30 first=40 depth=16 logQ=519.943 logP=180 logQP=699.943
+PASS digits=4 ring=32768 scale=30 first=40 depth=17 logQ=549.925 logP=180 logQP=729.925
+PASS digits=4 ring=32768 scale=30 first=40 depth=18 logQ=579.902 logP=180 logQP=759.902
+PASS digits=4 ring=32768 scale=30 first=40 depth=19 logQ=609.889 logP=180 logQP=789.889
+PASS digits=4 ring=32768 scale=30 first=40 depth=20 logQ=639.875 logP=240 logQP=879.875
+FAIL digits=4 ring=32768 scale=30 first=40 depth=21 reason=/root/deps/openfhe-1.2.4/src/pke/lib/scheme/ckksrns/ckksrns-parametergeneration.cpp:l.113:ParamsGenCKKSRNS(): The specified ring dimension (32768) does not comply with HE standards recommendation (65536).
+FAIL digits=6 ring=32768 scale=30 first=40 depth=1 reason=/root/deps/openfhe-1.2.4/src/pke/lib/schemerns/rns-cryptoparameters.cpp:l.83:PrecomputeCRTTables(): HYBRID key switching parameters: Can't appropriately distribute 2 towers into 6 digits. Please select different number of digits.
+FAIL digits=6 ring=32768 scale=30 first=40 depth=2 reason=/root/deps/openfhe-1.2.4/src/pke/lib/schemerns/rns-cryptoparameters.cpp:l.83:PrecomputeCRTTables(): HYBRID key switching parameters: Can't appropriately distribute 3 towers into 6 digits. Please select different number of digits.
+FAIL digits=6 ring=32768 scale=30 first=40 depth=3 reason=/root/deps/openfhe-1.2.4/src/pke/lib/schemerns/rns-cryptoparameters.cpp:l.83:PrecomputeCRTTables(): HYBRID key switching parameters: Can't appropriately distribute 4 towers into 6 digits. Please select different number of digits.
+FAIL digits=6 ring=32768 scale=30 first=40 depth=4 reason=/root/deps/openfhe-1.2.4/src/pke/lib/schemerns/rns-cryptoparameters.cpp:l.83:PrecomputeCRTTables(): HYBRID key switching parameters: Can't appropriately distribute 5 towers into 6 digits. Please select different number of digits.
+PASS digits=6 ring=32768 scale=30 first=40 depth=5 logQ=189.998 logP=60 logQP=249.998
+FAIL digits=6 ring=32768 scale=30 first=40 depth=6 reason=/root/deps/openfhe-1.2.4/src/pke/lib/schemerns/rns-cryptoparameters.cpp:l.408:EstimateLogP(): HYBRID key switching parameters: Can't appropriately distribute 7 towers into 6 digits. Please select different number of digits.
+FAIL digits=6 ring=32768 scale=30 first=40 depth=7 reason=/root/deps/openfhe-1.2.4/src/pke/lib/schemerns/rns-cryptoparameters.cpp:l.408:EstimateLogP(): HYBRID key switching parameters: Can't appropriately distribute 8 towers into 6 digits. Please select different number of digits.
+FAIL digits=6 ring=32768 scale=30 first=40 depth=8 reason=/root/deps/openfhe-1.2.4/src/pke/lib/schemerns/rns-cryptoparameters.cpp:l.408:EstimateLogP(): HYBRID key switching parameters: Can't appropriately distribute 9 towers into 6 digits. Please select different number of digits.
+FAIL digits=6 ring=32768 scale=30 first=40 depth=9 reason=/root/deps/openfhe-1.2.4/src/pke/lib/schemerns/rns-cryptoparameters.cpp:l.408:EstimateLogP(): HYBRID key switching parameters: Can't appropriately distribute 10 towers into 6 digits. Please select different number of digits.
+PASS digits=6 ring=32768 scale=30 first=40 depth=10 logQ=339.991 logP=120 logQP=459.991
+PASS digits=6 ring=32768 scale=30 first=40 depth=11 logQ=370 logP=120 logQP=490
+FAIL digits=6 ring=32768 scale=30 first=40 depth=12 reason=/root/deps/openfhe-1.2.4/src/pke/lib/schemerns/rns-cryptoparameters.cpp:l.408:EstimateLogP(): HYBRID key switching parameters: Can't appropriately distribute 13 towers into 6 digits. Please select different number of digits.
+FAIL digits=6 ring=32768 scale=30 first=40 depth=13 reason=/root/deps/openfhe-1.2.4/src/pke/lib/schemerns/rns-cryptoparameters.cpp:l.408:EstimateLogP(): HYBRID key switching parameters: Can't appropriately distribute 14 towers into 6 digits. Please select different number of digits.
+FAIL digits=6 ring=32768 scale=30 first=40 depth=14 reason=/root/deps/openfhe-1.2.4/src/pke/lib/schemerns/rns-cryptoparameters.cpp:l.408:EstimateLogP(): HYBRID key switching parameters: Can't appropriately distribute 15 towers into 6 digits. Please select different number of digits.
+PASS digits=6 ring=32768 scale=30 first=40 depth=15 logQ=489.961 logP=120 logQP=609.961
+PASS digits=6 ring=32768 scale=30 first=40 depth=16 logQ=519.943 logP=120 logQP=639.943
+PASS digits=6 ring=32768 scale=30 first=40 depth=17 logQ=549.925 logP=120 logQP=669.925
+FAIL digits=6 ring=32768 scale=30 first=40 depth=18 reason=/root/deps/openfhe-1.2.4/src/pke/lib/schemerns/rns-cryptoparameters.cpp:l.408:EstimateLogP(): HYBRID key switching parameters: Can't appropriately distribute 19 towers into 6 digits. Please select different number of digits.
+FAIL digits=6 ring=32768 scale=30 first=40 depth=19 reason=/root/deps/openfhe-1.2.4/src/pke/lib/schemerns/rns-cryptoparameters.cpp:l.408:EstimateLogP(): HYBRID key switching parameters: Can't appropriately distribute 20 towers into 6 digits. Please select different number of digits.
+PASS digits=6 ring=32768 scale=30 first=40 depth=20 logQ=639.875 logP=180 logQP=819.875
+PASS digits=6 ring=32768 scale=30 first=40 depth=21 logQ=669.864 logP=180 logQP=849.864
+PASS digits=6 ring=32768 scale=30 first=40 depth=22 logQ=699.847 logP=180 logQP=879.847
+FAIL digits=6 ring=32768 scale=30 first=40 depth=23 reason=/root/deps/openfhe-1.2.4/src/pke/lib/scheme/ckksrns/ckksrns-parametergeneration.cpp:l.113:ParamsGenCKKSRNS(): The specified ring dimension (32768) does not comply with HE standards recommendation (65536).
+FAIL digits=8 ring=32768 scale=30 first=40 depth=1 reason=/root/deps/openfhe-1.2.4/src/pke/lib/schemerns/rns-cryptoparameters.cpp:l.83:PrecomputeCRTTables(): HYBRID key switching parameters: Can't appropriately distribute 2 towers into 8 digits. Please select different number of digits.
+FAIL digits=8 ring=32768 scale=30 first=40 depth=2 reason=/root/deps/openfhe-1.2.4/src/pke/lib/schemerns/rns-cryptoparameters.cpp:l.83:PrecomputeCRTTables(): HYBRID key switching parameters: Can't appropriately distribute 3 towers into 8 digits. Please select different number of digits.
+FAIL digits=8 ring=32768 scale=30 first=40 depth=3 reason=/root/deps/openfhe-1.2.4/src/pke/lib/schemerns/rns-cryptoparameters.cpp:l.83:PrecomputeCRTTables(): HYBRID key switching parameters: Can't appropriately distribute 4 towers into 8 digits. Please select different number of digits.
+FAIL digits=8 ring=32768 scale=30 first=40 depth=4 reason=/root/deps/openfhe-1.2.4/src/pke/lib/schemerns/rns-cryptoparameters.cpp:l.83:PrecomputeCRTTables(): HYBRID key switching parameters: Can't appropriately distribute 5 towers into 8 digits. Please select different number of digits.
+FAIL digits=8 ring=32768 scale=30 first=40 depth=5 reason=/root/deps/openfhe-1.2.4/src/pke/lib/schemerns/rns-cryptoparameters.cpp:l.83:PrecomputeCRTTables(): HYBRID key switching parameters: Can't appropriately distribute 6 towers into 8 digits. Please select different number of digits.
+FAIL digits=8 ring=32768 scale=30 first=40 depth=6 reason=/root/deps/openfhe-1.2.4/src/pke/lib/schemerns/rns-cryptoparameters.cpp:l.83:PrecomputeCRTTables(): HYBRID key switching parameters: Can't appropriately distribute 7 towers into 8 digits. Please select different number of digits.
+PASS digits=8 ring=32768 scale=30 first=40 depth=7 logQ=249.992 logP=60 logQP=309.992
+FAIL digits=8 ring=32768 scale=30 first=40 depth=8 reason=/root/deps/openfhe-1.2.4/src/pke/lib/schemerns/rns-cryptoparameters.cpp:l.408:EstimateLogP(): HYBRID key switching parameters: Can't appropriately distribute 9 towers into 8 digits. Please select different number of digits.
+FAIL digits=8 ring=32768 scale=30 first=40 depth=9 reason=/root/deps/openfhe-1.2.4/src/pke/lib/schemerns/rns-cryptoparameters.cpp:l.408:EstimateLogP(): HYBRID key switching parameters: Can't appropriately distribute 10 towers into 8 digits. Please select different number of digits.
+FAIL digits=8 ring=32768 scale=30 first=40 depth=10 reason=/root/deps/openfhe-1.2.4/src/pke/lib/schemerns/rns-cryptoparameters.cpp:l.408:EstimateLogP(): HYBRID key switching parameters: Can't appropriately distribute 11 towers into 8 digits. Please select different number of digits.
+FAIL digits=8 ring=32768 scale=30 first=40 depth=11 reason=/root/deps/openfhe-1.2.4/src/pke/lib/schemerns/rns-cryptoparameters.cpp:l.408:EstimateLogP(): HYBRID key switching parameters: Can't appropriately distribute 12 towers into 8 digits. Please select different number of digits.
+FAIL digits=8 ring=32768 scale=30 first=40 depth=12 reason=/root/deps/openfhe-1.2.4/src/pke/lib/schemerns/rns-cryptoparameters.cpp:l.408:EstimateLogP(): HYBRID key switching parameters: Can't appropriately distribute 13 towers into 8 digits. Please select different number of digits.
+FAIL digits=8 ring=32768 scale=30 first=40 depth=13 reason=/root/deps/openfhe-1.2.4/src/pke/lib/schemerns/rns-cryptoparameters.cpp:l.408:EstimateLogP(): HYBRID key switching parameters: Can't appropriately distribute 14 towers into 8 digits. Please select different number of digits.
+PASS digits=8 ring=32768 scale=30 first=40 depth=14 logQ=459.979 logP=120 logQP=579.979
+PASS digits=8 ring=32768 scale=30 first=40 depth=15 logQ=489.961 logP=120 logQP=609.961
+FAIL digits=8 ring=32768 scale=30 first=40 depth=16 reason=/root/deps/openfhe-1.2.4/src/pke/lib/schemerns/rns-cryptoparameters.cpp:l.408:EstimateLogP(): HYBRID key switching parameters: Can't appropriately distribute 17 towers into 8 digits. Please select different number of digits.
+FAIL digits=8 ring=32768 scale=30 first=40 depth=17 reason=/root/deps/openfhe-1.2.4/src/pke/lib/schemerns/rns-cryptoparameters.cpp:l.408:EstimateLogP(): HYBRID key switching parameters: Can't appropriately distribute 18 towers into 8 digits. Please select different number of digits.
+FAIL digits=8 ring=32768 scale=30 first=40 depth=18 reason=/root/deps/openfhe-1.2.4/src/pke/lib/schemerns/rns-cryptoparameters.cpp:l.408:EstimateLogP(): HYBRID key switching parameters: Can't appropriately distribute 19 towers into 8 digits. Please select different number of digits.
+FAIL digits=8 ring=32768 scale=30 first=40 depth=19 reason=/root/deps/openfhe-1.2.4/src/pke/lib/schemerns/rns-cryptoparameters.cpp:l.408:EstimateLogP(): HYBRID key switching parameters: Can't appropriately distribute 20 towers into 8 digits. Please select different number of digits.
+FAIL digits=8 ring=32768 scale=30 first=40 depth=20 reason=/root/deps/openfhe-1.2.4/src/pke/lib/schemerns/rns-cryptoparameters.cpp:l.408:EstimateLogP(): HYBRID key switching parameters: Can't appropriately distribute 21 towers into 8 digits. Please select different number of digits.
+PASS digits=8 ring=32768 scale=30 first=40 depth=21 logQ=669.864 logP=120 logQP=789.864
+PASS digits=8 ring=32768 scale=30 first=40 depth=22 logQ=699.847 logP=120 logQP=819.847
+PASS digits=8 ring=32768 scale=30 first=40 depth=23 logQ=729.833 logP=120 logQP=849.833
+FAIL digits=8 ring=32768 scale=30 first=40 depth=24 reason=/root/deps/openfhe-1.2.4/src/pke/lib/schemerns/rns-cryptoparameters.cpp:l.408:EstimateLogP(): HYBRID key switching parameters: Can't appropriately distribute 25 towers into 8 digits. Please select different number of digits.
+FAIL digits=8 ring=32768 scale=30 first=40 depth=25 reason=/root/deps/openfhe-1.2.4/src/pke/lib/schemerns/rns-cryptoparameters.cpp:l.408:EstimateLogP(): HYBRID key switching parameters: Can't appropriately distribute 26 towers into 8 digits. Please select different number of digits.
+FAIL digits=8 ring=32768 scale=30 first=40 depth=26 reason=/root/deps/openfhe-1.2.4/src/pke/lib/schemerns/rns-cryptoparameters.cpp:l.408:EstimateLogP(): HYBRID key switching parameters: Can't appropriately distribute 27 towers into 8 digits. Please select different number of digits.
+FAIL digits=8 ring=32768 scale=30 first=40 depth=27 reason=/root/deps/openfhe-1.2.4/src/pke/lib/schemerns/rns-cryptoparameters.cpp:l.408:EstimateLogP(): HYBRID key switching parameters: Can't appropriately distribute 28 towers into 8 digits. Please select different number of digits.
+FAIL digits=8 ring=32768 scale=30 first=40 depth=28 reason=/root/deps/openfhe-1.2.4/src/pke/lib/scheme/ckksrns/ckksrns-parametergeneration.cpp:l.113:ParamsGenCKKSRNS(): The specified ring dimension (32768) does not comply with HE standards recommendation (65536).
+FAIL digits=3 ring=32768 scale=40 first=50 depth=1 reason=/root/deps/openfhe-1.2.4/src/pke/lib/schemerns/rns-cryptoparameters.cpp:l.83:PrecomputeCRTTables(): HYBRID key switching parameters: Can't appropriately distribute 2 towers into 3 digits. Please select different number of digits.
+PASS digits=3 ring=32768 scale=40 first=50 depth=2 logQ=130 logP=60 logQP=190
+FAIL digits=3 ring=32768 scale=40 first=50 depth=3 reason=/root/deps/openfhe-1.2.4/src/pke/lib/schemerns/rns-cryptoparameters.cpp:l.408:EstimateLogP(): HYBRID key switching parameters: Can't appropriately distribute 4 towers into 3 digits. Please select different number of digits.
+PASS digits=3 ring=32768 scale=40 first=50 depth=4 logQ=210 logP=120 logQP=330
+PASS digits=3 ring=32768 scale=40 first=50 depth=5 logQ=250 logP=120 logQP=370
+PASS digits=3 ring=32768 scale=40 first=50 depth=6 logQ=290 logP=180 logQP=470
+PASS digits=3 ring=32768 scale=40 first=50 depth=7 logQ=330 logP=180 logQP=510
+PASS digits=3 ring=32768 scale=40 first=50 depth=8 logQ=370 logP=180 logQP=550
+PASS digits=3 ring=32768 scale=40 first=50 depth=9 logQ=410 logP=180 logQP=590
+PASS digits=3 ring=32768 scale=40 first=50 depth=10 logQ=450 logP=180 logQP=630
+PASS digits=3 ring=32768 scale=40 first=50 depth=11 logQ=490 logP=180 logQP=670
+PASS digits=3 ring=32768 scale=40 first=50 depth=12 logQ=530 logP=240 logQP=770
+PASS digits=3 ring=32768 scale=40 first=50 depth=13 logQ=570 logP=240 logQP=810
+PASS digits=3 ring=32768 scale=40 first=50 depth=14 logQ=610 logP=240 logQP=850
+FAIL digits=3 ring=32768 scale=40 first=50 depth=15 reason=/root/deps/openfhe-1.2.4/src/pke/lib/scheme/ckksrns/ckksrns-parametergeneration.cpp:l.113:ParamsGenCKKSRNS(): The specified ring dimension (32768) does not comply with HE standards recommendation (65536).
+FAIL digits=4 ring=32768 scale=40 first=50 depth=1 reason=/root/deps/openfhe-1.2.4/src/pke/lib/schemerns/rns-cryptoparameters.cpp:l.83:PrecomputeCRTTables(): HYBRID key switching parameters: Can't appropriately distribute 2 towers into 4 digits. Please select different number of digits.
+FAIL digits=4 ring=32768 scale=40 first=50 depth=2 reason=/root/deps/openfhe-1.2.4/src/pke/lib/schemerns/rns-cryptoparameters.cpp:l.83:PrecomputeCRTTables(): HYBRID key switching parameters: Can't appropriately distribute 3 towers into 4 digits. Please select different number of digits.
+PASS digits=4 ring=32768 scale=40 first=50 depth=3 logQ=170 logP=60 logQP=230
+FAIL digits=4 ring=32768 scale=40 first=50 depth=4 reason=/root/deps/openfhe-1.2.4/src/pke/lib/schemerns/rns-cryptoparameters.cpp:l.408:EstimateLogP(): HYBRID key switching parameters: Can't appropriately distribute 5 towers into 4 digits. Please select different number of digits.
+FAIL digits=4 ring=32768 scale=40 first=50 depth=5 reason=/root/deps/openfhe-1.2.4/src/pke/lib/schemerns/rns-cryptoparameters.cpp:l.408:EstimateLogP(): HYBRID key switching parameters: Can't appropriately distribute 6 towers into 4 digits. Please select different number of digits.
+PASS digits=4 ring=32768 scale=40 first=50 depth=6 logQ=290 logP=120 logQP=410
+PASS digits=4 ring=32768 scale=40 first=50 depth=7 logQ=330 logP=120 logQP=450
+FAIL digits=4 ring=32768 scale=40 first=50 depth=8 reason=/root/deps/openfhe-1.2.4/src/pke/lib/schemerns/rns-cryptoparameters.cpp:l.408:EstimateLogP(): HYBRID key switching parameters: Can't appropriately distribute 9 towers into 4 digits. Please select different number of digits.
+PASS digits=4 ring=32768 scale=40 first=50 depth=9 logQ=410 logP=180 logQP=590
+PASS digits=4 ring=32768 scale=40 first=50 depth=10 logQ=450 logP=180 logQP=630
+PASS digits=4 ring=32768 scale=40 first=50 depth=11 logQ=490 logP=180 logQP=670
+PASS digits=4 ring=32768 scale=40 first=50 depth=12 logQ=530 logP=180 logQP=710
+PASS digits=4 ring=32768 scale=40 first=50 depth=13 logQ=570 logP=180 logQP=750
+PASS digits=4 ring=32768 scale=40 first=50 depth=14 logQ=610 logP=180 logQP=790
+PASS digits=4 ring=32768 scale=40 first=50 depth=15 logQ=650 logP=180 logQP=830
+FAIL digits=4 ring=32768 scale=40 first=50 depth=16 reason=/root/deps/openfhe-1.2.4/src/pke/lib/scheme/ckksrns/ckksrns-parametergeneration.cpp:l.113:ParamsGenCKKSRNS(): The specified ring dimension (32768) does not comply with HE standards recommendation (65536).
+FAIL digits=6 ring=32768 scale=40 first=50 depth=1 reason=/root/deps/openfhe-1.2.4/src/pke/lib/schemerns/rns-cryptoparameters.cpp:l.83:PrecomputeCRTTables(): HYBRID key switching parameters: Can't appropriately distribute 2 towers into 6 digits. Please select different number of digits.
+FAIL digits=6 ring=32768 scale=40 first=50 depth=2 reason=/root/deps/openfhe-1.2.4/src/pke/lib/schemerns/rns-cryptoparameters.cpp:l.83:PrecomputeCRTTables(): HYBRID key switching parameters: Can't appropriately distribute 3 towers into 6 digits. Please select different number of digits.
+FAIL digits=6 ring=32768 scale=40 first=50 depth=3 reason=/root/deps/openfhe-1.2.4/src/pke/lib/schemerns/rns-cryptoparameters.cpp:l.83:PrecomputeCRTTables(): HYBRID key switching parameters: Can't appropriately distribute 4 towers into 6 digits. Please select different number of digits.
+FAIL digits=6 ring=32768 scale=40 first=50 depth=4 reason=/root/deps/openfhe-1.2.4/src/pke/lib/schemerns/rns-cryptoparameters.cpp:l.83:PrecomputeCRTTables(): HYBRID key switching parameters: Can't appropriately distribute 5 towers into 6 digits. Please select different number of digits.
+PASS digits=6 ring=32768 scale=40 first=50 depth=5 logQ=250 logP=60 logQP=310
+FAIL digits=6 ring=32768 scale=40 first=50 depth=6 reason=/root/deps/openfhe-1.2.4/src/pke/lib/schemerns/rns-cryptoparameters.cpp:l.408:EstimateLogP(): HYBRID key switching parameters: Can't appropriately distribute 7 towers into 6 digits. Please select different number of digits.
+FAIL digits=6 ring=32768 scale=40 first=50 depth=7 reason=/root/deps/openfhe-1.2.4/src/pke/lib/schemerns/rns-cryptoparameters.cpp:l.408:EstimateLogP(): HYBRID key switching parameters: Can't appropriately distribute 8 towers into 6 digits. Please select different number of digits.
+FAIL digits=6 ring=32768 scale=40 first=50 depth=8 reason=/root/deps/openfhe-1.2.4/src/pke/lib/schemerns/rns-cryptoparameters.cpp:l.408:EstimateLogP(): HYBRID key switching parameters: Can't appropriately distribute 9 towers into 6 digits. Please select different number of digits.
+FAIL digits=6 ring=32768 scale=40 first=50 depth=9 reason=/root/deps/openfhe-1.2.4/src/pke/lib/schemerns/rns-cryptoparameters.cpp:l.408:EstimateLogP(): HYBRID key switching parameters: Can't appropriately distribute 10 towers into 6 digits. Please select different number of digits.
+PASS digits=6 ring=32768 scale=40 first=50 depth=10 logQ=450 logP=120 logQP=570
+PASS digits=6 ring=32768 scale=40 first=50 depth=11 logQ=490 logP=120 logQP=610
+FAIL digits=6 ring=32768 scale=40 first=50 depth=12 reason=/root/deps/openfhe-1.2.4/src/pke/lib/schemerns/rns-cryptoparameters.cpp:l.408:EstimateLogP(): HYBRID key switching parameters: Can't appropriately distribute 13 towers into 6 digits. Please select different number of digits.
+FAIL digits=6 ring=32768 scale=40 first=50 depth=13 reason=/root/deps/openfhe-1.2.4/src/pke/lib/schemerns/rns-cryptoparameters.cpp:l.408:EstimateLogP(): HYBRID key switching parameters: Can't appropriately distribute 14 towers into 6 digits. Please select different number of digits.
+FAIL digits=6 ring=32768 scale=40 first=50 depth=14 reason=/root/deps/openfhe-1.2.4/src/pke/lib/schemerns/rns-cryptoparameters.cpp:l.408:EstimateLogP(): HYBRID key switching parameters: Can't appropriately distribute 15 towers into 6 digits. Please select different number of digits.
+PASS digits=6 ring=32768 scale=40 first=50 depth=15 logQ=650 logP=180 logQP=830
+PASS digits=6 ring=32768 scale=40 first=50 depth=16 logQ=690 logP=180 logQP=870
+FAIL digits=6 ring=32768 scale=40 first=50 depth=17 reason=/root/deps/openfhe-1.2.4/src/pke/lib/scheme/ckksrns/ckksrns-parametergeneration.cpp:l.113:ParamsGenCKKSRNS(): The specified ring dimension (32768) does not comply with HE standards recommendation (65536).
+FAIL digits=8 ring=32768 scale=40 first=50 depth=1 reason=/root/deps/openfhe-1.2.4/src/pke/lib/schemerns/rns-cryptoparameters.cpp:l.83:PrecomputeCRTTables(): HYBRID key switching parameters: Can't appropriately distribute 2 towers into 8 digits. Please select different number of digits.
+FAIL digits=8 ring=32768 scale=40 first=50 depth=2 reason=/root/deps/openfhe-1.2.4/src/pke/lib/schemerns/rns-cryptoparameters.cpp:l.83:PrecomputeCRTTables(): HYBRID key switching parameters: Can't appropriately distribute 3 towers into 8 digits. Please select different number of digits.
+FAIL digits=8 ring=32768 scale=40 first=50 depth=3 reason=/root/deps/openfhe-1.2.4/src/pke/lib/schemerns/rns-cryptoparameters.cpp:l.83:PrecomputeCRTTables(): HYBRID key switching parameters: Can't appropriately distribute 4 towers into 8 digits. Please select different number of digits.
+FAIL digits=8 ring=32768 scale=40 first=50 depth=4 reason=/root/deps/openfhe-1.2.4/src/pke/lib/schemerns/rns-cryptoparameters.cpp:l.83:PrecomputeCRTTables(): HYBRID key switching parameters: Can't appropriately distribute 5 towers into 8 digits. Please select different number of digits.
+FAIL digits=8 ring=32768 scale=40 first=50 depth=5 reason=/root/deps/openfhe-1.2.4/src/pke/lib/schemerns/rns-cryptoparameters.cpp:l.83:PrecomputeCRTTables(): HYBRID key switching parameters: Can't appropriately distribute 6 towers into 8 digits. Please select different number of digits.
+FAIL digits=8 ring=32768 scale=40 first=50 depth=6 reason=/root/deps/openfhe-1.2.4/src/pke/lib/schemerns/rns-cryptoparameters.cpp:l.83:PrecomputeCRTTables(): HYBRID key switching parameters: Can't appropriately distribute 7 towers into 8 digits. Please select different number of digits.
+PASS digits=8 ring=32768 scale=40 first=50 depth=7 logQ=330 logP=60 logQP=390
+FAIL digits=8 ring=32768 scale=40 first=50 depth=8 reason=/root/deps/openfhe-1.2.4/src/pke/lib/schemerns/rns-cryptoparameters.cpp:l.408:EstimateLogP(): HYBRID key switching parameters: Can't appropriately distribute 9 towers into 8 digits. Please select different number of digits.
+FAIL digits=8 ring=32768 scale=40 first=50 depth=9 reason=/root/deps/openfhe-1.2.4/src/pke/lib/schemerns/rns-cryptoparameters.cpp:l.408:EstimateLogP(): HYBRID key switching parameters: Can't appropriately distribute 10 towers into 8 digits. Please select different number of digits.
+FAIL digits=8 ring=32768 scale=40 first=50 depth=10 reason=/root/deps/openfhe-1.2.4/src/pke/lib/schemerns/rns-cryptoparameters.cpp:l.408:EstimateLogP(): HYBRID key switching parameters: Can't appropriately distribute 11 towers into 8 digits. Please select different number of digits.
+FAIL digits=8 ring=32768 scale=40 first=50 depth=11 reason=/root/deps/openfhe-1.2.4/src/pke/lib/schemerns/rns-cryptoparameters.cpp:l.408:EstimateLogP(): HYBRID key switching parameters: Can't appropriately distribute 12 towers into 8 digits. Please select different number of digits.
+FAIL digits=8 ring=32768 scale=40 first=50 depth=12 reason=/root/deps/openfhe-1.2.4/src/pke/lib/schemerns/rns-cryptoparameters.cpp:l.408:EstimateLogP(): HYBRID key switching parameters: Can't appropriately distribute 13 towers into 8 digits. Please select different number of digits.
+FAIL digits=8 ring=32768 scale=40 first=50 depth=13 reason=/root/deps/openfhe-1.2.4/src/pke/lib/schemerns/rns-cryptoparameters.cpp:l.408:EstimateLogP(): HYBRID key switching parameters: Can't appropriately distribute 14 towers into 8 digits. Please select different number of digits.
+PASS digits=8 ring=32768 scale=40 first=50 depth=14 logQ=610 logP=120 logQP=730
+PASS digits=8 ring=32768 scale=40 first=50 depth=15 logQ=650 logP=120 logQP=770
+FAIL digits=8 ring=32768 scale=40 first=50 depth=16 reason=/root/deps/openfhe-1.2.4/src/pke/lib/schemerns/rns-cryptoparameters.cpp:l.408:EstimateLogP(): HYBRID key switching parameters: Can't appropriately distribute 17 towers into 8 digits. Please select different number of digits.
+FAIL digits=8 ring=32768 scale=40 first=50 depth=17 reason=/root/deps/openfhe-1.2.4/src/pke/lib/schemerns/rns-cryptoparameters.cpp:l.408:EstimateLogP(): HYBRID key switching parameters: Can't appropriately distribute 18 towers into 8 digits. Please select different number of digits.
+FAIL digits=8 ring=32768 scale=40 first=50 depth=18 reason=/root/deps/openfhe-1.2.4/src/pke/lib/schemerns/rns-cryptoparameters.cpp:l.408:EstimateLogP(): HYBRID key switching parameters: Can't appropriately distribute 19 towers into 8 digits. Please select different number of digits.
+FAIL digits=8 ring=32768 scale=40 first=50 depth=19 reason=/root/deps/openfhe-1.2.4/src/pke/lib/schemerns/rns-cryptoparameters.cpp:l.408:EstimateLogP(): HYBRID key switching parameters: Can't appropriately distribute 20 towers into 8 digits. Please select different number of digits.
+FAIL digits=8 ring=32768 scale=40 first=50 depth=20 reason=/root/deps/openfhe-1.2.4/src/pke/lib/schemerns/rns-cryptoparameters.cpp:l.408:EstimateLogP(): HYBRID key switching parameters: Can't appropriately distribute 21 towers into 8 digits. Please select different number of digits.
+FAIL digits=8 ring=32768 scale=40 first=50 depth=21 reason=/root/deps/openfhe-1.2.4/src/pke/lib/scheme/ckksrns/ckksrns-parametergeneration.cpp:l.113:ParamsGenCKKSRNS(): The specified ring dimension (32768) does not comply with HE standards recommendation (65536).

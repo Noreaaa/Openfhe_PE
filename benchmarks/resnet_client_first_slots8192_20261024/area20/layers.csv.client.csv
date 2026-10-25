@@ -1,0 +1,2 @@
+client_first_layer,client_first_ms,encryption_ms,model_setup_ms,ciphertexts,coefficient_bytes,channels,height,width,encrypted_h_start,encrypted_h_end,encrypted_w_start,encrypted_w_end,original_h_start,original_h_end,original_w_start,original_w_end
+1,118.669929,737.027294,5772.737226,13,139722752,64,112,112,50,62,50,62,102,121,102,121

@@ -1,0 +1,158 @@
+[
+  {
+    "ring": 16384,
+    "layer": 3,
+    "status": "success",
+    "exit_code": 0,
+    "finished_utc": "2026-10-25T12:40:26.018024+00:00",
+    "wall_s": 126.73,
+    "operator_mean_gib": 14.674922398514898,
+    "operator_peak_gib": 21.518646240234375,
+    "whole_process_peak_gib": 21.88642120361328,
+    "measurement": {
+      "layer": "3",
+      "ring": "16384",
+      "slots": "8192",
+      "depth": "30",
+      "input_channels": "64",
+      "input_height": "56",
+      "input_width": "56",
+      "output_channels": "64",
+      "output_height": "56",
+      "output_width": "56",
+      "kernel": "3",
+      "stride": "1",
+      "key_setup_ms": "6053.774236",
+      "encryption_ms": "467.604253",
+      "conv_ms": "68975.238583",
+      "activation_ms": "3000.056593",
+      "bootstrap_ms": "42423.582646",
+      "operator_total_ms": "114398.877822",
+      "pipeline_ms": "120920.256311",
+      "ciphertexts": "64",
+      "pre_bootstrap_level": "4",
+      "output_level": "20",
+      "towers": "11",
+      "R": "5.4148338791",
+      "B": "2.56797004248",
+      "conv_max_abs": "7.4634048941e-13",
+      "conv_rmse": "8.88419317618e-15",
+      "poly_max_abs": "2.76678679967e-12",
+      "poly_rmse": "7.50747871919e-14",
+      "max_abs": "0.00105828358697",
+      "rmse": "8.14022476433e-05",
+      "vs_relu_rmse": "0.0706266417164",
+      "whole_peak_gib": "21.8864212036"
+    },
+    "phase_memory": {
+      "key_setup": {
+        "mean_gib": 3.878515835928161,
+        "peak_gib": 7.827777862548828,
+        "sampled_seconds": 5.512643210000533
+      },
+      "input_encryption": {
+        "mean_gib": 8.222393035888672,
+        "peak_gib": 8.222393035888672,
+        "sampled_seconds": 0
+      },
+      "server_conv": {
+        "mean_gib": 11.971266154390317,
+        "peak_gib": 12.225574493408203,
+        "sampled_seconds": 68.70961093599908
+      },
+      "server_relu": {
+        "mean_gib": 12.173603360273706,
+        "peak_gib": 12.635810852050781,
+        "sampled_seconds": 2.506916418999026
+      },
+      "server_bootstrap": {
+        "mean_gib": 19.283964065385863,
+        "peak_gib": 21.518646240234375,
+        "sampled_seconds": 41.66544377000173
+      },
+      "verification": {
+        "mean_gib": 12.721156420754097,
+        "peak_gib": 19.102954864501953,
+        "sampled_seconds": 3.006587114003196
+      }
+    }
+  },
+  {
+    "ring": 16384,
+    "layer": 8,
+    "status": "success",
+    "exit_code": 0,
+    "finished_utc": "2026-10-25T12:46:38.249469+00:00",
+    "wall_s": 371.83,
+    "operator_mean_gib": 18.19455221918994,
+    "operator_peak_gib": 28.012836456298828,
+    "whole_process_peak_gib": 28.070491790771484,
+    "measurement": {
+      "layer": "8",
+      "ring": "16384",
+      "slots": "8192",
+      "depth": "30",
+      "input_channels": "128",
+      "input_height": "28",
+      "input_width": "28",
+      "output_channels": "128",
+      "output_height": "28",
+      "output_width": "28",
+      "kernel": "3",
+      "stride": "1",
+      "key_setup_ms": "6103.173975",
+      "encryption_ms": "1353.957691",
+      "conv_ms": "269967.86838",
+      "activation_ms": "4967.52444",
+      "bootstrap_ms": "78351.010717",
+      "operator_total_ms": "353286.403537",
+      "pipeline_ms": "360743.535203",
+      "ciphertexts": "128",
+      "pre_bootstrap_level": "4",
+      "output_level": "20",
+      "towers": "11",
+      "R": "2.35682199257",
+      "B": "2.30154087345",
+      "conv_max_abs": "4.83735274059e-12",
+      "conv_rmse": "8.1599089379e-14",
+      "poly_max_abs": "1.07189812582e-11",
+      "poly_rmse": "1.25440243411e-13",
+      "max_abs": "0.00166378374856",
+      "rmse": "9.47296592463e-05",
+      "vs_relu_rmse": "0.0322999370468",
+      "whole_peak_gib": "28.0704917908"
+    },
+    "phase_memory": {
+      "key_setup": {
+        "mean_gib": 4.368693269584568,
+        "peak_gib": 8.125946044921875,
+        "sampled_seconds": 5.515333035000367
+      },
+      "input_encryption": {
+        "mean_gib": 8.924118041992188,
+        "peak_gib": 9.234039306640625,
+        "sampled_seconds": 0.5011926279985346
+      },
+      "server_conv": {
+        "mean_gib": 16.386805461011168,
+        "peak_gib": 16.751949310302734,
+        "sampled_seconds": 269.85960528200303
+      },
+      "server_relu": {
+        "mean_gib": 16.88116088821457,
+        "peak_gib": 18.35995101928711,
+        "sampled_seconds": 4.516354804000002
+      },
+      "server_bootstrap": {
+        "mean_gib": 24.54127331144074,
+        "peak_gib": 28.012836456298828,
+        "sampled_seconds": 77.79915970500224
+      },
+      "verification": {
+        "mean_gib": 17.92218912252526,
+        "peak_gib": 22.641048431396484,
+        "sampled_seconds": 7.0178549160009425
+      }
+    }
+  }
+]

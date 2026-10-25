@@ -1,0 +1,78 @@
+{
+  "ring": 16384,
+  "layer": 3,
+  "status": "success",
+  "exit_code": 0,
+  "finished_utc": "2026-10-25T12:38:19.096768+00:00",
+  "wall_s": 49.29,
+  "operator_mean_gib": 10.51191784958889,
+  "operator_peak_gib": 12.50613021850586,
+  "whole_process_peak_gib": 12.665008544921875,
+  "measurement": {
+    "layer": "3",
+    "ring": "16384",
+    "slots": "8192",
+    "depth": "30",
+    "input_channels": "64",
+    "input_height": "56",
+    "input_width": "56",
+    "output_channels": "8",
+    "output_height": "56",
+    "output_width": "56",
+    "kernel": "3",
+    "stride": "1",
+    "key_setup_ms": "6154.972132",
+    "encryption_ms": "379.503776",
+    "conv_ms": "23748.187869",
+    "activation_ms": "1397.402611",
+    "bootstrap_ms": "16113.741623",
+    "operator_total_ms": "41259.332103",
+    "pipeline_ms": "47793.808011",
+    "ciphertexts": "8",
+    "pre_bootstrap_level": "4",
+    "output_level": "20",
+    "towers": "11",
+    "R": "3.2299690529",
+    "B": "2.5497510253",
+    "conv_max_abs": "9.44300193595e-13",
+    "conv_rmse": "1.35924892015e-14",
+    "poly_max_abs": "2.57799337433e-12",
+    "poly_rmse": "5.21273090567e-14",
+    "max_abs": "0.00210632826609",
+    "rmse": "9.01247086264e-05",
+    "vs_relu_rmse": "0.0448995147914",
+    "whole_peak_gib": "12.6650085449"
+  },
+  "phase_memory": {
+    "key_setup": {
+      "mean_gib": 3.8381559359919475,
+      "peak_gib": 7.821784973144531,
+      "sampled_seconds": 5.514033636001841
+    },
+    "input_encryption": {
+      "mean_gib": 8.280288696289062,
+      "peak_gib": 8.280288696289062,
+      "sampled_seconds": 0
+    },
+    "server_conv": {
+      "mean_gib": 11.174301321074427,
+      "peak_gib": 12.50613021850586,
+      "sampled_seconds": 23.54805481600124
+    },
+    "server_relu": {
+      "mean_gib": 8.790217028819757,
+      "peak_gib": 8.982353210449219,
+      "sampled_seconds": 1.0021257560001686
+    },
+    "server_bootstrap": {
+      "mean_gib": 9.618854772842578,
+      "peak_gib": 9.806419372558594,
+      "sampled_seconds": 15.533596584999032
+    },
+    "verification": {
+      "mean_gib": 9.438323974609375,
+      "peak_gib": 9.438323974609375,
+      "sampled_seconds": 0
+    }
+  }
+}

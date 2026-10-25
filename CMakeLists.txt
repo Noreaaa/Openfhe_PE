@@ -103,3 +103,36 @@ target_include_directories(resnet_conv3_bench PRIVATE ${CMAKE_SOURCE_DIR}/src/in
 add_executable(sparse_real_accuracy tests/sparse_packing/sparse_real_accuracy.cpp ${common_sources})
 target_link_libraries(sparse_real_accuracy PRIVATE cnn encryption ${CNPY_LIB} z OpenMP::OpenMP_CXX)
 target_include_directories(sparse_real_accuracy PRIVATE ${CMAKE_SOURCE_DIR}/src/include)
+
+# Fully encrypted, one-ciphertext-per-channel ResNet prefix baseline.
+add_executable(channelwise_prefix_bench tests/sparse_packing/channelwise_prefix_bench.cpp ${common_sources})
+target_link_libraries(channelwise_prefix_bench PRIVATE cnn encryption ${CNPY_LIB} z OpenMP::OpenMP_CXX)
+target_include_directories(channelwise_prefix_bench PRIVATE ${CMAKE_SOURCE_DIR}/src/include)
+
+# Matched-layout sparse convolution optimization benchmark (real ResNet weights).
+add_executable(sparse_conv_opt_bench tests/sparse_packing/sparse_conv_opt_bench.cpp ${common_sources})
+target_link_libraries(sparse_conv_opt_bench PRIVATE cnn encryption ${CNPY_LIB} z OpenMP::OpenMP_CXX)
+target_include_directories(sparse_conv_opt_bench PRIVATE ${CMAKE_SOURCE_DIR}/src/include)
+
+# Historical decrypted-sign activation fixture; production `test` stays encrypted.
+add_executable(test_decrypted_mask src/main.cpp ${common_sources}
+    src/init/hcnn.cpp src/init/resnet18.cpp src/init/baseline_test.cpp
+    tests/sparse_packing/baseline/baseline_sparse_activation.cpp)
+target_compile_definitions(test_decrypted_mask PRIVATE PFHE_DECRYPTED_MASK_BASELINE=1)
+target_link_libraries(test_decrypted_mask PRIVATE cnn encryption ${CNPY_LIB} z OpenMP::OpenMP_CXX)
+target_include_directories(test_decrypted_mask PRIVATE ${CMAKE_SOURCE_DIR}/src/include)
+
+# Unmodified historical PFHE convolution: representative ResNet stage shapes.
+add_executable(legacy_conv_shape_bench tests/sparse_packing/legacy_conv_shape_bench.cpp ${common_sources})
+target_link_libraries(legacy_conv_shape_bench PRIVATE cnn encryption ${CNPY_LIB} z OpenMP::OpenMP_CXX)
+target_include_directories(legacy_conv_shape_bench PRIVATE ${CMAKE_SOURCE_DIR}/src/include)
+
+# Fully encrypted channel-wise convolution shapes, sharing the prefix implementation.
+add_executable(channelwise_conv_shape_bench tests/sparse_packing/channelwise_conv_shape_bench.cpp ${common_sources})
+target_link_libraries(channelwise_conv_shape_bench PRIVATE cnn encryption ${CNPY_LIB} z OpenMP::OpenMP_CXX)
+target_include_directories(channelwise_conv_shape_bench PRIVATE ${CMAKE_SOURCE_DIR}/src/include)
+
+# Full approximation-plus-parallel-bootstrap environment for representative shapes.
+add_executable(channelwise_approx_boot_shape_bench tests/sparse_packing/channelwise_approx_boot_shape_bench.cpp ${common_sources})
+target_link_libraries(channelwise_approx_boot_shape_bench PRIVATE cnn encryption ${CNPY_LIB} z OpenMP::OpenMP_CXX)
+target_include_directories(channelwise_approx_boot_shape_bench PRIVATE ${CMAKE_SOURCE_DIR}/src/include)

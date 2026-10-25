@@ -1,3 +1,3 @@
 # PFHE
 
-完整构建、测试、复现和结果说明请参阅 [README.md](README.md)。
+See [README.md](README.md) for the project overview, source guide, build and test instructions, reproduction workflow, and experimental results.

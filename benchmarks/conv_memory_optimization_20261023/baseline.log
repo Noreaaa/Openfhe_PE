@@ -1,0 +1,4 @@
+CONV_ROTATION_KEYS width=32 compact=0 required=53 generated=53
+MEMORY_KEYS mode=baseline keys=53 coefficient_mib=7155 rss_mib=11433.7 peak_mib=11433.7 key_s=2.94324 threads=96
+CONV_MEMORY rows=5 channel_workers=32 scratch_budget_mib=0
+MEMORY_RESULT mode=baseline conv_s=47.0801 forward_peak_mib=19449.6 process_peak_mib=19449.6 max_abs=1.04819e-05

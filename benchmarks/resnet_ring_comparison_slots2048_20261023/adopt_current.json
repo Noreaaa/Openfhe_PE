@@ -1,0 +1,12 @@
+{
+  "repeat": 1,
+  "area": 60,
+  "target_layers": 8,
+  "ring": 32768,
+  "model_pid": 1259805,
+  "attempt_dir": "/root/Openfhe_PE/benchmarks/resnet_ring_comparison_slots2048_20261023/ring32768/repeat1/area60/layers8/ring32768",
+  "started_utc": "2026-10-23T02:52:01.679684+00:00",
+  "wrapper_pid": 1259804,
+  "original_campaign_pid": 678681,
+  "original_runner_pid": 678683
+}

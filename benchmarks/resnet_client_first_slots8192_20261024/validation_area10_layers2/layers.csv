@@ -1,0 +1,2 @@
+conv_layers,conv_ms,relu_ms,cumulative_conv_ms,cumulative_relu_ms,total_ms,channels,height,width,encrypted_h_start,encrypted_h_end,encrypted_w_start,encrypted_w_end,ciphertexts,level,remaining_towers,slots,peak_mib,cumulative_bootstrap_ms
+2,41041.048653,49710.869639,41041.048653,49710.869639,90751.918292,64,56,56,26,30,26,30,5,12,29,8192,37581.4257812,0

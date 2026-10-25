@@ -11,7 +11,7 @@ int main() {
         constexpr uint32_t ring = 16384, slots = 1024;
         CCParams<CryptoContextCKKSRNS> p;
         SetParamCKKS(ring, p, slots);
-        p.SetMultiplicativeDepth(10);
+        p.SetMultiplicativeDepth(28);
         CRYPTOCONTEXT = GenCryptoContext(p);
         for (auto f : {PKE, KEYSWITCH, LEVELEDSHE, ADVANCEDSHE, SCHEMESWITCH}) CRYPTOCONTEXT->Enable(f);
         KEYPAIR = CRYPTOCONTEXT->KeyGen();
@@ -94,5 +94,32 @@ int main() {
         }
         if(chainError>1e-3) throw std::runtime_error("conv/ReLU mismatch");
         std::cout << "conv_relu max_error=" << chainError << std::endl;
+        // Verify repeated encrypted-mask products at nonzero levels, since the
+        // old plaintext-mask depth budget cannot be reused for this path.
+        for (int stage=2; stage<=3; ++stage) {
+            auto previousCts=output;
+            auto previousPts=result;
+            types::double4d identity(4,double3d(4,types::double2d(1,std::vector<double>(1,0))));
+            for(int c=0;c<4;++c) identity[c][c][0][0]=1;
+            SparseConv2dBN_P next(CONV_2D,"chain",ring,slots,identity,1,0,
+                gamma,zero,zero,var,1e-5,zero,CONV_2D_BN);
+            next.EnableFastPath(5);
+            next.forward(previousCts,previousPts,convCts,convPts);
+            relu.forward(convCts,convPts,output,result);
+            CRYPTOCONTEXT->Decrypt(KEYPAIR.secretKey,output[0][0],&decoded);
+            decoded->SetLength(slots); values=decoded->GetRealPackedValue();
+            double error=0;
+            for(int c=0;c<4;++c) for(int h=0;h<3;++h) for(int w=0;w<5;++w) {
+                double expected=(h==1&&w>=1&&w<=2)?samples[(c%3)*2+w-1]:0.25;
+                expected=std::max(0.0,expected/std::pow(std::sqrt(1+1e-5),stage));
+                double actual=(h==1&&w>=1&&w<=2)?values[c*5+w]:result[c][h][w];
+                if(!std::isfinite(actual)) throw std::runtime_error("non-finite chained ReLU output");
+                error=std::max(error,std::abs(actual-expected));
+            }
+            std::cout<<"repeated_conv_relu stage="<<stage<<" max_error="<<error
+                     <<" level="<<output[0][0]->GetLevel()<<std::endl;
+            if(error>1e-3) throw std::runtime_error("repeated encrypted ReLU mismatch");
+        }
+
     } catch(const std::exception& e) { std::cerr << e.what() << std::endl; return 1; }
 }

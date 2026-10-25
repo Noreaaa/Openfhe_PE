@@ -1,0 +1,87 @@
+{
+  "area": 40,
+  "status": "success",
+  "exit_code": 0,
+  "finished_utc": "2026-10-25T07:05:40.624319+00:00",
+  "attempt_dir": "/root/Openfhe_PE/benchmarks/resnet_ring4096_depth30_encrypted_mask_areas10_40_layers6_20261025/area40",
+  "wall_s": 815.32,
+  "server_forward_s": 808.251179731,
+  "client_first_s": 0.0,
+  "encryption_s": 0.39217831599999997,
+  "client_plus_forward_s": 808.643358047,
+  "server_sampled_mean_gib": 5.448810404059094,
+  "server_sampled_peak_gib": 8.022045135498047,
+  "server_sampled_seconds": 806.9129351159991,
+  "whole_process_peak_gib": 8.02728271484375,
+  "uploaded_ciphertexts": 40,
+  "payload_coefficient_bytes": 81264640,
+  "max_abs_error": 0.0165188,
+  "max_relative_rmse": 3.95218e-05,
+  "structure_ok": true,
+  "geometry_ok": true,
+  "accuracy_ok": true,
+  "accuracy_checks": [
+    {
+      "layer": 1,
+      "max_abs": 0.00479972,
+      "rmse": 2.37641e-05,
+      "reference_max_abs": 4.90766
+    },
+    {
+      "layer": 2,
+      "max_abs": 0.0121266,
+      "rmse": 0.000100736,
+      "reference_max_abs": 10.9362
+    },
+    {
+      "layer": 3,
+      "max_abs": 0.00506436,
+      "rmse": 5.6196e-05,
+      "reference_max_abs": 2.2921
+    },
+    {
+      "layer": 4,
+      "max_abs": 0.0165188,
+      "rmse": 8.70739e-05,
+      "reference_max_abs": 3.02285
+    },
+    {
+      "layer": 5,
+      "max_abs": 0.00244931,
+      "rmse": 3.95218e-05,
+      "reference_max_abs": 0.804828
+    },
+    {
+      "layer": 6,
+      "max_abs": 0.00341137,
+      "rmse": 9.31128e-05,
+      "reference_max_abs": 2.49647
+    }
+  ],
+  "layer_memory": {
+    "1": {
+      "mean_gib": 7.489552053022622,
+      "peak_gib": 8.022045135498047
+    },
+    "2": {
+      "mean_gib": 4.6209002072716725,
+      "peak_gib": 5.378154754638672
+    },
+    "3": {
+      "mean_gib": 4.34315215077876,
+      "peak_gib": 4.878147125244141
+    },
+    "4": {
+      "mean_gib": 4.368161898816576,
+      "peak_gib": 4.693988800048828
+    },
+    "5": {
+      "mean_gib": 4.248445581798244,
+      "peak_gib": 4.543087005615234
+    },
+    "6": {
+      "mean_gib": 4.216604920432452,
+      "peak_gib": 4.228645324707031
+    }
+  }
+}

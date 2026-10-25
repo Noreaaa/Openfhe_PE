@@ -1,12 +1,13 @@
 #include "sparse_activation.hpp"
+#include "encrypted_relu.hpp"
 #include <algorithm>
 #include <chrono>
 #include <stdexcept>
 #include <utility>
 
 sparse_activation::sparse_activation(PLayerType layer_type, std::string layer_name,
-    lbcrypto::LWEPrivateKey fhe_key, uint32_t ring_dim, uint32_t packing_slots)
-    : Layer(layer_type, std::move(layer_name)), fhe_key_(std::move(fhe_key)),
+    lbcrypto::LWEPrivateKey /*fhe_key*/, uint32_t ring_dim, uint32_t packing_slots)
+    : Layer(layer_type, std::move(layer_name)),
       ring_dim_(ring_dim), packing_slots_(packing_slots) {
     if (!packing_slots_ || (packing_slots_ & (packing_slots_ - 1)) ||
         packing_slots_ > ring_dim_ / 2)
@@ -16,7 +17,7 @@ sparse_activation::sparse_activation(PLayerType layer_type, std::string layer_na
 
 void sparse_activation::forward(types::vector2d<Ciphertext<DCRTPoly>>& x_cts,
     double3d& x_pts, types::vector2d<Ciphertext<DCRTPoly>>& y_cts, double3d& y_pts) {
-    if (!CRYPTOCONTEXT || !CCLWE || !fhe_key_ ||
+    if (!CRYPTOCONTEXT || !CCLWE ||
         ring_dim_ != CRYPTOCONTEXT->GetRingDimension())
         throw std::invalid_argument("sparse_activation: missing or inconsistent scheme-switch context");
     if (x_pts.empty() || x_pts[0].empty() || x_pts[0][0].empty())
@@ -51,49 +52,38 @@ void sparse_activation::forward(types::vector2d<Ciphertext<DCRTPoly>>& x_cts,
     // Setup/precompute occurs before forward. OpenFHE clones its switching temporaries;
     // precomputed matrices and switching keys are read-only during these calls.
     const size_t rows = x_cts.size();
-    std::vector<std::vector<LWECiphertext>> lwe(rows * blocks);
-    std::vector<std::vector<double>> masks(rows * blocks, std::vector<double>(packing_slots_, 0.0));
     profile_ = {};
     profile_.converted_values = rows * blocks * packing_slots_;
     profile_.evaluated_signs = rows * x_pts.size() * (ENCRYPTED_WIDTH_END - ENCRYPTED_WIDTH_START + 1);
     auto start = std::chrono::steady_clock::now();
-    #ifdef _OPENMP
-    #pragma omp parallel for
-    #endif
+    // Keep ciphertext tasks sequential so OpenFHE can use all available threads
+    // internally, without nested teams or one reverse transform per CPU in memory.
     for (size_t task = 0; task < rows * blocks; ++task) {
+        auto t = std::chrono::steady_clock::now();
         auto amplified = CRYPTOCONTEXT->EvalMult(x_cts[task / blocks][task % blocks], 1000.0);
-        // Explicit logical slot count, including the final partially filled block.
-        lwe[task] = CRYPTOCONTEXT->EvalCKKStoFHEW(amplified, packing_slots_);
-    }
-    auto afterConversion = std::chrono::steady_clock::now();
-    const size_t encryptedWidth = ENCRYPTED_WIDTH_END - ENCRYPTED_WIDTH_START + 1;
-    #ifdef _OPENMP
-    #pragma omp parallel for
-    #endif
-    for (size_t task = 0; task < profile_.evaluated_signs; ++task) {
-        const size_t h = task / (x_pts.size() * encryptedWidth);
-        const size_t channel = (task / encryptedWidth) % x_pts.size();
-        const size_t block = channel / per;
-        const size_t slot = (channel % per) * width + ENCRYPTED_WIDTH_START + task % encryptedWidth;
-        auto sign = CCLWE->EvalSign(lwe[h * blocks + block].at(slot));
-        LWEPlaintext negative;
-        CCLWE->Decrypt(fhe_key_, sign, &negative, 2);
-        masks[h * blocks + block][slot] = negative == 0 ? 1.0 : 0.0;
-    }
-    auto afterSign = std::chrono::steady_clock::now();
-    #ifdef _OPENMP
-    #pragma omp parallel for
-    #endif
-    for (size_t task = 0; task < rows * blocks; ++task) {
-        auto plain = CRYPTOCONTEXT->MakeCKKSPackedPlaintext(masks[task], 1, 0, nullptr, packing_slots_);
-        auto& result = y_cts[task / blocks][task % blocks];
-        result = CRYPTOCONTEXT->EvalMult(x_cts[task / blocks][task % blocks], plain);
+        auto t1 = std::chrono::steady_clock::now();
+        auto values = CRYPTOCONTEXT->EvalCKKStoFHEW(amplified, packing_slots_);
+        auto t2 = std::chrono::steady_clock::now();
+        std::vector<size_t> active;
+        const size_t block = task % blocks;
+        for (size_t channel = block * per; channel < std::min(x_pts.size(), (block+1)*per); ++channel)
+            for (int w = ENCRYPTED_WIDTH_START; w <= ENCRYPTED_WIDTH_END; ++w)
+                active.push_back((channel % per)*width+w);
+        EncryptedReluProfile detail;
+        auto mask = EncryptedReluMask(CRYPTOCONTEXT, CCLWE, values, active, packing_slots_, &detail);
+        auto t3 = std::chrono::steady_clock::now();
+        auto result = CRYPTOCONTEXT->EvalMult(x_cts[task / blocks][task % blocks], mask);
         if (RESCALE_REQUIRED) result = CRYPTOCONTEXT->Rescale(result);
+        y_cts[task / blocks][task % blocks] = result;
+        auto t4 = std::chrono::steady_clock::now();
+        profile_.amplify_ms += std::chrono::duration<double,std::milli>(t1-t).count();
+        profile_.conversion_ms += std::chrono::duration<double,std::milli>(t2-t1).count();
+        profile_.sign_ms += detail.sign_ms;
+        profile_.reverse_ms += detail.reverse_ms;
+        profile_.complement_ms += detail.complement_ms;
+        profile_.mask_ms += std::chrono::duration<double,std::milli>(t4-t3).count();
     }
-    auto afterMask = std::chrono::steady_clock::now();
-    profile_.conversion_ms = std::chrono::duration<double, std::milli>(afterConversion - start).count();
-    profile_.sign_ms = std::chrono::duration<double, std::milli>(afterSign - afterConversion).count();
-    profile_.mask_ms = std::chrono::duration<double, std::milli>(afterMask - afterSign).count();
+    profile_.total_ms = std::chrono::duration<double,std::milli>(std::chrono::steady_clock::now()-start).count();
 
 }
 

@@ -1,0 +1,28 @@
+{
+  "started_utc": "2026-10-24T18:12:27.419612+00:00",
+  "runner_pid": 3132217,
+  "ring": 32768,
+  "slots": 16384,
+  "depths": {
+    "approximation": 36,
+    "scheme_switch": 40
+  },
+  "scale_bits": 30,
+  "first_bits": 40,
+  "digits": 6,
+  "threads": 96,
+  "repeats": 1,
+  "client_layer": 1,
+  "server_layers": [
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8
+  ],
+  "fully_encrypted": true,
+  "binary_sha256": "7f819f8705f6b5ff2fad66f59c1f98ddb1894dd4a58a08b79a6c126a4853a888",
+  "source_sha256": "13bc3cac955492052c538b80785c6ddf5973571b68e98340ebd3945e9a501451"
+}

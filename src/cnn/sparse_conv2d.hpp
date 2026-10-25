@@ -59,15 +59,22 @@ public:
     using Layer::forward_C;
     void forward(types::vector2d<Ciphertext<DCRTPoly>>&, double3d&, types::vector2d<Ciphertext<DCRTPoly>>&, double3d&) override;
     void forward_C(types::vector2d<Ciphertext<DCRTPoly>>&, double3d&, types::vector2d<Ciphertext<DCRTPoly>>&, double3d&) override;
-    // Opt in after key setup. The fast path supports automatic rescaling and stride=1/2 with standard same padding.
-    void EnableFastPath(uint32_t input_width, bool generate_keys = true);
+    // Opt in after key setup. Use direct rotations and unrestricted channel concurrency by default.
+    // A zero scratch budget restores unrestricted channel concurrency for A/B measurement.
+    // Supports automatic rescaling and stride=1/2 with standard same padding.
+    void EnableFastPath(uint32_t input_width, bool generate_keys = true,
+                        bool compact_rotation_keys = false, uint32_t scratch_budget_mib = 0);
     void forward_reference(types::vector2d<Ciphertext<DCRTPoly>>&, double3d&,
                            types::vector2d<Ciphertext<DCRTPoly>>&, double3d&);
 private:
     void forward_fast(types::vector2d<Ciphertext<DCRTPoly>>&, double3d&,
                       types::vector2d<Ciphertext<DCRTPoly>>&, double3d&);
     uint32_t fast_width_ = 0;
-    Plaintext Encode(const std::vector<double>& values) const;
+    bool compact_rotation_keys_ = false;
+    uint32_t scratch_budget_mib_ = 0;
+    int32_t NormalizeRotation(int32_t index) const;
+    Ciphertext<DCRTPoly> Rotate(const Ciphertext<DCRTPoly>& ct, int32_t index) const;
+    Plaintext Encode(const std::vector<double>& values, uint32_t level = 0) const;
     void ValidateInput(const types::vector2d<Ciphertext<DCRTPoly>>& cts, const double3d& pts) const;
     Plaintext GenPlainFilter(int out_channel, int height, int output_width_idx, int input_w, int cts_idx, int channels_per_cts);
     uint32_t ring_dim_;

@@ -1,0 +1,3 @@
+CONTEXT ring=65536 security=HEStd_128_classic depth=30 scale=40 first=50 reserve=20
+READY input_level=29 input_towers=2
+FAIL /root/deps/openfhe-1.2.4/src/pke/lib/encoding/ckkspackedencoding.cpp:l.541:Decode(): The decryption failed because the approximation error is too high. Check the parameters. 

@@ -1,0 +1,26 @@
+{
+  "started_utc": "2026-10-25T09:16:00.851297+00:00",
+  "runner_pid": 1195151,
+  "rings": [
+    16384,
+    32768
+  ],
+  "slots": "N/2",
+  "depth": 30,
+  "scale_bits": 30,
+  "first_bits": 40,
+  "digits": 6,
+  "threads": 96,
+  "original_center_area": 10,
+  "input_level": 0,
+  "input_degree": 1,
+  "layers": [
+    3,
+    8,
+    12,
+    16
+  ],
+  "implementation": "historical Conv2dBN_P, partial encryption, no sparse fast path",
+  "repeats": 1,
+  "binary_sha256": "8d468a1eb1f3374e50da18185f9178dc3c4b194fdd1a5a2e99f4c1aeecdec4ac"
+}

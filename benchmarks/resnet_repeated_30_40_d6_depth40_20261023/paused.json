@@ -1,0 +1,4 @@
+{
+  "status": "cancelled",
+  "note": "User cancelled experiment. Runner and model terminated. Existing artifacts retained. No 2048-slot experiment started."
+}

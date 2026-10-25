@@ -1,0 +1,9 @@
+repeat,area,target_layers,ring,status,wall_s,forward_s,conv_s,relu_s,peak_gib,exit_code,attempt_dir
+1,10,8,16384,success,1202.68,1180.9041735100002,279.07845697,901.825716543,30.825931549072266,0,/root/Openfhe_PE/benchmarks/resnet_ring_comparison_slots2048_20261023/ring16384/repeat1/area10/layers8/ring16384
+1,20,8,16384,success,1649.48,1626.2615113,431.92519654299997,1194.33631476,35.10541534423828,0,/root/Openfhe_PE/benchmarks/resnet_ring_comparison_slots2048_20261023/ring16384/repeat1/area20/layers8/ring16384
+1,30,8,16384,success,2226.64,2202.2450399699997,637.225521274,1565.0195187,41.56605529785156,0,/root/Openfhe_PE/benchmarks/resnet_ring_comparison_slots2048_20261023/ring16384/repeat1/area30/layers8/ring16384
+1,40,8,16384,success,2911.97,2885.5223892999998,910.518939607,1975.0034497,43.08868408203125,0,/root/Openfhe_PE/benchmarks/resnet_ring_comparison_slots2048_20261023/ring16384/repeat1/area40/layers8/ring16384
+1,50,8,16384,success,3489.87,3462.39363291,1109.21823132,2353.17540159,50.417686462402344,0,/root/Openfhe_PE/benchmarks/resnet_ring_comparison_slots2048_20261023/ring16384/repeat1/area50/layers8/ring16384
+1,60,8,16384,success,4098.34,4069.07212661,1384.13815021,2684.9339764,61.597625732421875,0,/root/Openfhe_PE/benchmarks/resnet_ring_comparison_slots2048_20261023/ring16384/repeat1/area60/layers8/ring16384
+1,70,8,16384,success,4895.5,4865.12426297,1688.0916031200002,3177.0326598399997,65.64886093139648,0,/root/Openfhe_PE/benchmarks/resnet_ring_comparison_slots2048_20261023/ring16384/repeat1/area70/layers8/ring16384
+1,80,8,16384,success,5882.19,5849.88189322,2096.0629842099997,3753.81890901,73.04769515991211,0,/root/Openfhe_PE/benchmarks/resnet_ring_comparison_slots2048_20261023/ring16384/repeat1/area80/layers8/ring16384

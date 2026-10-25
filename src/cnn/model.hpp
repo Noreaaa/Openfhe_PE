@@ -14,7 +14,7 @@ public:
 
   void predict_P(types::ciphertext1d x_cts, types::double3d x_pts);
   
-  int predict_P(types::vector2d<Ciphertext<DCRTPoly>> x_cts, types::double3d x_pts, const std::string& profile_csv = "");
+  int predict_P(types::vector2d<Ciphertext<DCRTPoly>> x_cts, types::double3d x_pts, const std::string& profile_csv = "", int completed_conv_layers = 0);
 
   using FeatureObserver = std::function<void(int, const types::vector2d<Ciphertext<DCRTPoly>>&, const types::double3d&)>;
   void set_feature_observer(FeatureObserver observer) { feature_observer_ = std::move(observer); }

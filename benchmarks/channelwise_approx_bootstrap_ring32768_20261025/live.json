@@ -1,0 +1,54 @@
+{
+  "status": "cancelled_by_user",
+  "cancelled_utc": "2026-10-25T05:10:22.738742+00:00",
+  "completed_layers": 4,
+  "completed_original_layers": [
+    2,
+    3,
+    4,
+    5
+  ],
+  "interrupted_layer": 6,
+  "interrupted_phase": "server_bootstrap",
+  "server_mean_gib": 21.363533781632785,
+  "server_peak_gib": 30.337570190429688,
+  "whole_process_peak_gib": 30.563297271728516,
+  "layers": {
+    "2": {
+      "mean_gib": 26.02836089138345,
+      "peak_gib": 30.337570190429688,
+      "sampled_seconds": 782.5548072439997
+    },
+    "3": {
+      "mean_gib": 20.07851502039763,
+      "peak_gib": 20.785659790039062,
+      "sampled_seconds": 740.7631951000001
+    },
+    "4": {
+      "mean_gib": 20.052462995816718,
+      "peak_gib": 20.314037322998047,
+      "sampled_seconds": 744.8137177540002
+    },
+    "5": {
+      "mean_gib": 20.04788991768487,
+      "peak_gib": 20.333858489990234,
+      "sampled_seconds": 748.8388971069999
+    },
+    "6": {
+      "mean_gib": 20.055563602994024,
+      "peak_gib": 20.339927673339844,
+      "sampled_seconds": 563.3763537650011
+    },
+    "7": {
+      "mean_gib": 0,
+      "peak_gib": 0,
+      "sampled_seconds": 0
+    },
+    "8": {
+      "mean_gib": 0,
+      "peak_gib": 0,
+      "sampled_seconds": 0
+    }
+  },
+  "note": "User cancelled due to unacceptable polynomial approximation error. Completed layers retained; interrupted layer timing is incomplete and excluded from completed-layer totals."
+}

@@ -1,0 +1,135 @@
+Start testing: Oct 22 22:45 CST
+----------------------------------------------------------
+1/2 Testing: sparse_conv2d_correctness
+1/2 Test: sparse_conv2d_correctness
+Command: "/root/Openfhe_PE/build-sparse/sparse_conv2d_test"
+Directory: /root/Openfhe_PE/build-sparse
+"sparse_conv2d_correctness" start time: Oct 22 22:45 CST
+Output:
+----------------------------------------------------------
+slots=8 stride=1 kernel=1 max_error=5.20955e-11
+chain_error=9.65592e-11
+slots=8 stride=1 kernel=3 max_error=7.12967e-11
+chain_error=7.32011e-11
+slots=8 stride=1 kernel=7 max_error=5.88205e-11
+chain_error=1.69098e-10
+slots=8 stride=2 kernel=1 max_error=4.23971e-11
+chain_error=7.53594e-11
+slots=8 stride=2 kernel=3 max_error=4.07262e-11
+chain_error=9.22045e-11
+slots=8 stride=2 kernel=7 max_error=1.111e-10
+chain_error=8.9923e-11
+slots=16 stride=1 kernel=1 max_error=6.08372e-11
+chain_error=1.01006e-10
+slots=16 stride=1 kernel=3 max_error=1.16209e-10
+chain_error=1.06864e-10
+slots=16 stride=1 kernel=7 max_error=1.32756e-10
+chain_error=1.75028e-10
+slots=16 stride=2 kernel=1 max_error=6.64127e-11
+chain_error=6.13718e-11
+slots=16 stride=2 kernel=3 max_error=9.21523e-11
+chain_error=4.36644e-11
+slots=16 stride=2 kernel=7 max_error=1.2102e-10
+chain_error=1.13557e-10
+legacy forward
+check point added cts
+after legacy forward
+ENCRYPTED_HEIGHT_START: 1
+ENCRYPTED_HEIGHT_END: 2
+ENCRYPTED_WIDTH_START: 1
+ENCRYPTED_WIDTH_END: 3
+legacy_difference=1.5308e-09
+slots=512 stride=1 kernel=1 max_error=7.41191e-10
+chain_error=4.57513e-10
+legacy forward
+check point added cts
+after legacy forward
+ENCRYPTED_HEIGHT_START: 0
+ENCRYPTED_HEIGHT_END: 3
+ENCRYPTED_WIDTH_START: 0
+ENCRYPTED_WIDTH_END: 4
+legacy_difference=1.08367e-09
+slots=512 stride=1 kernel=3 max_error=7.89029e-10
+chain_error=4.89704e-10
+legacy forward
+check point added cts
+after legacy forward
+ENCRYPTED_HEIGHT_START: 0
+ENCRYPTED_HEIGHT_END: 3
+ENCRYPTED_WIDTH_START: 0
+ENCRYPTED_WIDTH_END: 4
+legacy_difference=1.2233e-09
+slots=512 stride=1 kernel=7 max_error=5.82968e-10
+chain_error=6.19389e-10
+legacy forward
+check point added cts
+after legacy forward
+ENCRYPTED_HEIGHT_START: 1
+ENCRYPTED_HEIGHT_END: 1
+ENCRYPTED_WIDTH_START: 1
+ENCRYPTED_WIDTH_END: 1
+legacy_difference=1.01492e-09
+slots=512 stride=2 kernel=1 max_error=8.01558e-10
+chain_error=5.85414e-10
+legacy forward
+check point added cts
+after legacy forward
+ENCRYPTED_HEIGHT_START: 0
+ENCRYPTED_HEIGHT_END: 1
+ENCRYPTED_WIDTH_START: 0
+ENCRYPTED_WIDTH_END: 2
+legacy_difference=8.47661e-10
+slots=512 stride=2 kernel=3 max_error=7.88726e-10
+chain_error=5.38421e-10
+legacy forward
+check point added cts
+after legacy forward
+ENCRYPTED_HEIGHT_START: 0
+ENCRYPTED_HEIGHT_END: 1
+ENCRYPTED_WIDTH_START: 0
+ENCRYPTED_WIDTH_END: 2
+legacy_difference=1.07406e-09
+slots=512 stride=2 kernel=7 max_error=6.17658e-10
+chain_error=4.39405e-10
+slots=1024 stride=1 kernel=1 max_error=2.43491e-09
+chain_error=2.17928e-09
+slots=1024 stride=1 kernel=3 max_error=2.74801e-09
+chain_error=3.08755e-09
+slots=1024 stride=1 kernel=7 max_error=2.97854e-09
+chain_error=3.08779e-09
+slots=1024 stride=2 kernel=1 max_error=1.33016e-09
+chain_error=2.53142e-09
+slots=1024 stride=2 kernel=3 max_error=1.7752e-09
+chain_error=2.93993e-09
+slots=1024 stride=2 kernel=7 max_error=4.23071e-09
+chain_error=2.34169e-09
+<end of output>
+Test time =  19.63 sec
+----------------------------------------------------------
+Test Passed.
+"sparse_conv2d_correctness" end time: Oct 22 22:45 CST
+"sparse_conv2d_correctness" time elapsed: 00:00:19
+----------------------------------------------------------
+
+2/2 Testing: sparse_activation_correctness
+2/2 Test: sparse_activation_correctness
+Command: "/root/Openfhe_PE/build-sparse/sparse_activation_test"
+Directory: /root/Openfhe_PE/build-sparse
+"sparse_activation_correctness" start time: Oct 22 22:45 CST
+Output:
+----------------------------------------------------------
+depth: 23
+Setting up scheme switch: ring=16384 slots=1024
+sparse_relu max_error=2.8237e-06
+conv_relu max_error=6.35324e-06
+repeated_conv_relu stage=2 max_error=1.7648e-05 level=15
+repeated_conv_relu stage=3 max_error=1.83537e-05 level=18
+<end of output>
+Test time =  28.24 sec
+----------------------------------------------------------
+Test Passed.
+"sparse_activation_correctness" end time: Oct 22 22:45 CST
+"sparse_activation_correctness" time elapsed: 00:00:28
+----------------------------------------------------------
+
+End testing: Oct 22 22:45 CST

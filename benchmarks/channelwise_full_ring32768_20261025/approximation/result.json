@@ -1,0 +1,48 @@
+{
+  "mode": "approximation",
+  "status": "success",
+  "exit_code": 0,
+  "completed_layers": 7,
+  "finished_utc": "2026-10-24T18:27:36.953950+00:00",
+  "wall_s": 909.18,
+  "whole_process_peak_gib": 19.897686004638672,
+  "server_mean_gib": 15.009624914619103,
+  "server_peak_gib": 19.48801040649414,
+  "layers": {
+    "2": {
+      "mean_gib": 18.486892268396275,
+      "peak_gib": 19.48801040649414,
+      "sampled_seconds": 97.37356197400368
+    },
+    "3": {
+      "mean_gib": 16.028734283540622,
+      "peak_gib": 17.00713348388672,
+      "sampled_seconds": 189.07592608602135
+    },
+    "4": {
+      "mean_gib": 15.093138127257424,
+      "peak_gib": 15.188945770263672,
+      "sampled_seconds": 124.46017758900416
+    },
+    "5": {
+      "mean_gib": 15.086945957143655,
+      "peak_gib": 15.109973907470703,
+      "sampled_seconds": 99.36319513301714
+    },
+    "6": {
+      "mean_gib": 14.775041955263532,
+      "peak_gib": 14.821430206298828,
+      "sampled_seconds": 79.28351229001419
+    },
+    "7": {
+      "mean_gib": 13.769662158793851,
+      "peak_gib": 13.890213012695312,
+      "sampled_seconds": 120.37494266399881
+    },
+    "8": {
+      "mean_gib": 12.404949522480877,
+      "peak_gib": 12.515739440917969,
+      "sampled_seconds": 146.46772706098272
+    }
+  }
+}

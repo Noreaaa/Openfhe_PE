@@ -1,0 +1,6 @@
+{
+  "sampler_pid": 3809241,
+  "started_utc": "2026-10-23T16:47:37.485525+00:00",
+  "interval_s": 5,
+  "note": "Only the observed window is measured. Historical RSS cannot be reconstructed. Initial case has partial-run coverage."
+}

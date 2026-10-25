@@ -28,7 +28,7 @@ struct Options {
 #else
     uint32_t scaleBits = 30, firstBits = 40;
 #endif
-    uint32_t repeats = 5, warmup = 1, threads = 1, digits = 3;
+    uint32_t repeats = 5, warmup = 1, threads = omp_get_num_procs(), digits = 3;
 };
 
 static uint32_t parseUint(const std::string& value) {
@@ -52,7 +52,7 @@ int main(int argc, char** argv) {
             std::string arg(argv[i]);
             if (arg == "--help") {
                 std::cout << "Usage: sparse_packing_bench [--ring 16384] [--slots 1024]\n"
-                          << "  [--outputs 64] [--repeats 5] [--warmup 1] [--threads 1]\n"
+                          << "  [--outputs 64] [--repeats 5] [--warmup 1] [--threads N (default: all CPUs)]\n"
                           << "  [--depth D] [--level 0] [--scale-bits B] [--first-bits B] [--digits 3]\n"
                           << "Defaults from main.cpp: depth=" << o.depth << ", scale-bits=" << o.scaleBits
                           << ", first-bits=" << o.firstBits << '\n'

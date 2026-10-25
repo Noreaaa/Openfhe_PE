@@ -1,0 +1,44 @@
+{
+  "status": "paused_by_user",
+  "paused_utc": "2026-10-25T05:30:25.221424+00:00",
+  "processes": [
+    {
+      "pid": 2428340,
+      "kind": "runner",
+      "command": [
+        "python3",
+        "-u",
+        "scripts/benchmark_sparse_conv_optimization.py"
+      ],
+      "state": "State:\tT (stopped)"
+    },
+    {
+      "pid": 2431301,
+      "kind": "wrapper",
+      "command": [
+        "/usr/bin/time",
+        "-v",
+        "-o",
+        "/root/Openfhe_PE/benchmarks/sparse_conv_optimization_20261025/layer3_after/time.txt",
+        "/root/Openfhe_PE/benchmarks/sparse_conv_optimization_20261025/after",
+        "/root/Openfhe_PE",
+        "3",
+        "40",
+        "12"
+      ],
+      "state": "State:\tT (stopped)"
+    },
+    {
+      "pid": 2431302,
+      "kind": "model",
+      "command": [
+        "/root/Openfhe_PE/benchmarks/sparse_conv_optimization_20261025/after",
+        "/root/Openfhe_PE",
+        "3",
+        "40",
+        "12"
+      ],
+      "state": "State:\tR (running)"
+    }
+  ]
+}

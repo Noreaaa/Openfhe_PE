@@ -41,7 +41,6 @@ class Relu_ss : public Layer {
             std::vector<Ciphertext<DCRTPoly>>& y_cts) override;
 
     private:
-        lbcrypto::LWEPrivateKey FHEWKey_;
         uint32_t batch_size_;
 };
 

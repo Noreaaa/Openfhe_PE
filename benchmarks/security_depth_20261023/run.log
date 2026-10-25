@@ -1,0 +1,166 @@
+FAIL ring=16384 scale=30 first=40 depth=1 reason=/root/deps/openfhe-1.2.4/src/pke/lib/schemerns/rns-cryptoparameters.cpp:l.83:PrecomputeCRTTables(): HYBRID key switching parameters: Can't appropriately distribute 2 towers into 3 digits. Please select different number of digits.
+PASS ring=16384 scale=30 first=40 depth=2 logQ=100 logP=60 logQP=160
+FAIL ring=16384 scale=30 first=40 depth=3 reason=/root/deps/openfhe-1.2.4/src/pke/lib/schemerns/rns-cryptoparameters.cpp:l.408:EstimateLogP(): HYBRID key switching parameters: Can't appropriately distribute 4 towers into 3 digits. Please select different number of digits.
+PASS ring=16384 scale=30 first=40 depth=4 logQ=160 logP=120 logQP=280
+PASS ring=16384 scale=30 first=40 depth=5 logQ=190.003 logP=120 logQP=310.003
+PASS ring=16384 scale=30 first=40 depth=6 logQ=220.002 logP=120 logQP=340.002
+PASS ring=16384 scale=30 first=40 depth=7 logQ=250.002 logP=120 logQP=370.002
+PASS ring=16384 scale=30 first=40 depth=8 logQ=279.999 logP=120 logQP=399.999
+FAIL ring=16384 scale=30 first=40 depth=9 reason=/root/deps/openfhe-1.2.4/src/pke/lib/scheme/ckksrns/ckksrns-parametergeneration.cpp:l.113:ParamsGenCKKSRNS(): The specified ring dimension (16384) does not comply with HE standards recommendation (32768).
+FAIL ring=16384 scale=40 first=50 depth=1 reason=/root/deps/openfhe-1.2.4/src/pke/lib/schemerns/rns-cryptoparameters.cpp:l.83:PrecomputeCRTTables(): HYBRID key switching parameters: Can't appropriately distribute 2 towers into 3 digits. Please select different number of digits.
+PASS ring=16384 scale=40 first=50 depth=2 logQ=130 logP=60 logQP=190
+FAIL ring=16384 scale=40 first=50 depth=3 reason=/root/deps/openfhe-1.2.4/src/pke/lib/schemerns/rns-cryptoparameters.cpp:l.408:EstimateLogP(): HYBRID key switching parameters: Can't appropriately distribute 4 towers into 3 digits. Please select different number of digits.
+PASS ring=16384 scale=40 first=50 depth=4 logQ=210 logP=120 logQP=330
+PASS ring=16384 scale=40 first=50 depth=5 logQ=250 logP=120 logQP=370
+FAIL ring=16384 scale=40 first=50 depth=6 reason=/root/deps/openfhe-1.2.4/src/pke/lib/scheme/ckksrns/ckksrns-parametergeneration.cpp:l.113:ParamsGenCKKSRNS(): The specified ring dimension (16384) does not comply with HE standards recommendation (32768).
+FAIL ring=16384 scale=50 first=60 depth=1 reason=/root/deps/openfhe-1.2.4/src/pke/lib/schemerns/rns-cryptoparameters.cpp:l.83:PrecomputeCRTTables(): HYBRID key switching parameters: Can't appropriately distribute 2 towers into 3 digits. Please select different number of digits.
+PASS ring=16384 scale=50 first=60 depth=2 logQ=160 logP=60 logQP=220
+FAIL ring=16384 scale=50 first=60 depth=3 reason=/root/deps/openfhe-1.2.4/src/pke/lib/schemerns/rns-cryptoparameters.cpp:l.408:EstimateLogP(): HYBRID key switching parameters: Can't appropriately distribute 4 towers into 3 digits. Please select different number of digits.
+PASS ring=16384 scale=50 first=60 depth=4 logQ=260 logP=120 logQP=380
+PASS ring=16384 scale=50 first=60 depth=5 logQ=310 logP=120 logQP=430
+FAIL ring=16384 scale=50 first=60 depth=6 reason=/root/deps/openfhe-1.2.4/src/pke/lib/scheme/ckksrns/ckksrns-parametergeneration.cpp:l.113:ParamsGenCKKSRNS(): The specified ring dimension (16384) does not comply with HE standards recommendation (32768).
+FAIL ring=32768 scale=30 first=40 depth=1 reason=/root/deps/openfhe-1.2.4/src/pke/lib/schemerns/rns-cryptoparameters.cpp:l.83:PrecomputeCRTTables(): HYBRID key switching parameters: Can't appropriately distribute 2 towers into 3 digits. Please select different number of digits.
+PASS ring=32768 scale=30 first=40 depth=2 logQ=99.9998 logP=60 logQP=160
+FAIL ring=32768 scale=30 first=40 depth=3 reason=/root/deps/openfhe-1.2.4/src/pke/lib/schemerns/rns-cryptoparameters.cpp:l.408:EstimateLogP(): HYBRID key switching parameters: Can't appropriately distribute 4 towers into 3 digits. Please select different number of digits.
+PASS ring=32768 scale=30 first=40 depth=4 logQ=160.001 logP=120 logQP=280.001
+PASS ring=32768 scale=30 first=40 depth=5 logQ=189.998 logP=120 logQP=309.998
+PASS ring=32768 scale=30 first=40 depth=6 logQ=219.992 logP=120 logQP=339.992
+PASS ring=32768 scale=30 first=40 depth=7 logQ=249.992 logP=120 logQP=369.992
+PASS ring=32768 scale=30 first=40 depth=8 logQ=279.985 logP=120 logQP=399.985
+PASS ring=32768 scale=30 first=40 depth=9 logQ=309.993 logP=180 logQP=489.993
+PASS ring=32768 scale=30 first=40 depth=10 logQ=339.991 logP=180 logQP=519.991
+PASS ring=32768 scale=30 first=40 depth=11 logQ=370 logP=180 logQP=550
+PASS ring=32768 scale=30 first=40 depth=12 logQ=399.99 logP=180 logQP=579.99
+PASS ring=32768 scale=30 first=40 depth=13 logQ=430 logP=180 logQP=610
+PASS ring=32768 scale=30 first=40 depth=14 logQ=459.979 logP=180 logQP=639.979
+PASS ring=32768 scale=30 first=40 depth=15 logQ=489.961 logP=240 logQP=729.961
+PASS ring=32768 scale=30 first=40 depth=16 logQ=519.943 logP=240 logQP=759.943
+PASS ring=32768 scale=30 first=40 depth=17 logQ=549.925 logP=240 logQP=789.925
+PASS ring=32768 scale=30 first=40 depth=18 logQ=579.902 logP=240 logQP=819.902
+PASS ring=32768 scale=30 first=40 depth=19 logQ=609.889 logP=240 logQP=849.889
+PASS ring=32768 scale=30 first=40 depth=20 logQ=639.875 logP=240 logQP=879.875
+FAIL ring=32768 scale=30 first=40 depth=21 reason=/root/deps/openfhe-1.2.4/src/pke/lib/scheme/ckksrns/ckksrns-parametergeneration.cpp:l.113:ParamsGenCKKSRNS(): The specified ring dimension (32768) does not comply with HE standards recommendation (65536).
+FAIL ring=32768 scale=40 first=50 depth=1 reason=/root/deps/openfhe-1.2.4/src/pke/lib/schemerns/rns-cryptoparameters.cpp:l.83:PrecomputeCRTTables(): HYBRID key switching parameters: Can't appropriately distribute 2 towers into 3 digits. Please select different number of digits.
+PASS ring=32768 scale=40 first=50 depth=2 logQ=130 logP=60 logQP=190
+FAIL ring=32768 scale=40 first=50 depth=3 reason=/root/deps/openfhe-1.2.4/src/pke/lib/schemerns/rns-cryptoparameters.cpp:l.408:EstimateLogP(): HYBRID key switching parameters: Can't appropriately distribute 4 towers into 3 digits. Please select different number of digits.
+PASS ring=32768 scale=40 first=50 depth=4 logQ=210 logP=120 logQP=330
+PASS ring=32768 scale=40 first=50 depth=5 logQ=250 logP=120 logQP=370
+PASS ring=32768 scale=40 first=50 depth=6 logQ=290 logP=180 logQP=470
+PASS ring=32768 scale=40 first=50 depth=7 logQ=330 logP=180 logQP=510
+PASS ring=32768 scale=40 first=50 depth=8 logQ=370 logP=180 logQP=550
+PASS ring=32768 scale=40 first=50 depth=9 logQ=410 logP=180 logQP=590
+PASS ring=32768 scale=40 first=50 depth=10 logQ=450 logP=180 logQP=630
+PASS ring=32768 scale=40 first=50 depth=11 logQ=490 logP=180 logQP=670
+PASS ring=32768 scale=40 first=50 depth=12 logQ=530 logP=240 logQP=770
+PASS ring=32768 scale=40 first=50 depth=13 logQ=570 logP=240 logQP=810
+PASS ring=32768 scale=40 first=50 depth=14 logQ=610 logP=240 logQP=850
+FAIL ring=32768 scale=40 first=50 depth=15 reason=/root/deps/openfhe-1.2.4/src/pke/lib/scheme/ckksrns/ckksrns-parametergeneration.cpp:l.113:ParamsGenCKKSRNS(): The specified ring dimension (32768) does not comply with HE standards recommendation (65536).
+FAIL ring=32768 scale=50 first=60 depth=1 reason=/root/deps/openfhe-1.2.4/src/pke/lib/schemerns/rns-cryptoparameters.cpp:l.83:PrecomputeCRTTables(): HYBRID key switching parameters: Can't appropriately distribute 2 towers into 3 digits. Please select different number of digits.
+PASS ring=32768 scale=50 first=60 depth=2 logQ=160 logP=60 logQP=220
+FAIL ring=32768 scale=50 first=60 depth=3 reason=/root/deps/openfhe-1.2.4/src/pke/lib/schemerns/rns-cryptoparameters.cpp:l.408:EstimateLogP(): HYBRID key switching parameters: Can't appropriately distribute 4 towers into 3 digits. Please select different number of digits.
+PASS ring=32768 scale=50 first=60 depth=4 logQ=260 logP=120 logQP=380
+PASS ring=32768 scale=50 first=60 depth=5 logQ=310 logP=120 logQP=430
+PASS ring=32768 scale=50 first=60 depth=6 logQ=360 logP=180 logQP=540
+PASS ring=32768 scale=50 first=60 depth=7 logQ=410 logP=180 logQP=590
+PASS ring=32768 scale=50 first=60 depth=8 logQ=460 logP=180 logQP=640
+PASS ring=32768 scale=50 first=60 depth=9 logQ=510 logP=240 logQP=750
+PASS ring=32768 scale=50 first=60 depth=10 logQ=560 logP=240 logQP=800
+PASS ring=32768 scale=50 first=60 depth=11 logQ=610 logP=240 logQP=850
+FAIL ring=32768 scale=50 first=60 depth=12 reason=/root/deps/openfhe-1.2.4/src/pke/lib/scheme/ckksrns/ckksrns-parametergeneration.cpp:l.113:ParamsGenCKKSRNS(): The specified ring dimension (32768) does not comply with HE standards recommendation (65536).
+FAIL ring=65536 scale=30 first=40 depth=1 reason=/root/deps/openfhe-1.2.4/src/pke/lib/schemerns/rns-cryptoparameters.cpp:l.83:PrecomputeCRTTables(): HYBRID key switching parameters: Can't appropriately distribute 2 towers into 3 digits. Please select different number of digits.
+PASS ring=65536 scale=30 first=40 depth=2 logQ=99.9998 logP=60 logQP=160
+FAIL ring=65536 scale=30 first=40 depth=3 reason=/root/deps/openfhe-1.2.4/src/pke/lib/schemerns/rns-cryptoparameters.cpp:l.408:EstimateLogP(): HYBRID key switching parameters: Can't appropriately distribute 4 towers into 3 digits. Please select different number of digits.
+PASS ring=65536 scale=30 first=40 depth=4 logQ=159.999 logP=120 logQP=279.999
+PASS ring=65536 scale=30 first=40 depth=5 logQ=189.995 logP=120 logQP=309.995
+PASS ring=65536 scale=30 first=40 depth=6 logQ=219.982 logP=120 logQP=339.982
+PASS ring=65536 scale=30 first=40 depth=7 logQ=249.979 logP=120 logQP=369.979
+PASS ring=65536 scale=30 first=40 depth=8 logQ=279.972 logP=120 logQP=399.972
+PASS ring=65536 scale=30 first=40 depth=9 logQ=309.973 logP=180 logQP=489.973
+PASS ring=65536 scale=30 first=40 depth=10 logQ=339.958 logP=180 logQP=519.958
+PASS ring=65536 scale=30 first=40 depth=11 logQ=369.971 logP=180 logQP=549.971
+PASS ring=65536 scale=30 first=40 depth=12 logQ=399.956 logP=180 logQP=579.956
+PASS ring=65536 scale=30 first=40 depth=13 logQ=429.972 logP=180 logQP=609.972
+PASS ring=65536 scale=30 first=40 depth=14 logQ=459.954 logP=180 logQP=639.954
+PASS ring=65536 scale=30 first=40 depth=15 logQ=489.971 logP=240 logQP=729.971
+PASS ring=65536 scale=30 first=40 depth=16 logQ=519.948 logP=240 logQP=759.948
+PASS ring=65536 scale=30 first=40 depth=17 logQ=550.003 logP=240 logQP=790.003
+PASS ring=65536 scale=30 first=40 depth=18 logQ=580.053 logP=240 logQP=820.053
+PASS ring=65536 scale=30 first=40 depth=19 logQ=610.106 logP=240 logQP=850.106
+PASS ring=65536 scale=30 first=40 depth=20 logQ=640.154 logP=240 logQP=880.154
+PASS ring=65536 scale=30 first=40 depth=21 logQ=670.21 logP=300 logQP=970.21
+PASS ring=65536 scale=30 first=40 depth=22 logQ=700.257 logP=300 logQP=1000.26
+PASS ring=65536 scale=30 first=40 depth=23 logQ=730.314 logP=300 logQP=1030.31
+PASS ring=65536 scale=30 first=40 depth=24 logQ=760.358 logP=300 logQP=1060.36
+PASS ring=65536 scale=30 first=40 depth=25 logQ=790.426 logP=300 logQP=1090.43
+PASS ring=65536 scale=30 first=40 depth=26 logQ=820.49 logP=300 logQP=1120.49
+PASS ring=65536 scale=30 first=40 depth=27 logQ=850.56 logP=360 logQP=1210.56
+PASS ring=65536 scale=30 first=40 depth=28 logQ=880.619 logP=360 logQP=1240.62
+PASS ring=65536 scale=30 first=40 depth=29 logQ=910.684 logP=360 logQP=1270.68
+PASS ring=65536 scale=30 first=40 depth=30 logQ=940.724 logP=360 logQP=1300.72
+PASS ring=65536 scale=30 first=40 depth=31 logQ=970.805 logP=360 logQP=1330.8
+PASS ring=65536 scale=30 first=40 depth=32 logQ=1000.88 logP=360 logQP=1360.88
+PASS ring=65536 scale=30 first=40 depth=33 logQ=1030.96 logP=420 logQP=1450.96
+PASS ring=65536 scale=30 first=40 depth=34 logQ=1061.04 logP=420 logQP=1481.04
+PASS ring=65536 scale=30 first=40 depth=35 logQ=1091.12 logP=420 logQP=1511.12
+PASS ring=65536 scale=30 first=40 depth=36 logQ=1121.21 logP=420 logQP=1541.21
+PASS ring=65536 scale=30 first=40 depth=37 logQ=1151.29 logP=420 logQP=1571.29
+PASS ring=65536 scale=30 first=40 depth=38 logQ=1181.36 logP=420 logQP=1601.36
+PASS ring=65536 scale=30 first=40 depth=39 logQ=1211.46 logP=480 logQP=1691.46
+PASS ring=65536 scale=30 first=40 depth=40 logQ=1241.56 logP=480 logQP=1721.56
+FAIL ring=65536 scale=30 first=40 depth=41 reason=/root/deps/openfhe-1.2.4/src/pke/lib/scheme/ckksrns/ckksrns-parametergeneration.cpp:l.113:ParamsGenCKKSRNS(): The specified ring dimension (65536) does not comply with HE standards recommendation (131072).
+FAIL ring=65536 scale=40 first=50 depth=1 reason=/root/deps/openfhe-1.2.4/src/pke/lib/schemerns/rns-cryptoparameters.cpp:l.83:PrecomputeCRTTables(): HYBRID key switching parameters: Can't appropriately distribute 2 towers into 3 digits. Please select different number of digits.
+PASS ring=65536 scale=40 first=50 depth=2 logQ=130 logP=60 logQP=190
+FAIL ring=65536 scale=40 first=50 depth=3 reason=/root/deps/openfhe-1.2.4/src/pke/lib/schemerns/rns-cryptoparameters.cpp:l.408:EstimateLogP(): HYBRID key switching parameters: Can't appropriately distribute 4 towers into 3 digits. Please select different number of digits.
+PASS ring=65536 scale=40 first=50 depth=4 logQ=210 logP=120 logQP=330
+PASS ring=65536 scale=40 first=50 depth=5 logQ=250 logP=120 logQP=370
+PASS ring=65536 scale=40 first=50 depth=6 logQ=290 logP=180 logQP=470
+PASS ring=65536 scale=40 first=50 depth=7 logQ=330 logP=180 logQP=510
+PASS ring=65536 scale=40 first=50 depth=8 logQ=370 logP=180 logQP=550
+PASS ring=65536 scale=40 first=50 depth=9 logQ=410 logP=180 logQP=590
+PASS ring=65536 scale=40 first=50 depth=10 logQ=450 logP=180 logQP=630
+PASS ring=65536 scale=40 first=50 depth=11 logQ=490 logP=180 logQP=670
+PASS ring=65536 scale=40 first=50 depth=12 logQ=530 logP=240 logQP=770
+PASS ring=65536 scale=40 first=50 depth=13 logQ=570 logP=240 logQP=810
+PASS ring=65536 scale=40 first=50 depth=14 logQ=610 logP=240 logQP=850
+PASS ring=65536 scale=40 first=50 depth=15 logQ=650 logP=300 logQP=950
+PASS ring=65536 scale=40 first=50 depth=16 logQ=690 logP=300 logQP=990
+PASS ring=65536 scale=40 first=50 depth=17 logQ=730 logP=300 logQP=1030
+PASS ring=65536 scale=40 first=50 depth=18 logQ=770 logP=300 logQP=1070
+PASS ring=65536 scale=40 first=50 depth=19 logQ=810 logP=300 logQP=1110
+PASS ring=65536 scale=40 first=50 depth=20 logQ=850 logP=300 logQP=1150
+PASS ring=65536 scale=40 first=50 depth=21 logQ=890 logP=360 logQP=1250
+PASS ring=65536 scale=40 first=50 depth=22 logQ=930.001 logP=360 logQP=1290
+PASS ring=65536 scale=40 first=50 depth=23 logQ=970.001 logP=360 logQP=1330
+PASS ring=65536 scale=40 first=50 depth=24 logQ=1010 logP=420 logQP=1430
+PASS ring=65536 scale=40 first=50 depth=25 logQ=1050 logP=420 logQP=1470
+PASS ring=65536 scale=40 first=50 depth=26 logQ=1090 logP=420 logQP=1510
+PASS ring=65536 scale=40 first=50 depth=27 logQ=1130 logP=420 logQP=1550
+PASS ring=65536 scale=40 first=50 depth=28 logQ=1170 logP=420 logQP=1590
+PASS ring=65536 scale=40 first=50 depth=29 logQ=1210 logP=420 logQP=1630
+PASS ring=65536 scale=40 first=50 depth=30 logQ=1250 logP=480 logQP=1730
+FAIL ring=65536 scale=40 first=50 depth=31 reason=/root/deps/openfhe-1.2.4/src/pke/lib/scheme/ckksrns/ckksrns-parametergeneration.cpp:l.113:ParamsGenCKKSRNS(): The specified ring dimension (65536) does not comply with HE standards recommendation (131072).
+FAIL ring=65536 scale=50 first=60 depth=1 reason=/root/deps/openfhe-1.2.4/src/pke/lib/schemerns/rns-cryptoparameters.cpp:l.83:PrecomputeCRTTables(): HYBRID key switching parameters: Can't appropriately distribute 2 towers into 3 digits. Please select different number of digits.
+PASS ring=65536 scale=50 first=60 depth=2 logQ=160 logP=60 logQP=220
+FAIL ring=65536 scale=50 first=60 depth=3 reason=/root/deps/openfhe-1.2.4/src/pke/lib/schemerns/rns-cryptoparameters.cpp:l.408:EstimateLogP(): HYBRID key switching parameters: Can't appropriately distribute 4 towers into 3 digits. Please select different number of digits.
+PASS ring=65536 scale=50 first=60 depth=4 logQ=260 logP=120 logQP=380
+PASS ring=65536 scale=50 first=60 depth=5 logQ=310 logP=120 logQP=430
+PASS ring=65536 scale=50 first=60 depth=6 logQ=360 logP=180 logQP=540
+PASS ring=65536 scale=50 first=60 depth=7 logQ=410 logP=180 logQP=590
+PASS ring=65536 scale=50 first=60 depth=8 logQ=460 logP=180 logQP=640
+PASS ring=65536 scale=50 first=60 depth=9 logQ=510 logP=240 logQP=750
+PASS ring=65536 scale=50 first=60 depth=10 logQ=560 logP=240 logQP=800
+PASS ring=65536 scale=50 first=60 depth=11 logQ=610 logP=240 logQP=850
+PASS ring=65536 scale=50 first=60 depth=12 logQ=660 logP=300 logQP=960
+PASS ring=65536 scale=50 first=60 depth=13 logQ=710 logP=300 logQP=1010
+PASS ring=65536 scale=50 first=60 depth=14 logQ=760 logP=300 logQP=1060
+PASS ring=65536 scale=50 first=60 depth=15 logQ=810 logP=360 logQP=1170
+PASS ring=65536 scale=50 first=60 depth=16 logQ=860 logP=360 logQP=1220
+PASS ring=65536 scale=50 first=60 depth=17 logQ=910 logP=360 logQP=1270
+PASS ring=65536 scale=50 first=60 depth=18 logQ=960 logP=420 logQP=1380
+PASS ring=65536 scale=50 first=60 depth=19 logQ=1010 logP=420 logQP=1430
+PASS ring=65536 scale=50 first=60 depth=20 logQ=1060 logP=420 logQP=1480
+PASS ring=65536 scale=50 first=60 depth=21 logQ=1110 logP=420 logQP=1530
+PASS ring=65536 scale=50 first=60 depth=22 logQ=1160 logP=420 logQP=1580
+PASS ring=65536 scale=50 first=60 depth=23 logQ=1210 logP=420 logQP=1630
+PASS ring=65536 scale=50 first=60 depth=24 logQ=1260 logP=480 logQP=1740
+FAIL ring=65536 scale=50 first=60 depth=25 reason=/root/deps/openfhe-1.2.4/src/pke/lib/scheme/ckksrns/ckksrns-parametergeneration.cpp:l.113:ParamsGenCKKSRNS(): The specified ring dimension (65536) does not comply with HE standards recommendation (131072).

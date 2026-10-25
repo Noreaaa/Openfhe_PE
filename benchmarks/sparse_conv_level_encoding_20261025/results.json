@@ -1,0 +1,28 @@
+[
+  {
+    "layer": 7.0,
+    "area": 10.0,
+    "input_level": 24.0,
+    "input_noise_degree": 2.0,
+    "conv_s": 35.5479,
+    "max_abs": 6.62547e-05,
+    "rmse": 3.13312e-06,
+    "output_level": 26.0,
+    "towers": 15.0,
+    "peak_gib": 16.4543,
+    "version": "before"
+  },
+  {
+    "layer": 7.0,
+    "area": 10.0,
+    "input_level": 24.0,
+    "input_noise_degree": 2.0,
+    "conv_s": 29.1399,
+    "max_abs": 5.98636e-05,
+    "rmse": 3.01561e-06,
+    "output_level": 26.0,
+    "towers": 15.0,
+    "peak_gib": 16.4775,
+    "version": "after"
+  }
+]

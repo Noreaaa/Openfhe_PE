@@ -1,7 +1,7 @@
 #pragma once
 #include "layer.hpp"
 
-// Sparse row packing, using the same decrypted FHEW sign masks as Relu_ss.
+// Sparse row packing with encrypted FHEW-to-CKKS sign masks.
 // Scheme switching must be initialized for packing_slots before forward().
 class sparse_activation : public Layer {
 public:
@@ -9,9 +9,13 @@ public:
                       lbcrypto::LWEPrivateKey fhe_key, uint32_t ring_dim,
                       uint32_t packing_slots);
     struct Profile {
+        double amplify_ms = 0;
         double conversion_ms = 0;
         double sign_ms = 0;
+        double reverse_ms = 0;
+        double complement_ms = 0;
         double mask_ms = 0;
+        double total_ms = 0;
         size_t converted_values = 0;
         size_t evaluated_signs = 0;
     };
@@ -24,7 +28,6 @@ public:
                    types::vector2d<Ciphertext<DCRTPoly>>&, double3d&) override;
 private:
     Profile profile_;
-    lbcrypto::LWEPrivateKey fhe_key_;
     uint32_t ring_dim_;
     uint32_t packing_slots_;
 };

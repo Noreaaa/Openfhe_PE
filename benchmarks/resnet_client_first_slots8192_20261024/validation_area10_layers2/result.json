@@ -1,0 +1,31 @@
+{
+  "area": 10,
+  "status": "success",
+  "exit_code": 0,
+  "finished_utc": "2026-10-24T03:17:41.900720+00:00",
+  "attempt_dir": "/root/Openfhe_PE/benchmarks/resnet_client_first_slots8192_20261024/validation_area10_layers2",
+  "wall_s": 114.81,
+  "server_forward_s": 90.751918292,
+  "client_first_s": 0.116078144,
+  "encryption_s": 0.474178262,
+  "client_plus_forward_s": 91.342174698,
+  "server_sampled_mean_gib": 32.76303635842636,
+  "server_sampled_peak_gib": 36.58768081665039,
+  "server_sampled_seconds": 90.25442476800526,
+  "whole_process_peak_gib": 36.70061111450195,
+  "uploaded_ciphertexts": 8,
+  "payload_coefficient_bytes": 85983232,
+  "max_abs_error": 0.0184023,
+  "max_relative_rmse": 1.1543040544247544e-05,
+  "structure_ok": true,
+  "geometry_ok": true,
+  "accuracy_ok": true,
+  "accuracy_checks": [
+    {
+      "layer": 2,
+      "max_abs": 0.0184023,
+      "rmse": 0.000126237,
+      "reference_max_abs": 10.9362
+    }
+  ]
+}

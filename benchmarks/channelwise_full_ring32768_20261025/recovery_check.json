@@ -1,0 +1,21 @@
+{
+  "checked_utc": "2026-10-25T03:57:48.905882+00:00",
+  "binary_hash_matches": true,
+  "action": "No restart required: both cases completed successfully before shutdown.",
+  "results": {
+    "approximation": {
+      "status": "verified_complete",
+      "completed_layers": 7,
+      "server_forward_s": 862.306189455,
+      "finished_utc": "2026-10-24T18:27:36.953950+00:00",
+      "whole_process_peak_gib": 19.897686004638672
+    },
+    "scheme_switch": {
+      "status": "verified_complete",
+      "completed_layers": 7,
+      "server_forward_s": 22605.492896713,
+      "finished_utc": "2026-10-25T00:46:05.846677+00:00",
+      "whole_process_peak_gib": 101.3149528503418
+    }
+  }
+}

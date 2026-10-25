@@ -1,15 +1,93 @@
-# PFHE：部分加密 CNN 与 ResNet 前缀测试
+# PFHE: Partially Encrypted CNNs and ResNet Prefix Benchmarks
 
-使用 OpenFHE CKKS 对图像中的矩形区域加密，在明文/密文混合特征上执行卷积和 ReLU。本仓库包含实现、正确性测试、独立微基准、批量测试脚本和原始结果。
+PFHE uses OpenFHE CKKS to encrypt a rectangular region of an image and evaluates convolutions and ReLU on mixed plaintext/ciphertext features. This repository contains the implementation, correctness tests, standalone microbenchmarks, sweep scripts, and raw experimental results.
 
-## 环境与依赖
+## Implementation overview
 
-- Linux、C++17 编译器、CMake >= 3.16、OpenMP。
-- OpenFHE 1.2.4、cnpy、zlib 开发库。
-- Python 3（批量脚本仅使用标准库）；tmux、GNU `/usr/bin/time`；监控窗口使用 `watch`。
-- 本次完整实验使用 32 线程，最高进程峰值内存约 34.7 GiB；应预留额外系统内存。完整 40 项串行实验约耗时 35 小时 25 分钟，其他机器可能不同。
+The current `feature/sparse-conv2d` branch focuses on sparse row packing and sequential convolution prefixes using exported ResNet weights. The main execution path is:
 
-安装 OpenFHE 和 cnpy 后，通过 `CMAKE_PREFIX_PATH` 指定其安装目录。默认也搜索 `$HOME/local/openFHE` 和 `$HOME/local/cnpy`。动态库加载失败时，将安装目录的 `lib`（某些系统是 `lib64`）加入 `LD_LIBRARY_PATH`。
+```text
+src/main.cpp: parse options, configure CKKS/FHEW, and generate keys
+  -> src/init/resnet18.cpp: load the image/weights and assemble the prefix
+  -> Encrypt_MCSR_P: encrypt the selected rectangle and zero its public entries
+  -> Network::predict_P: alternate SparseConv2dBN_P and sparse_activation
+  -> per-layer CSV profiles and process logs
+```
+
+Each encrypted row is split into channel blocks. For a feature width `W` and `S` logical slots, a ciphertext holds `floor(S / W)` complete channel rows; unused slots are zero-filled. Convolution propagates the encrypted region to every output position whose receptive field intersects it. Batch normalization is folded into the convolution computation. The optimized path reuses spatial rotations, reduces channel contributions, and repacks output rows.
+
+This prefix is **not a complete ResNet-18 classifier**: it has no residual additions or classification head. Its second convolution loads `maxpool_0_weight.npy` and the corresponding batch-normalization parameters; it does not execute standard ResNet max pooling. The `basic_blk` and `skip_connect` source/header files are empty placeholders.
+
+The current sparse ReLU scales the CKKS values by 1000, switches to FHEW, evaluates encrypted signs with `EvalSign(..., true)`, and switches the negative indicators back to CKKS. It computes the encrypted mask `1 - negative` and multiplies it by the original CKKS input. **ReLU evaluation does not decrypt signs or retain a FHEW secret key.** Constructor key arguments remain for source compatibility; secret keys are still needed during setup and for optional test/reference decryption. The input encryption routine still prints encoded input plaintexts to the log.
+
+The roundtrip path uses a 50-bit scale and 60-bit first modulus on native 64-bit builds. The original 30/40-bit settings were insufficiently stable in the minimal reverse-conversion check. OpenMP defaults to all CPUs available to the process (96 logical CPUs / 48 physical cores on the current server), with nested teams disabled. Ciphertext blocks are processed sequentially in sparse ReLU so each conversion can use internal parallelism without multiplying reverse-transform working sets.
+
+
+## Source and file guide
+
+Matching `.hpp` files declare the interfaces implemented by their `.cpp` files, unless noted otherwise.
+
+| File or directory | Purpose |
+|---|---|
+| `CMakeLists.txt` | Builds the `encryption` and `cnn` libraries, the main `test` executable, and the real-weight benchmark/accuracy executables. |
+| `src/main.cpp` | Command-line entry point, parameter validation, cryptographic context/key setup, model selection, and peak-memory reporting. |
+| `src/init/resnet18.{cpp,hpp}` | Builds 1–10 sequential Conv+BN+ReLU stages, selects the sparse fast path, and optionally compares each prefix with a plaintext reference. |
+| `src/init/hcnn.{cpp,hpp}` | Loads the legacy HCNN layers and weights. |
+| `src/init/baseline_test.{cpp,hpp}` | Legacy synthetic encrypted convolution/activation baseline. |
+| `src/encryption/setparam.{cpp,hpp}` | CKKS ring/slot/scale/depth settings and FHEW scheme-switching parameters. |
+| `src/encryption/encryption.{cpp,hpp}` | Partial encryption and multiple-channel single-row packing, plus legacy compact/baseline layouts. |
+| `src/cnn/layer.{cpp,hpp}` | Layer types and the virtual interfaces for plaintext/ciphertext layouts. |
+| `src/cnn/model.{cpp,hpp}` | Layer sequencing, per-layer timing, CSV output, and optional feature observers. |
+| `src/cnn/sparse_conv2d.{cpp,hpp}` | Sparse Conv+BN reference/optimized paths and shape/slot validation. Only `SparseConv2dBN_P::forward` has a working convolution path; the other sparse convolution variants and compact `forward_C` throw unimplemented errors. |
+| `src/cnn/sparse_activation.{cpp,hpp}` | Sparse row-packed encrypted-mask ReLU and amplification/forward/sign/reverse/complement/product timing counters; compact packing is unimplemented. |
+| `src/cnn/encrypted_relu.hpp` | Shared encrypted sign-to-CKKS-mask conversion for sparse and legacy scheme-switch ReLUs. |
+| `src/cnn/conv2d.{cpp,hpp}` | Legacy convolution/Conv+BN layouts, plaintext `GoldenConv2d`/`GoldenBN`, and encrypted-region propagation helpers. |
+| `src/cnn/conv2d_l.{cpp,hpp}` | Deprecated convolution variant for later ImageNet layers. |
+| `src/cnn/activation.{cpp,hpp}` | Legacy square, scheme-switch ReLU, polynomial ReLU, and plaintext activation helpers. |
+| `src/cnn/pool.{cpp,hpp}` | Sum/average pooling implementations and plaintext pooling helpers. |
+| `src/cnn/bootstrap.{cpp,hpp}` | CKKS bootstrapping layer for partially encrypted tensors; not used by the current scheme-switch ResNet prefix. |
+| `src/cnn/linear.{cpp,hpp}` | Legacy linear layers, including ciphertext reconstruction/decryption before plaintext fully connected computation. |
+| `src/cnn/region_update.{cpp,hpp}` | Legacy encrypted-region bookkeeping helpers. |
+| `src/cnn/basic_blk.{cpp,hpp}`, `src/cnn/skip_connect.{cpp,hpp}` | Empty placeholders for residual blocks and skip connections. |
+| `src/utils/dataloader.{cpp,hpp}` | Loads NumPy weights/features, CIFAR input, and raw ImageNet image tensors. |
+| `src/utils/helper.{cpp,hpp}` | Region propagation, range checks, vector rotations, tensor printing, and synthetic inputs. |
+| `src/utils/globals.{cpp,hpp}`, `src/utils/types.hpp` | Shared cryptographic/layout state and multidimensional tensor aliases. |
+| `src/utils/Resnet-18.txt` | Text description of a ResNet-18 model. |
+| `src/include/cmdline.h`, `src/include/cnpy.h` | Bundled command-line parser and cnpy declarations; the cnpy library is still required. |
+| `tests/sparse_packing/CMakeLists.txt` | Independent build for the packing benchmark and synthetic convolution/activation tests. |
+| `tests/sparse_packing/sparse_packing.cpp` | CKKS-to-FHEW microbenchmark varying logical slots, extraction count, and ring dimension. |
+| `tests/sparse_packing/sparse_conv2d_test.cpp` | Synthetic convolution/BN checks across slot counts, kernels, strides, and chained convolutions. |
+| `tests/sparse_packing/sparse_activation_test.cpp` | Sparse ReLU checks covering the last slot, partial channel blocks, and Conv-to-ReLU chaining. |
+| `tests/sparse_packing/sparse_real_accuracy.cpp` | Real-image third-convolution/BN/ReLU check against an independent long-double reference; saves tensors and error reports. |
+| `tests/sparse_packing/resnet_conv3_bench.cpp` | Real-weight third-convolution/ReLU benchmark with legacy, reference, and optimized variants. |
+| `tests/aff_conv.cpp`, `tests/verify_py.py` | C++/Python checks of the output region affected by a changed input rectangle. |
+| `tests/innerproduct/`, `tests/schemeswitch/` | Separate CMake projects for legacy CKKS inner-product and scheme-switching examples. |
+| `tests/test_ring_dimension.cpp` | Incomplete legacy ring-dimension experiment, outside the main build. |
+| `tests/test_vec.txt` | Stored test-vector data. |
+| `scripts/run_resnet_sweep.py` | Serial sweep runner with CPU affinity, resume signatures, GNU time metrics, and persistent status/results. |
+| `scripts/start_resnet_sweep_tmux.sh` | Builds the main target and launches runner/monitor windows in tmux. |
+| `python_model/HCNN.py` | PyTorch CIFAR-10 HCNN training/evaluation and parameter export. |
+| `python_model/resnet-18.py` | CIFAR-100 ResNet-style training with square activations; separate from the C++ prefix experiment. |
+| `python_model/resnet-12.py` | Experimental CIFAR-100 convolutional training script. |
+| `python_model/resnet-18-8.py` | Extracts a torchvision ResNet-18 feature map after `layer2` for later-layer experiments. |
+| `python_model/data_reader.cpp` | Empty placeholder. |
+| `python_model/saved_models/` | HCNN checkpoint/NumPy parameters, exported ResNet-18 parameters, and a ResNet-8 NPZ archive with tensor metadata. |
+| `python_model/histories/` | TensorBoard training event files. |
+| `datasets/imagenet-mini/` | The single raw input tensor retained for reproduction. |
+| `test_results/` | Archived sweep configuration, per-case profiles/logs, summary, and result analysis. |
+| `artifacts/` | Split historical archive, checksums, packaging-time environment metadata, and a legacy runner snapshot. |
+| `.gitignore`, `LICENSE`, `readme.md` | Generated-file exclusions, license, and a short link to this README. |
+
+Binary model files, event files, input tensors, and archive parts are data artifacts rather than source code. Legacy executables such as `tests/aff_test` and `tests/innerproduct/test` may also be present; rebuild from source on the target machine.
+
+## Environment and dependencies
+
+- Linux, a C++17 compiler, CMake >= 3.16, and OpenMP.
+- OpenFHE 1.2.4, cnpy, and zlib development libraries.
+- Python 3 (the sweep runner uses only the standard library), tmux, and GNU `/usr/bin/time`; the monitoring window uses `watch`.
+- The archived full experiment used 32 threads and reached approximately 34.7 GiB peak process memory. Allow additional memory for the operating system. All 40 serial cases took approximately 35 hours 25 minutes; runtime varies by machine.
+
+After installing OpenFHE and cnpy, specify their installation prefixes through `CMAKE_PREFIX_PATH`. The build also searches `$HOME/local/openFHE` and `$HOME/local/cnpy` by default. If shared libraries cannot be loaded, add their installation `lib` directories (or `lib64` on some systems) to `LD_LIBRARY_PATH`.
 
 ```bash
 git clone --branch feature/sparse-conv2d https://github.com/Noreaaa/Openfhe_PE.git
@@ -19,17 +97,19 @@ cmake -S . -B build -DCMAKE_BUILD_TYPE=Release \
 cmake --build build -j 4
 ```
 
-如果 cnpy 未被自动找到，可显式传入 `-DCNPY_INCLUDE_DIR=/path/include -DCNPY_LIB=/path/lib/libcnpy.so`。
+If cnpy is not found automatically, pass `-DCNPY_INCLUDE_DIR=/path/include -DCNPY_LIB=/path/lib/libcnpy.so` explicitly.
 
-## 模型与输入
+## Models and input
 
-ResNet 参数在 `python_model/saved_models/ResNet-18/parameters/`。本次测试使用的单张输入保存在 `datasets/imagenet-mini/ILSVRC2012_val_00000029.bin`，无需下载整个数据集即可重跑此实验。完整 ImageNet-mini 数据集不包含在此提交中。
+ResNet parameters are stored in `python_model/saved_models/ResNet-18/parameters/`. The single image tensor used for the archived experiment is `datasets/imagenet-mini/ILSVRC2012_val_00000029.bin`, so reproducing this experiment does not require downloading the entire dataset. The full ImageNet-mini dataset is not included in this checkout.
 
-输入文件是 **3×224×224、CHW 排列的原生 float32**，共 602112 字节；它不是 JPEG。当前 ResNet 前缀路径固定读取上述文件，因此 `--nums` 不代表本实验会遍历多张图片。
+The input is a **3×224×224 tensor of native float32 values in CHW order**, totaling 602112 bytes; it is not a JPEG. The current ResNet prefix always reads this file, so `--nums` does not make this experiment iterate over multiple images.
 
-## 先验证构建与正确性
+## Build and correctness checks
 
-独立测试项目中的合成数据测试不依赖 cnpy、模型权重或图片：
+See the [minimal encrypted-ReLU measurements](benchmarks/relu_roundtrip_20261022/README.md) for operation latency, before/after peak memory, raw logs, and reproduction commands.
+
+The synthetic tests in the standalone project do not require cnpy, model weights, or image files:
 
 ```bash
 cmake -S tests/sparse_packing -B build-sparse -DCMAKE_BUILD_TYPE=Release \
@@ -38,100 +118,108 @@ cmake --build build-sparse -j 4
 ctest --test-dir build-sparse --output-on-failure
 ```
 
-真实图片的独立明文参考检查（比合成测试更耗时）：
+Run the independent plaintext-reference check on the real image (more expensive than the synthetic tests):
 
 ```bash
 OMP_NUM_THREADS=4 ./build/sparse_real_accuracy "$PWD" test_results/accuracy-new
 ```
 
-## 单项运行
+This checks the third convolution/BN and its ReLU after deriving the first two stages in plaintext. It does not validate every full-prefix sweep case. The optional `--verify` observer in the main executable prints per-prefix maximum absolute error and RMSE; its current implementation rejects non-finite outputs but does not enforce a numerical error threshold. The standalone correctness executables enforce a `1e-3` absolute-error tolerance.
 
-以下命令运行中心 50×50 区域、前 10 个卷积及对应 ReLU。先做配置检查，然后运行：
+## Run a single case
+
+The following commands use a central 50×50 encrypted region and the first 10 convolutions with their ReLUs. Validate the configuration before running:
 
 ```bash
-./build/test --model ResNet-18 --layers 10 --depth 35 \
+./build/test --model ResNet-18 --layers 10 --depth 46 \
   --ringDim 16384 --batch 1024 --act 0 --encrypt-size 50 \
   --data-root "$PWD" --check-config
 
 mkdir -p test_results/single-new
-OMP_NUM_THREADS=32 OMP_THREAD_LIMIT=32 OMP_DYNAMIC=FALSE \
-  ./build/test --model ResNet-18 --layers 10 --depth 35 \
+OMP_NUM_THREADS=96 OMP_THREAD_LIMIT=96 OMP_DYNAMIC=FALSE \
+  ./build/test --model ResNet-18 --layers 10 --depth 46 \
   --ringDim 16384 --batch 1024 --act 0 --encrypt-size 50 \
   --data-root "$PWD" --profile test_results/single-new/layers.csv \
   > test_results/single-new/run.log 2>&1
 ```
 
-- `--layers`：执行前 1～10 个顺序卷积，每个卷积后跟 ReLU。这里是卷积前缀，不是完整 ResNet-18 分类评估，也不能据此报告分类准确率。
-- `--depth`：初始乘法深度；本次全部固定为 35，保证层数比较使用同一模数链。当前 scheme-switch ReLU 路径要求至少 `3*layers+4`。
-- `--ringDim`：CKKS 环维数；`--batch`：逻辑编码 slots。
-- `--act 0`：scheme-switch ReLU；`--act 1`：多项式近似路径，不能直接混作本次实验结果。
-- `--encrypt-size`：输入中心加密正方形边长。也可用 `--top/--bottom/--left/--right` 显式指定矩形，边界均包含端点。
-- `--profile`：逐层耗时和布局 CSV；`--verify`：增加逐层明文参考检查，会增加整进程耗时。
-- `--check-config`：仅检查参数预算，不进行昂贵的推理。
+- `--layers`: execute the first 1–10 sequential convolutions, each followed by ReLU. These are convolution prefixes, not full ResNet-18 classification evaluations; classification accuracy cannot be inferred from them.
+- `--depth`: initial multiplicative depth. All archived cases use 35 to keep the modulus chain fixed across layer-count comparisons. The current encrypted-mask path conservatively requires at least `max(20, 3*layers+14)`; automatic depth selection uses `max(23, 3*layers+16)`. The old depth budget does not cover reverse conversion and ciphertext multiplication.
+- `--ringDim`: CKKS ring dimension; `--batch`: logical encoding slots.
+- `--client-first-layer`: execute original convolution 1, batch normalization and ReLU in plaintext before encryption. Propagate the original sensitive rectangle through its receptive field and encrypt the affected feature rectangle. `--layers 8` then executes original convolutions 2–8 on the server; layer numbers remain unchanged. Requires scheme-switch ReLU and at least two total layers.
+- `--act 0`: scheme-switch ReLU; `--act 1`: polynomial approximation, which should not be mixed into the archived experiment's results.
+- `--encrypt-size`: side length of the central encrypted square. Alternatively, specify a rectangle using `--top/--bottom/--left/--right`; all bounds are inclusive.
+- `--profile`: per-layer timing and layout CSV; `--verify`: additional per-prefix plaintext-reference comparisons that increase whole-process runtime.
+- `--check-config`: checks the parameter budget without performing expensive inference. It does not validate model files or every runtime constraint.
+- `--experimental-depth`: permits an explicitly requested non-bootstrap scheme-switch ResNet depth below the conservative margin, subject to the experimental lower bound. Use per-layer verification; the option does not guarantee numerical correctness or increase the requested depth.
 
-当前实验参数使用 `HEStd_NotSet` 和 FHEW `TOY`，用于研究测试，不表示满足生产安全等级。
+The experimental parameters use `HEStd_NotSet` and FHEW `TOY`; they do not establish a production security level.
 
-## 重跑本次 40 项实验
+The client-first experiment runner is `python3 scripts/run_resnet_client_first.py`. It validates a two-layer prefix before running original layers 1–8 once for each central area from 10×10 to 80×80, using ring dimension 16384, 8192 slots, depth 40, 30/40-bit moduli and 96 threads. Results are written to `benchmarks/resnet_client_first_slots8192_20261024/`. Client computation and encryption are timed separately; `rss.csv` labels execution phases so that server sampling excludes key-generation and verification time windows. All phases share a process, so these RSS values are not isolated server-process measurements.
 
-使用**新的输出目录**保留已经完成的原始结果：
+## Run a new 40-case sweep
+
+The archived sweep used the former decrypted-sign ReLU, 30/40-bit scale/modulus settings, depth 35, and 32 threads. To reproduce that implementation, use source revision `08ec29d402e717cbc48131740244db64de1118c8` in a separate checkout and follow its README. The commands below exercise the new encrypted-mask path and will not reproduce the archived timings.
+
+Use a **new output directory** to preserve the completed raw results:
 
 ```bash
 bash scripts/start_resnet_sweep_tmux.sh \
   test_results/resnet_sweep-reproduction resnet_reproduction \
-  --depth 35 --threads 32 --max-area 80
+  --depth 46 --threads "$(nproc)" --max-area 80
 
 tmux attach -t resnet_reproduction
-# 在 tmux 内按 Ctrl-b 再按 d，退出查看但保持任务运行。
+# Inside tmux, press Ctrl-b followed by d to detach and leave the task running.
 ```
 
-脚本先构建 `build/test`，再串行运行边长 10、20、…、80 和层数 6、7、8、9、10 的组合，共 **40 项**。虽然之前口头称“50 个测试”，实际配置是 40 项。`--max-area 100` 才是 50 项。仅需到 50×50 时使用 `--max-area 50`（25 项）。
+The launcher first builds `build/test`, then runs the combinations of square side lengths 10, 20, …, 80 and convolution counts 6, 7, 8, 9, 10 serially: **40 cases** in total. An earlier informal description called this “50 tests,” but the actual configuration contains 40. `--max-area 100` produces 50 cases; `--max-area 50` produces 25. Despite its name, `--max-area` specifies a square's side length, not its area.
 
-不使用 tmux：
+Without tmux:
 
 ```bash
 python3 -u scripts/run_resnet_sweep.py \
   --output test_results/resnet_sweep-reproduction \
-  --depth 35 --threads 32 --max-area 80
+  --depth 46 --threads "$(nproc)" --max-area 80
 ```
 
-查看状态：
+Inspect status:
 
 ```bash
 python3 scripts/run_resnet_sweep.py --status \
   --output test_results/resnet_sweep-reproduction
 ```
 
-中断后，用相同参数和输出目录重启 runner：命令、二进制指纹和 CPU 绑定一致的成功项会跳过，中断项重跑。`--rerun` 强制重跑。tmux 启动器不会覆盖同名 session；仍存在时换一个 session 名称。二进制或参数改变可能导致重新计算，因此不要把新实验写入本次归档目录。`--dry-run` 可打印计划命令。
+After interruption, restart the runner with the same options and output directory. Successful cases with matching commands, binary fingerprints, and CPU affinity are skipped; interrupted cases run again. `--rerun` forces reruns. The tmux launcher does not replace an existing session of the same name; choose a new name if necessary. Binary or option changes can trigger recomputation, so do not direct new experiments into the archived result directory. Use `--dry-run` to print planned commands.
 
-`--threads` 同时限制 OpenMP 并绑定当前允许使用的前 N 个 CPU；不代表独占这些 CPU。选择不超过作业分配的 CPU 数量。
+`--threads` limits OpenMP and binds child processes to the first N CPUs available to the runner; it does not reserve those CPUs exclusively. Choose a value no greater than the job's CPU allocation. The runner defaults are depth 46, all CPUs in its affinity mask, and maximum side length 100. Explicit `--threads` values remain supported by the runner through CPU affinity.
 
-## 结果在哪里、如何理解
+## Results and interpretation
 
-原始实验在 [`test_results/resnet_sweep_t32_d35_max80/`](test_results/resnet_sweep_t32_d35_max80/)，40/40 成功。详见 [结果与分析](test_results/README.md)。
+These results predate the encrypted-mask change. The raw experiment is in [`test_results/resnet_sweep_t32_d35_max80/`](test_results/resnet_sweep_t32_d35_max80/), with 40/40 cases successful. See the [results and analysis](test_results/README.md) (currently in Chinese).
 
-- `summary.csv`：整项推理、卷积、ReLU、整进程耗时与峰值内存。
-- `configuration.json`：深度、线程数、环维数、slots、CPU 绑定和二进制 SHA256。
-- `areaNNN/layersNN/layers.csv`：每层卷积/ReLU 耗时、累计耗时、加密区域、密文数、level 和剩余 towers。
-- 每项的 `run.log`、`result.json`、`time.txt`：完整输出、命令、退出状态和 GNU time 数据。
-- `runner.log`、`live.json`：调度过程与最终状态。历史记录中的绝对路径是原机器的溯源信息，在其他机器上请从此目录按相对路径找文件。
+- `summary.csv`: inference, convolution, ReLU, whole-process runtime, and peak memory for each case.
+- `configuration.json`: depth, threads, ring dimension, slots, CPU affinity, and binary SHA256.
+- `areaNNN/layersNN/layers.csv`: per-layer convolution/ReLU times, cumulative times, encrypted region, ciphertext count, level, and remaining towers.
+- Per-case `run.log`, `result.json`, and `time.txt`: full output, command, exit status, and GNU time measurements.
+- `runner.log` and `live.json`: scheduling history and final state. Absolute paths in archived records refer to the original machine; locate files by their relative paths on another machine.
 
-`*_ms` 单位为毫秒；`*_seconds` 为秒；`peak_rss_gib` 为 GiB。`inference_seconds` 是累计卷积+ReLU forward 计时，`wall_seconds` 是整个测试子进程耗时，包含初始化等开销。
+`*_ms` values are milliseconds, `*_seconds` values are seconds, and `peak_rss_gib` is measured in GiB. `inference_seconds` is the cumulative convolution+ReLU forward time; `wall_seconds` covers the entire test subprocess, including initialization.
 
-每组合仅运行一次。跨次运行会有机器负载波动，不能把相邻层数的倒挂解释为增加层数能加速。比较累计计算量时，优先比较**同一次 10 层运行**内的前缀；正式性能比较应在稳定资源上重复测量并报告中位数。
+Each configuration was run once. Machine-load variation between runs means that a longer prefix appearing faster does not demonstrate a speedup from adding layers. To compare cumulative work, prefer prefixes within the **same 10-layer run**. Formal performance comparisons should repeat measurements under stable resource conditions and report medians.
 
-## 其他测试及历史归档
+## Other tests and historical archives
 
-- [`tests/sparse_packing/README.md`](tests/sparse_packing/README.md)：独立 CKKS→FHEW slots/输出数微基准。
-- `build/resnet_conv3_bench "$PWD" 16384`：使用真实 ResNet 第三个卷积权重的微基准。
-- `tests/schemeswitch/`：原有 scheme switching 示例，单独用 CMake 构建。
-- `artifacts/run_bigger.legacy.sh`：旧版中心区域脚本，保留作历史参考；其包含端点的边界实际产生 size+1 的区域，不用于本次实验，请使用新的 runner。
-- [`artifacts/legacy-results.tar.gz.parts/`](artifacts/legacy-results.tar.gz.parts/)：分卷压缩归档（每卷最多 45 MiB），包含其他历史 `test_results/`、`old_results/` 和根目录 slots 实验日志；包含旧配置和失败试验，不应与本次 40 项混合统计。
+- [`tests/sparse_packing/README.md`](tests/sparse_packing/README.md): standalone CKKS-to-FHEW microbenchmark for slot counts and output counts.
+- `build/resnet_conv3_bench "$PWD" 16384`: microbenchmark using actual weights from the third convolution in the ResNet prefix.
+- `tests/schemeswitch/`: original scheme-switching example, built as a separate CMake project.
+- `artifacts/run_bigger.legacy.sh`: older central-region sweep script retained for reference. Its inclusive bounds actually produce regions of size+1, so use the new runner for this experiment.
+- [`artifacts/legacy-results.tar.gz.parts/`](artifacts/legacy-results.tar.gz.parts/): split compressed archive (up to 45 MiB per part) containing other historical `test_results/`, `old_results/`, and root-level slot-experiment logs. It includes older configurations and failed trials; do not combine these with the archived 40-case sweep.
 
 ```bash
-# 查看历史归档；解压到新目录以免覆盖已有结果。
+# Inspect the archive; extract into a new directory to avoid overwriting results.
 cat artifacts/legacy-results.tar.gz.parts/part-* | tar -tzf -
 mkdir -p recovered-results
 cat artifacts/legacy-results.tar.gz.parts/part-* | tar -xzf - -C recovered-results
 ```
 
-构建目录和编译产物由 `.gitignore` 排除。本次提交保留源码与结果，二进制需在目标环境重新构建。
+Build directories and generated build products are excluded by `.gitignore`. The experiment's source and results are retained; rebuild the executables on the target machine.
